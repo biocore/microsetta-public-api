@@ -1,0 +1,142 @@
+swagger: '2.0'
+info:
+  title: Microsetta Public API
+  version: "0.1"
+  description: Work in progress
+consumes:
+  - application/json
+produces:
+  - application/json
+# security:
+  # enable OAuth protection for all REST endpoints
+  # (only active if the TOKENINFO_URL environment variable is set)
+  # - oauth2: [uid]
+paths:
+
+  #Root level utilities
+  /api/v1/time:
+    get:
+      tags: [time]
+      operationId: controller.app.get_time
+      summary: Get UTC time
+      responses:
+        200:
+          description: UTC Time Milliseconds
+          schema:
+            type: integer
+
+  /api/v1/test:
+    get:
+      tags: [foobar]
+      operationId: controller.app.gimme_five
+      summary: Gives you five
+      responses:
+        200:
+          description: The number five
+          schema:
+            type: integer
+
+  #Taxonomy Routes
+  /api/v1/taxonomy/{sample_ids}:
+    get:
+      parameters:
+        - $ref: '#/parameters/sample_ids'
+      operationId: controller.taxonomy.get_taxonomy
+      summary: Get taxa of the input sample ids
+      responses:
+        200:
+          description: Map from sample id to taxa id
+
+  #Alpha Routes
+#  /api/v1/alpha:
+#    get:
+#      operationId: alpha.get_alpha
+#      summary: Gets alpha I guess
+#      responses:
+#        200:
+#          description: Gives you the alpha
+  /api/v1/alpha/{sample_ids}:
+    get:
+      parameters:
+        - $ref: '#/parameters/sample_ids'
+      operationId: controller.alpha.get_alpha
+      summary: Get alpha of the input sample ids
+      responses:
+        200:
+          description: Map from sample id to alpha
+
+  #Beta Routes
+  /api/v1/beta/{sample_ids}:
+    get:
+      parameters:
+        - $ref: '#/parameters/sample_ids'
+      operationId: controller.beta.get_beta
+      summary: Get beta of the input sample ids
+      responses:
+        200:
+          description: Map from sample id to beta
+
+  #PCOA Routes
+  /api/v1/pcoa/{sample_ids}:
+    get:
+      parameters:
+        - $ref: '#/parameters/sample_ids'
+      operationId: controller.pcoa.get_pcoa
+      summary: Get pcoa of the input sample ids
+      responses:
+        200:
+          description: Map from sample id to pcoa
+
+  #Metadata Routes
+#  /api/v1/metadata/info
+#  /api/v1/metadata/category
+#  /api/v1/metadata/category/{category}
+#  /api/v1/metadata/category/{category}/info
+#  /api/v1/metadata/samples/{sample_ids}/{category}
+
+  #Relationship Routes
+  /api/v1/relationship/{sample_ids}:
+    get:
+      parameters:
+        - $ref: '#/parameters/sample_ids'
+      operationId: controller.relationship.get_relationship
+      summary: Get relationships of the input sample ids
+      responses:
+        200:
+          description: Map from sample id to relationship
+
+  #Sample Routes
+#  /api/v1/sample/{sample_id}:
+#  /api/v1/sample/{sample_id}/info:
+#  /api/v1/sample/{sample_id}/taxonomy:
+#  /api/v1/sample/{sample_id}/alpha:
+#  /api/v1/sample/{sample_id}/beta:
+#  /api/v1/sample/{sample_id}/relationship:
+
+  #Summary Routes
+#  /api/v1/summary/alpha:
+#  /api/v1/summary/alpha/{category}:
+#  /api/v1/summary/beta:
+#  /api/v1/summary/beta/{category}:
+#  /api/v1/summary/taxonomy:
+#  /api/v1/summary/taxonomy/{category}:
+#  /api/v1/summary/pcoa:
+#  /api/v1/summary/pcoa/{metric}:
+
+parameters:
+  sample_ids:
+    name: sample_ids
+    description: Requested sample ids
+    in: path
+    type: array
+    items:
+      type: string
+    required: true
+
+#securityDefinitions:
+#  oauth2:
+#    type: oauth2
+#    flow: implicit
+#    authorizationUrl: https://example.com/oauth2/dialog
+#    scopes:
+#      uid: Unique identifier of the user accessing the service.
