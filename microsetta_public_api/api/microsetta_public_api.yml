@@ -1,0 +1,68 @@
+openapi: 3.0.0
+info:
+  description: Public Microsetta RESTful API
+  version: "2020.04.10-1"
+  title: Public Microsetta RESTful API (OAS 3.0)
+servers:
+  - url: '/api'
+
+paths:
+  '/diversity/alpha/{alpha_metric}/{sample_id}':
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.get_alpha
+      tags:
+        - Diversity
+      summary: Get single sample alpha diversity
+      description: Get single sample alpha diversity
+      parameters:
+        - $ref: '#/components/parameters/sample_id'
+        - $ref: '#/components/parameters/alpha_metric'
+      responses:
+        '200':
+          description: Successfuly return alpha diversity information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sample_id:
+                    $ref: '#/components/schemas/sample_id'
+                  alpha_metric:
+                    $ref: '#/components/schemas/alpha_metric'
+                  value:
+                    type: number
+                    example: 7.24
+                    description: Alpha diversity value for sample ID with metric
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+components:
+  parameters:
+    alpha_metric:
+      name: alpha_metric
+      in: path
+      description: An alpha diversity metric
+      schema:
+        $ref: '#/components/schemas/alpha_metric'
+      required: true
+    sample_id:
+      name: sample_id
+      in: path
+      description: Unique id specifying a sample associated with a source
+      schema:
+        $ref: '#/components/schemas/sample_id'
+      required: true
+
+  schemas:
+    alpha_metric:
+      # TODO could be enum
+      type: string
+      example: "faith_pd"
+    sample_id:
+      type: string
+      readOnly: true # sent in GET, not in POST/PUT/PATC
+      example: "dae21127-27bb-4f52-9fd3-a2aa5eb5b86f"
+
+  responses:
+    404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
+      description: The specified resource was not found.
