@@ -21,5 +21,11 @@ setup(
         'connexion[swagger-ui]',
         'flask',
         'pyyaml',
-    ]
+    ],
+    extras_require={
+        "dev": [
+            "pytest",
+            "flake8",
+        ]
+    },
 )
