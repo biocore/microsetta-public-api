@@ -1,10 +1,13 @@
+from pkg_resources import resource_filename
+
 import connexion
 
 
 def build_app():
     app = connexion.FlaskApp(__name__)
-
-    app.add_api('api/microsetta_public_api.yml', validate_responses=True)
+    app_file = resource_filename('microsetta_public_api.api',
+                                 'microsetta_public_api.yml')
+    app.add_api(app_file, validate_responses=True)
 
     return app
 
