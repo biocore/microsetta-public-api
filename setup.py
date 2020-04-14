@@ -21,6 +21,10 @@ setup(
         'connexion[swagger-ui]',
         'flask',
         'pyyaml',
+        'pandas',
+        'numpy',
+        'biom-format>=2.0',
+        'scikit-bio',
     ],
     extras_require={
         "dev": [

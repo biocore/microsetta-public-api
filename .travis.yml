@@ -13,6 +13,7 @@ before_install:
 install:
   - conda create --yes -n test-env python=$CONDA_PY
   - conda install --yes -n test-env flask
+  - conda install --yes -n test-env -c conda-forge scikit-bio biom-format pandas numpy
   - source activate test-env
   - pip install "connexion[swagger-ui]" pyyaml
   - pip install ".[dev]"
