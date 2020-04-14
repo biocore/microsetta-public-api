@@ -26,9 +26,9 @@ class AlphaDiversityTests(FlaskTests):
 
         with mock.patch('microsetta_public_api.api.diversity.alpha.get_alpha'
                         '') as mocked_alpha:
-            mocked_alpha.return_value = (ret_val, 72419)
+            mocked_alpha.return_value = (ret_val, 200)
             _, client = self.build_app_test_client()
             response = client.get(
                 '/api/diversity/alpha/observed_otus/sample-foo-bar')
 
-        self.assertEqual(response.status_code, 72419)
+        self.assertEqual(response.status_code, 200)
