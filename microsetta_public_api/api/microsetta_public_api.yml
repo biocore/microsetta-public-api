@@ -34,7 +34,7 @@ paths:
                     example: 7.24
                     description: Alpha diversity value for sample ID with metric
         '404':
-          $ref: '#/components/responses/404NotFound'
+          $ref: '#/components/responses/404SampleNotFound'
 
 components:
   parameters:
@@ -64,5 +64,5 @@ components:
       example: "dae21127-27bb-4f52-9fd3-a2aa5eb5b86f"
 
   responses:
-    404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
-      description: The specified resource was not found.
+    404SampleNotFound:       # Can be referenced as '#/components/responses/404NotFound'
+      description: The specified sample was not found.
