@@ -1,5 +1,6 @@
 from unittest import TestCase
 from unittest import mock
+import json
 
 import microsetta_public_api
 import microsetta_public_api.server
@@ -22,13 +23,16 @@ class AlphaDiversityTests(FlaskTests):
 
     def test_alpha_diversity_single_sample(self):
 
-        ret_val = {}
+        response = self.client.get(
+            '/api/diversity/alpha/observed_otus/sample-foo-bar')
 
-        with mock.patch('microsetta_public_api.api.diversity.alpha.get_alpha'
-                        '') as mocked_alpha:
-            mocked_alpha.return_value = (ret_val, 72419)
-            _, client = self.build_app_test_client()
-            response = client.get(
-                '/api/diversity/alpha/observed_otus/sample-foo-bar')
+        # will need to be changed when alpha is fully implemented
+        exp = {
+            'sample_id': 'sample-foo-bar',
+            'alpha_metric': 'observed_otus',
+            'value': 8.25,
+        }
+        obs = json.loads(response.data)
 
-        self.assertEqual(response.status_code, 72419)
+        self.assertDictEqual(exp, obs)
+        self.assertEqual(response.status_code, 200)
