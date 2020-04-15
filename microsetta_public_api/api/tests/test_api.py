@@ -1,5 +1,4 @@
 from unittest import TestCase
-from unittest import mock
 import json
 
 import microsetta_public_api
