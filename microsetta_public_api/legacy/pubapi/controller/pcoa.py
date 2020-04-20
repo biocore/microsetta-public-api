@@ -1,7 +1,5 @@
-def get_taxonomy(sample_ids):
+def get_pcoa(sample_ids):
     ret_val = {}
     for sample_id in sample_ids:
-        ret_val[sample_id] = "Duck"
+        ret_val[sample_id] = 123.456
     return ret_val
-
-

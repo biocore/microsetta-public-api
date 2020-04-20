@@ -1,4 +1,4 @@
-def get_alpha(sample_ids):
+def get_beta(sample_ids):
     ret_val = {}
     for sample_id in sample_ids:
         ret_val[sample_id] = 123.456
