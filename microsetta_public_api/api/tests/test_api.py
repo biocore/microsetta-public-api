@@ -1,8 +1,11 @@
 from unittest import TestCase
+from unittest.mock import patch
 import json
+import pandas as pd
 
 import microsetta_public_api
 import microsetta_public_api.server
+from microsetta_public_api.repo._alpha_repo import AlphaRepo
 
 
 class FlaskTests(TestCase):
@@ -21,11 +24,15 @@ class FlaskTests(TestCase):
 class AlphaDiversityTests(FlaskTests):
 
     def test_alpha_diversity_single_sample(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method:
+            mock_method.return_value = pd.Series({
+                'sample-foo-bar': 8.25}, name='observed_otus')
 
-        response = self.client.get(
-            '/api/diversity/alpha/observed_otus/sample-foo-bar')
+            _, self.client = self.build_app_test_client()
 
-        # will need to be changed when alpha is fully implemented
+            response = self.client.get(
+                '/api/diversity/alpha/observed_otus/sample-foo-bar')
+
         exp = {
             'name': None,
             'alpha_metric': 'observed_otus',
