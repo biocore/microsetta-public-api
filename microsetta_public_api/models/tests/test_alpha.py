@@ -30,7 +30,7 @@ class AlphaTests(unittest.TestCase):
     def test_get_group_single(self):
         adiv = Alpha(self.series)
         exp = GroupAlpha(name='b',
-                         metric='shannon',
+                         alpha_metric='shannon',
                          mean=0.2,
                          median=0.2,
                          std=0.0,
@@ -43,7 +43,7 @@ class AlphaTests(unittest.TestCase):
     def test_get_group_multi(self):
         adiv = Alpha(self.series)
         exp = GroupAlpha(name='bar',
-                         metric='shannon',
+                         alpha_metric='shannon',
                          mean=0.35,
                          median=0.35,
                          std=0.25,
@@ -53,7 +53,7 @@ class AlphaTests(unittest.TestCase):
                                             0.45, 0.5, 0.55])
         obs = adiv.get_group(['a', 'f'], 'bar')
         self.assertEqual(obs.name, exp.name)
-        self.assertEqual(obs.metric, exp.metric)
+        self.assertEqual(obs.alpha_metric, exp.alpha_metric)
         self.assertAlmostEqual(obs.mean, exp.mean)
         self.assertAlmostEqual(obs.median, exp.median)
         self.assertAlmostEqual(obs.std, exp.std)
@@ -77,14 +77,14 @@ class AlphaTests(unittest.TestCase):
                                 index=['a', 'b', 'c', 'd', 'e', 'f'],
                                 name='shannon')
         exp_all = GroupAlphaRaw(name=None,
-                                metric='shannon',
+                                alpha_metric='shannon',
                                 data={'a': 0.1, 'b': 0.2, 'c': 0.8, 'd': 0.7,
                                       'e': 0.7, 'f': 0.6})
         obs_all = adiv.get_group_raw()
         self.assertEqual(obs_all, exp_all)
 
         exp_partial = GroupAlphaRaw(name='foo',
-                                    metric='shannon',
+                                    alpha_metric='shannon',
                                     data={'a': 0.1, 'c': 0.8, 'f': 0.6})
         obs_partial = adiv.get_group_raw(['a', 'c', 'f'], 'foo')
         self.assertEqual(obs_partial, exp_partial)
@@ -103,15 +103,15 @@ class AlphaTests(unittest.TestCase):
 class GroupAlphaRawTests(unittest.TestCase):
     def setUp(self):
         self.obj = GroupAlphaRaw(name=None,
-                                 metric='shannon',
+                                 alpha_metric='shannon',
                                  data={'a': 10, 'b': 20})
         self.obj2 = GroupAlphaRaw(name='foobar',
-                                  metric='shannon',
+                                  alpha_metric='shannon',
                                   data={'a': 10, 'b': 20, 'c': 30})
 
     def test_init(self):
         self.assertEqual(self.obj.name, None)
-        self.assertEqual(self.obj.metric, 'shannon')
+        self.assertEqual(self.obj.alpha_metric, 'shannon')
         self.assertEqual(self.obj.data, {'a': 10, 'b': 20})
 
     def test_init_nokw(self):
@@ -122,7 +122,7 @@ class GroupAlphaRawTests(unittest.TestCase):
 class GroupAlphaTests(unittest.TestCase):
     def setUp(self):
         self.obj = GroupAlpha(name='sample-1',
-                              metric='shannon',
+                              alpha_metric='shannon',
                               mean=0.2,
                               median=0.2,
                               std=0.0,
@@ -131,7 +131,7 @@ class GroupAlphaTests(unittest.TestCase):
                               percentile_values=None)
 
         self.obj2 = GroupAlpha(name='abx-low',
-                               metric='faiths',
+                               alpha_metric='faiths',
                                mean=0.5,
                                median=0.4,
                                std=0.1,
@@ -141,7 +141,7 @@ class GroupAlphaTests(unittest.TestCase):
 
     def test_init(self):
         self.assertEqual(self.obj.name, 'sample-1')
-        self.assertEqual(self.obj.metric, 'shannon')
+        self.assertEqual(self.obj.alpha_metric, 'shannon')
         self.assertEqual(self.obj.mean, 0.2)
         self.assertEqual(self.obj.median, 0.2)
         self.assertEqual(self.obj.std, 0.0)
@@ -152,7 +152,7 @@ class GroupAlphaTests(unittest.TestCase):
     def test_init_group_size_lte_0(self):
         with self.assertRaisesRegex(ValueError, "bad group_size."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -163,7 +163,7 @@ class GroupAlphaTests(unittest.TestCase):
     def test_init_group_size_gt_1(self):
         with self.assertRaisesRegex(ValueError, "unmatched percentiles."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -173,7 +173,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "unmatched percentiles."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -183,7 +183,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "Missing percentiles."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -193,7 +193,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "Missing percentiles."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -203,7 +203,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "Missing percentiles."):
             GroupAlpha(name='abx-low',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.1,
@@ -214,7 +214,7 @@ class GroupAlphaTests(unittest.TestCase):
     def test_init_group_size_1(self):
         with self.assertRaisesRegex(ValueError, "non-sensical for n=1."):
             GroupAlpha(name='sample-1',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.4,
                        median=0.5,
                        std=0.0,
@@ -224,7 +224,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "non-sensical for n=1."):
             GroupAlpha(name='sample-1',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.5,
                        median=0.4,
                        std=0.0,
@@ -234,7 +234,7 @@ class GroupAlphaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "non-sensical for n=1."):
             GroupAlpha(name='sample-1',
-                       metric='faiths',
+                       alpha_metric='faiths',
                        mean=0.4,
                        median=0.4,
                        std=0.0,
@@ -244,7 +244,7 @@ class GroupAlphaTests(unittest.TestCase):
 
     def test_to_dict(self):
         exp = {'name': 'abx-low',
-               'metric': 'faiths',
+               'alpha_metric': 'faiths',
                'mean': 0.5,
                'median': 0.4,
                'std': 0.1,
@@ -255,7 +255,7 @@ class GroupAlphaTests(unittest.TestCase):
         self.assertEqual(obs, exp)
 
         exp = {'name': 'sample-1',
-               'metric': 'shannon',
+               'alpha_metric': 'shannon',
                'mean': 0.2,
                'median': 0.2,
                'std': 0.0,

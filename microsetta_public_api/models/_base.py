@@ -16,3 +16,6 @@ class ModelBase:
 
     def get_group_raw(self, ids=None, name=None):
         raise NotImplementedError
+
+    def to_api(self):
+        raise NotImplementedError

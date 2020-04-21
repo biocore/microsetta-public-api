@@ -27,9 +27,9 @@ class AlphaDiversityTests(FlaskTests):
 
         # will need to be changed when alpha is fully implemented
         exp = {
-            'sample_id': 'sample-foo-bar',
+            'name': None,
             'alpha_metric': 'observed_otus',
-            'value': 8.25,
+            'data': {'sample-foo-bar': 8.25},
         }
         obs = json.loads(response.data)
 

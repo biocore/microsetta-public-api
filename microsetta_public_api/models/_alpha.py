@@ -5,9 +5,9 @@ from microsetta_public_api.models._base import ModelBase
 from microsetta_public_api.models._exceptions import UnknownID
 from typing import Dict, List
 
-_gar_named = namedtuple('GroupAlphaRaw', ['name', 'metric', 'data'])
+_gar_named = namedtuple('GroupAlphaRaw', ['name', 'alpha_metric', 'data'])
 
-_ga_named = namedtuple('GroupAlpha', ['name', 'metric', 'mean', 'median',
+_ga_named = namedtuple('GroupAlpha', ['name', 'alpha_metric', 'mean', 'median',
                                       'std', 'group_size', 'percentile',
                                       'percentile_values'])
 
@@ -22,7 +22,7 @@ class GroupAlphaRaw(_gar_named):
     ----------
     name : str
         The name of the group.
-    metric : str
+    alpha_metric : str
         The name of the metric expressed.
     data : dict
         The sample to value data.
@@ -53,7 +53,7 @@ class GroupAlpha(_ga_named):
     ----------
     name : str
         The name of the group (e.g., 'sample-foo').
-    metric : str
+    alpha_metric : str
         The name of the metric expressed.
     mean : float
         The mean of the group values.
@@ -161,7 +161,7 @@ class Alpha(ModelBase):
             raise UnknownID('Identifier not found.')
 
         return GroupAlphaRaw(name=name,
-                             metric=self._series.name,
+                             alpha_metric=self._series.name,
                              data=vals.to_dict())
 
     def get_group(self, ids: List[str], name: str = None) -> GroupAlpha:
@@ -198,7 +198,7 @@ class Alpha(ModelBase):
         if len(ids) == 1:
             std = 0.
             return GroupAlpha(name=ids[0],
-                              metric=self._series.name,
+                              alpha_metric=self._series.name,
                               mean=mean,
                               median=median,
                               std=std,
@@ -212,7 +212,7 @@ class Alpha(ModelBase):
             std = vals.std(ddof=0)
             percentile_values = np.percentile(vals, self._percentiles)
             return GroupAlpha(name=name,
-                              metric=self._series.name,
+                              alpha_metric=self._series.name,
                               mean=mean,
                               median=median,
                               std=std,

@@ -4,7 +4,7 @@ A public microservice to support The Microsetta Initiative
 ## Installation
 Create a new `conda` environment:
 
-`conda create -n microsetta-public-api python=3.7 flask
+`conda create -n microsetta-public-api python=3.7 flask`
 
 Once the conda environment is created, activate it:
 
