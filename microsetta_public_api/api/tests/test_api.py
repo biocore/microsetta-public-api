@@ -53,6 +53,6 @@ class AlphaDiversityTests(FlaskTests):
             response = self.client.get(
                 '/api/diversity/alpha/observed_otus/sample-foo-bar')
 
-        self.assertRegexpMatches(response.data.decode(),
-                                 "Sample ID not found.")
+        self.assertRegex(response.data.decode(),
+                         "Sample ID not found.")
         self.assertEqual(response.status_code, 404)
