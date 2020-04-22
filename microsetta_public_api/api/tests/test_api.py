@@ -6,6 +6,7 @@ import pandas as pd
 import microsetta_public_api
 import microsetta_public_api.server
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
+from microsetta_public_api.models._exceptions import UnknownID
 
 
 class FlaskTests(TestCase):
@@ -34,11 +35,24 @@ class AlphaDiversityTests(FlaskTests):
                 '/api/diversity/alpha/observed_otus/sample-foo-bar')
 
         exp = {
-            'name': None,
+            'sample_id': 'sample-foo-bar',
             'alpha_metric': 'observed_otus',
-            'data': {'sample-foo-bar': 8.25},
+            'data': 8.25,
         }
         obs = json.loads(response.data)
 
         self.assertDictEqual(exp, obs)
         self.assertEqual(response.status_code, 200)
+
+    def test_alpha_diversity_unknown_id(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method:
+            mock_method.side_effect = UnknownID
+
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.get(
+                '/api/diversity/alpha/observed_otus/sample-foo-bar')
+
+        self.assertRegexpMatches(response.data.decode(), "Sample ID not found.")
+        self.assertEqual(response.status_code, 404)
+
