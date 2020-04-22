@@ -1,7 +1,7 @@
 class AlphaRepo:
 
     def get_alpha_diversity(self, sample_ids, metric):
-        """
+        """Obtains alpha diversity of a given metric for a list of samples.
 
         Parameters
         ----------
