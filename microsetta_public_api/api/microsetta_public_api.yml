@@ -29,7 +29,7 @@ paths:
                     $ref: '#/components/schemas/sample_id'
                   alpha_metric:
                     $ref: '#/components/schemas/alpha_metric'
-                  value:
+                  data:
                     type: number
                     example: 7.24
                     description: Alpha diversity value for sample ID with metric
