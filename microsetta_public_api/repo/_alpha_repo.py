@@ -14,13 +14,27 @@ class AlphaRepo:
         Returns
         -------
         pd.Series
-            Contains alpha diversity with metric `metric` for the samples in
-            sample_ids with name=`metric`.
+            Contains alpha diversity with metric `metric` for the
+            union of samples ids in the database the ids in `sample_ids`.
+            Sets the name of the series to `metric`.
 
-        Raises
-        ------
-        microsetta_public_api.models._exceptions.UknownID
-            If an id in sample_ids does not exist in the database.
+        """
+
+        raise NotImplementedError
+
+    def exists(self, sample_ids):
+        """Checks if sample_ids exists in the database.
+
+        Parameters
+        ----------
+        sample_ids : list of str
+            Ids for to check database for.
+
+        Returns
+        -------
+        list of bool
+            each entry `i` corresponds to whether `sample_ids[i]` exists
+            in the database.
 
         """
 

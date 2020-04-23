@@ -6,7 +6,6 @@ import pandas as pd
 import microsetta_public_api
 import microsetta_public_api.server
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
-from microsetta_public_api.models._exceptions import UnknownID
 
 
 class FlaskTests(TestCase):
@@ -25,7 +24,9 @@ class FlaskTests(TestCase):
 class AlphaDiversityTests(FlaskTests):
 
     def test_alpha_diversity_single_sample(self):
-        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method:
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method,\
+                patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_exists.return_value = [True]
             mock_method.return_value = pd.Series({
                 'sample-foo-bar': 8.25}, name='observed_otus')
 
@@ -45,8 +46,8 @@ class AlphaDiversityTests(FlaskTests):
         self.assertEqual(response.status_code, 200)
 
     def test_alpha_diversity_unknown_id(self):
-        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method:
-            mock_method.side_effect = UnknownID
+        with patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_exists.return_value = [False]
 
             _, self.client = self.build_app_test_client()
 
