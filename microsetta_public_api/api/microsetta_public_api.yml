@@ -77,8 +77,6 @@ paths:
                 properties:
                   alpha_metric:
                     $ref: '#/components/schemas/alpha_metric'
-                  name:
-                    type: string
                   alpha_diversity:
                     type: object
                     additionalProperties:

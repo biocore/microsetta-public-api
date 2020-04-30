@@ -21,7 +21,7 @@ def get_alpha(sample_id, alpha_metric):
     return jsonify(ret_val), 200
 
 
-def alpha_group(body, alpha_metric, name=None):
+def alpha_group(body, alpha_metric):
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
@@ -31,7 +31,7 @@ def alpha_group(body, alpha_metric, name=None):
                                                   alpha_metric,
                                                   )
     alpha_ = Alpha(alpha_series)
-    alpha_data = alpha_.get_group_raw(name=name).to_dict()
+    alpha_data = alpha_.get_group_raw().to_dict()
 
     if alpha_data['name'] is None:
         del alpha_data['name']
