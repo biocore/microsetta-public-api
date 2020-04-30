@@ -36,6 +36,64 @@ paths:
         '404':
           $ref: '#/components/responses/404SampleNotFound'
 
+  '/diversity/alpha_group/{alpha_metric}':
+    post:
+      operationId: microsetta_public_api.api.diversity.alpha.alpha_group
+      tags:
+        - Diversity
+      summary: Query alpha diversity for a group of samples
+      description: Query alpha diversity for a group of samples
+
+      parameters:
+        - $ref: '#/components/parameters/alpha_metric'
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sample_ids
+              properties:
+                sample_ids:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/sample_id'
+                  example:
+                    - "sample1"
+                    - "sample2"
+                    - "sample3"
+
+      responses:
+        '200':
+          description: Successfuly return alpha diversity information
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - alpha_metric
+                  - alpha_diversity
+                properties:
+                  alpha_metric:
+                    $ref: '#/components/schemas/alpha_metric'
+                  name:
+                    type: string
+                  alpha_diversity:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      example: 7.24
+                      description: Alpha diversity value for sample ID with metric
+                    example:
+                      {
+                        "sample1": 0.1,
+                        "sample2": 9.01,
+                        "sample3": 7.24,
+                      }
+        '404':
+          $ref: '#/components/responses/404SampleNotFound'
+
 components:
   parameters:
     alpha_metric:
@@ -60,7 +118,6 @@ components:
       example: "faith_pd"
     sample_id:
       type: string
-      readOnly: true # sent in GET, not in POST/PUT/PATC
       example: "dae21127-27bb-4f52-9fd3-a2aa5eb5b86f"
 
   responses:

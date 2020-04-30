@@ -78,14 +78,15 @@ class AlphaTests(unittest.TestCase):
                                 name='shannon')
         exp_all = GroupAlphaRaw(name=None,
                                 alpha_metric='shannon',
-                                data={'a': 0.1, 'b': 0.2, 'c': 0.8, 'd': 0.7,
-                                      'e': 0.7, 'f': 0.6})
+                                alpha_diversity={'a': 0.1, 'b': 0.2, 'c': 0.8,
+                                                 'd': 0.7, 'e': 0.7, 'f': 0.6})
         obs_all = adiv.get_group_raw()
         self.assertEqual(obs_all, exp_all)
 
         exp_partial = GroupAlphaRaw(name='foo',
                                     alpha_metric='shannon',
-                                    data={'a': 0.1, 'c': 0.8, 'f': 0.6})
+                                    alpha_diversity={'a': 0.1, 'c': 0.8,
+                                                     'f': 0.6})
         obs_partial = adiv.get_group_raw(['a', 'c', 'f'], 'foo')
         self.assertEqual(obs_partial, exp_partial)
 
@@ -104,15 +105,15 @@ class GroupAlphaRawTests(unittest.TestCase):
     def setUp(self):
         self.obj = GroupAlphaRaw(name=None,
                                  alpha_metric='shannon',
-                                 data={'a': 10, 'b': 20})
+                                 alpha_diversity={'a': 10, 'b': 20})
         self.obj2 = GroupAlphaRaw(name='foobar',
                                   alpha_metric='shannon',
-                                  data={'a': 10, 'b': 20, 'c': 30})
+                                  alpha_diversity={'a': 10, 'b': 20, 'c': 30})
 
     def test_init(self):
         self.assertEqual(self.obj.name, None)
         self.assertEqual(self.obj.alpha_metric, 'shannon')
-        self.assertEqual(self.obj.data, {'a': 10, 'b': 20})
+        self.assertEqual(self.obj.alpha_diversity, {'a': 10, 'b': 20})
 
     def test_init_nokw(self):
         with self.assertRaises(NotImplementedError):
