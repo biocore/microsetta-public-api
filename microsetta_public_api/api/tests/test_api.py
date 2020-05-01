@@ -106,5 +106,5 @@ class AlphaDiversityTests(FlaskTests):
         self.assertListEqual(api_out['missing_ids'],
                              ['sample-baz-bat'])
         self.assertRegex(api_out['text'],
-                         'Sample ID\(s\) not found.')
+                         r'Sample ID\(s\) not found.')
         self.assertEqual(response.status_code, 404)
