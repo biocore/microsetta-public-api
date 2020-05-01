@@ -6,7 +6,8 @@ from microsetta_public_api.repo._alpha_repo import AlphaRepo
 def get_alpha(sample_id, alpha_metric):
     alpha_repo = AlphaRepo()
     if not all(alpha_repo.exists([sample_id])):
-        return jsonify(error=404, text="Sample ID not found."), 404
+        return jsonify(error=404, text="Sample ID not found."),\
+               404
     alpha_series = alpha_repo.get_alpha_diversity([sample_id],
                                                   alpha_metric)
     alpha_ = Alpha(alpha_series)
@@ -25,9 +26,14 @@ def alpha_group(body, alpha_metric):
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
-    if not all(alpha_repo.exists([sample_ids])):
-        return jsonify(error=404, text="Sample ID not found."), 404
-    alpha_series = alpha_repo.get_alpha_diversity([sample_ids],
+    exists = zip(sample_ids, alpha_repo.exists(sample_ids))
+    missing_filter = filter(lambda x: not x[1], exists)
+    missing_ids = [item[0] for item in missing_filter]
+    if not all(alpha_repo.exists(sample_ids)):
+        return jsonify(missing_ids=missing_ids,
+                       error=404, text="Sample ID(s) not found."),\
+                       404
+    alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
                                                   alpha_metric,
                                                   )
     alpha_ = Alpha(alpha_series)

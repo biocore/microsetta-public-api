@@ -121,3 +121,16 @@ components:
   responses:
     404SampleNotFound:       # Can be referenced as '#/components/responses/404NotFound'
       description: The specified sample was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              missing_ids:
+                type: array
+                description: Missing IDs.
+                items:
+                  $ref: '#/components/schemas/sample_id'
+                  example:
+                    - "sample1"
+                    - "sample2"

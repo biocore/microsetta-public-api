@@ -102,7 +102,9 @@ class AlphaDiversityTests(FlaskTests):
                                                 'sample-baz-bat']
                                  })
             )
-
-        self.assertRegex(response.data.decode(),
-                         "Sample ID not found.")
+        api_out = json.loads(response.data.decode())
+        self.assertListEqual(api_out['missing_ids'],
+                             ['sample-baz-bat'])
+        self.assertRegex(api_out['text'],
+                         'Sample ID\(s\) not found.')
         self.assertEqual(response.status_code, 404)
