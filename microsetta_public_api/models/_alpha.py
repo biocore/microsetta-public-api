@@ -5,7 +5,8 @@ from microsetta_public_api.models._base import ModelBase
 from microsetta_public_api.models._exceptions import UnknownID
 from typing import Dict, List
 
-_gar_named = namedtuple('GroupAlphaRaw', ['name', 'alpha_metric', 'data'])
+_gar_named = namedtuple('GroupAlphaRaw', ['name', 'alpha_metric',
+                                          'alpha_diversity'])
 
 _ga_named = namedtuple('GroupAlpha', ['name', 'alpha_metric', 'mean', 'median',
                                       'std', 'group_size', 'percentile',
@@ -24,7 +25,7 @@ class GroupAlphaRaw(_gar_named):
         The name of the group.
     alpha_metric : str
         The name of the metric expressed.
-    data : dict
+    alpha_diversity : dict
         The sample to value data.
     """
     __slots__ = ()
@@ -162,7 +163,7 @@ class Alpha(ModelBase):
 
         return GroupAlphaRaw(name=name,
                              alpha_metric=self._series.name,
-                             data=vals.to_dict())
+                             alpha_diversity=vals.to_dict())
 
     def get_group(self, ids: List[str], name: str = None) -> GroupAlpha:
         """Get group values

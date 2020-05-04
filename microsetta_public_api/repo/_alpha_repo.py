@@ -27,13 +27,15 @@ class AlphaRepo:
 
         Parameters
         ----------
-        sample_ids : list of str
+        sample_ids : str or list of str
             Ids for to check database for.
 
         Returns
         -------
-        list of bool
-            each entry `i` corresponds to whether `sample_ids[i]` exists
+        bool or list of bool
+            If sample_ids is str, then this returns a bool corresponding to
+            whether the given sample ID exists. If given a list, each entry
+            `i` corresponds to whether `sample_ids[i]` exists
             in the database.
 
         """

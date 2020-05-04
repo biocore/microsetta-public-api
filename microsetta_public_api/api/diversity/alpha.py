@@ -6,7 +6,8 @@ from microsetta_public_api.repo._alpha_repo import AlphaRepo
 def get_alpha(sample_id, alpha_metric):
     alpha_repo = AlphaRepo()
     if not all(alpha_repo.exists([sample_id])):
-        return jsonify(error=404, text="Sample ID not found."), 404
+        return jsonify(error=404, text="Sample ID not found."),\
+               404
     alpha_series = alpha_repo.get_alpha_diversity([sample_id],
                                                   alpha_metric)
     alpha_ = Alpha(alpha_series)
@@ -14,8 +15,31 @@ def get_alpha(sample_id, alpha_metric):
     ret_val = {
         'sample_id': sample_id,
         'alpha_metric': alpha_data['alpha_metric'],
-        'data': alpha_data['data'][sample_id],
+        'data': alpha_data['alpha_diversity'][sample_id],
 
     }
 
     return jsonify(ret_val), 200
+
+
+def alpha_group(body, alpha_metric):
+    sample_ids = body['sample_ids']
+
+    alpha_repo = AlphaRepo()
+    missing_ids = [id_ for id_ in sample_ids if not alpha_repo.exists(id_)]
+    if len(missing_ids) > 0:
+        return jsonify(missing_ids=missing_ids,
+                       error=404, text="Sample ID(s) not found."),\
+                       404
+    alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
+                                                  alpha_metric,
+                                                  )
+    alpha_ = Alpha(alpha_series)
+    alpha_data = alpha_.get_group_raw().to_dict()
+
+    if alpha_data['name'] is None:
+        del alpha_data['name']
+
+    response = jsonify(alpha_data)
+    response.status_code = 200
+    return response
