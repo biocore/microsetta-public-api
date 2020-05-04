@@ -89,8 +89,9 @@ class AlphaDiversityTests(FlaskTests):
         self.assertEqual(response.status_code, 200)
 
     def test_alpha_diversity_group_unknown_sample(self):
+        # One ID not found (out of two)
         with patch.object(AlphaRepo, 'exists') as mock_exists:
-            mock_exists.return_value = [True, False]
+            mock_exists.side_effect = [True, False]
 
             _, self.client = self.build_app_test_client()
 
@@ -105,6 +106,28 @@ class AlphaDiversityTests(FlaskTests):
         api_out = json.loads(response.data.decode())
         self.assertListEqual(api_out['missing_ids'],
                              ['sample-baz-bat'])
+        self.assertRegex(api_out['text'],
+                         r'Sample ID\(s\) not found.')
+        self.assertEqual(response.status_code, 404)
+
+        # Multiple IDs do not exist
+        with patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_exists.side_effect = [False, False]
+
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.post(
+                '/api/diversity/alpha_group/observed_otus',
+                content_type='application/json',
+                data=json.dumps({'metric': 'observed_otus',
+                                 'sample_ids': ['sample-foo-bar',
+                                                'sample-baz-bat']
+                                 })
+            )
+        api_out = json.loads(response.data.decode())
+        self.assertListEqual(api_out['missing_ids'],
+                             ['sample-foo-bar',
+                              'sample-baz-bat'])
         self.assertRegex(api_out['text'],
                          r'Sample ID\(s\) not found.')
         self.assertEqual(response.status_code, 404)

@@ -26,9 +26,7 @@ def alpha_group(body, alpha_metric):
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
-    missing_ids = [id_ for id_, exists in
-                   zip(sample_ids, alpha_repo.exists(sample_ids))
-                   if not exists]
+    missing_ids = [id_ for id_ in sample_ids if not alpha_repo.exists(id_)]
     if len(missing_ids) > 0:
         return jsonify(missing_ids=missing_ids,
                        error=404, text="Sample ID(s) not found."),\
