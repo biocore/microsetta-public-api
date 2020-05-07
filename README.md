@@ -50,7 +50,7 @@ on the host server.
   "alpha_resources": {
     "faith_pd": "/path/to/faith_pd.qza",
     "observed_otus": "/path/to/observed/otus/metric.qza",
-    "braycurtis": "/some/other/path/values.qza"
+    "chao1": "/some/other/path/values.qza"
   }
 }
 ```
