@@ -10,9 +10,9 @@ Once the conda environment is created, activate it:
 
 `conda activate microsetta-public-api`
 
-Install qiime2:
+Install QIIME 2 dependencies:
 
-`conda install -c qiime2/label/r2020.2 qiime2 q2-types`
+`conda install -c qiime2 qiime2 q2-types`
 
 Install connexion version 2.0 (which supports the OpenAPI Specification 3.0) as well as the Swagger UI:
 
