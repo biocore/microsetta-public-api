@@ -41,7 +41,7 @@ You can use a JSON file to configure data resources for the server.
 The Microsetta Public Server can be configured to serve [QIIME2](https://qiime2.org/)
 artifacts (`.qza` files) for artifacts by including an `"alpha_resources"` key
 in a configuration `JSON`. The value is expected to be a dictionary of `"<metric>": "</file/path/name.qza>"` pairs,
-where `"<metric>"` is the name of the metric stored by the QZA and `"</file/path/name.qza"` is a path to the QZA
+where `"<metric>"` is the name of the metric stored by the QZA and `"</file/path/name.qza>"` is a path to the QZA
 on the host server.
 
 `sample_config.json`:
