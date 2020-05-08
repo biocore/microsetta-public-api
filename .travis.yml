@@ -11,7 +11,7 @@ before_install:
   - conda update --yes conda
 
 install:
-  - conda create --yes -n -f ci/test-env.yml
+  - conda env create -f ci/test-env.yml
   - source activate test-env
   - pip install "connexion[swagger-ui]"
   - pip install ".[dev]"

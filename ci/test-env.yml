@@ -1,9 +1,10 @@
+name: test-microsetta-public
 channels:
   - conda-forge
   - qiime2/label/r2020.2
   - defaults
 dependencies:
-  - python=3.6
+  - python
   - flask
   - scikit-bio
   - biom-format
