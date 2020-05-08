@@ -1,7 +1,7 @@
 name: test-microsetta-public
 channels:
   - conda-forge
-  - qiime2/label/r2020.2
+  - qiime2
   - defaults
 dependencies:
   - python
