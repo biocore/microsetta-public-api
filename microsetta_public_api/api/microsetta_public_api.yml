@@ -7,6 +7,30 @@ servers:
   - url: '/api'
 
 paths:
+  '/diversity/metrics/alpha/available':
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
+      summary: Get available alpha diversity metrics
+      description: Get available alpha diversity metrics
+      responses:
+        '200':
+          description: Successfully returned alpha diversity metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - alpha_metrics
+                properties:
+                  alpha_metrics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/alpha_metric'
+                    example:
+                      - "faith_pd"
+                      - "observed_otus"
+                      - "chao1"
+
   '/diversity/alpha/{alpha_metric}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.get_alpha
@@ -19,7 +43,7 @@ paths:
         - $ref: '#/components/parameters/alpha_metric'
       responses:
         '200':
-          description: Successfuly return alpha diversity information
+          description: Successfully return alpha diversity information
           content:
             application/json:
               schema:
@@ -34,7 +58,7 @@ paths:
                     example: 7.24
                     description: Alpha diversity value for sample ID with metric
         '404':
-          $ref: '#/components/responses/404SampleNotFound'
+          $ref: '#/components/responses/404NotFound'
 
   '/diversity/alpha_group/{alpha_metric}':
     post:
@@ -90,7 +114,7 @@ paths:
                         "sample3": 7.24,
                       }
         '404':
-          $ref: '#/components/responses/404SampleNotFound'
+          $ref: '#/components/responses/404NotFound'
 
 components:
   parameters:
@@ -119,7 +143,7 @@ components:
       example: "dae21127-27bb-4f52-9fd3-a2aa5eb5b86f"
 
   responses:
-    404SampleNotFound:       # Can be referenced as '#/components/responses/404NotFound'
+    404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
       description: The specified sample was not found.
       content:
         application/json:

@@ -6,7 +6,7 @@ import biom
 import numpy as np
 import pandas as pd
 
-from ._exceptions import DisjointError, UnknownID
+from microsetta_public_api.exceptions import DisjointError, UnknownID
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',

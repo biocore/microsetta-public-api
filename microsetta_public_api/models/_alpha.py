@@ -2,7 +2,7 @@ from collections import namedtuple
 import pandas as pd
 import numpy as np
 from microsetta_public_api.models._base import ModelBase
-from microsetta_public_api.models._exceptions import UnknownID
+from microsetta_public_api.exceptions import UnknownID
 from typing import Dict, List
 
 _gar_named = namedtuple('GroupAlphaRaw', ['name', 'alpha_metric',

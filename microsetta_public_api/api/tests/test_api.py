@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 import json
 import pandas as pd
 
@@ -22,6 +22,23 @@ class FlaskTests(TestCase):
 
 
 class AlphaDiversityTests(FlaskTests):
+
+    def test_alpha_diversity_available_metrics(self):
+        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
+                   '.resources', new_callable=PropertyMock
+                   ) as mock_resources:
+            mock_resources.return_value = {
+                'faith_pd': '/some/path', 'chao1': '/some/other/path',
+            }
+            _, self.client = self.build_app_test_client()
+
+            exp_metrics = ['faith_pd', 'chao1']
+            response = self.client.get(
+                '/api/diversity/metrics/alpha/available')
+
+            obs = json.loads(response.data)
+            self.assertIn('alpha_metrics', obs)
+            self.assertListEqual(exp_metrics, obs['alpha_metrics'])
 
     def test_alpha_diversity_single_sample(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method,\
@@ -60,7 +77,9 @@ class AlphaDiversityTests(FlaskTests):
 
     def test_alpha_diversity_group(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
-                patch.object(AlphaRepo, 'exists') as mock_exists:
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+            mock_metrics.return_value = ['observed_otus']
             mock_exists.return_value = [True, True]
             mock_method.return_value = pd.Series({
                 'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
@@ -88,9 +107,31 @@ class AlphaDiversityTests(FlaskTests):
         self.assertDictEqual(exp, obs)
         self.assertEqual(response.status_code, 200)
 
+    def test_alpha_diversity_group_unknown_metric(self):
+        # One ID not found (out of two)
+        with patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+            mock_metrics.return_value = ['metric-a', 'metric-b']
+
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.post(
+                '/api/diversity/alpha_group/observed_otus',
+                content_type='application/json',
+                data=json.dumps({'metric': 'observed_otus',
+                                 'sample_ids': ['sample-foo-bar',
+                                                'sample-baz-bat']
+                                 })
+            )
+        api_out = json.loads(response.data.decode())
+        self.assertRegex(api_out['text'],
+                         r"Requested metric: 'observed_otus' is unavailable. "
+                         r"Available metrics: \[(.*)\]")
+
     def test_alpha_diversity_group_unknown_sample(self):
         # One ID not found (out of two)
-        with patch.object(AlphaRepo, 'exists') as mock_exists:
+        with patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+            mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [True, False]
 
             _, self.client = self.build_app_test_client()
@@ -111,7 +152,9 @@ class AlphaDiversityTests(FlaskTests):
         self.assertEqual(response.status_code, 404)
 
         # Multiple IDs do not exist
-        with patch.object(AlphaRepo, 'exists') as mock_exists:
+        with patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+            mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [False, False]
 
             _, self.client = self.build_app_test_client()
