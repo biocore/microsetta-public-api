@@ -1,0 +1,14 @@
+channels:
+  - conda-forge
+  - qiime2/label/r2020.2
+  - defaults
+dependencies:
+  - python=3.6
+  - flask
+  - scikit-bio
+  - biom-format
+  - pandas
+  - numpy
+  - pyyaml
+  - qiime2
+  - q2-types
