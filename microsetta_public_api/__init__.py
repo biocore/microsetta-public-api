@@ -1,2 +1,2 @@
-__all__ = ['server', 'api', 'config',
+__all__ = ['server', 'api', 'config', 'exceptions',
            ]

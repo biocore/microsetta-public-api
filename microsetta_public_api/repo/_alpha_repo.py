@@ -1,9 +1,5 @@
-from microsetta_public_api import config
-from microsetta_public_api.exceptions import ConfigurationError, UnknownMetric
-from qiime2 import Artifact
-from q2_types.sample_data import AlphaDiversity, SampleData
-import os
-import pandas as pd
+from microsetta_public_api.exceptions import UnknownMetric
+from microsetta_public_api.resources import resources
 
 
 class AlphaRepo:
@@ -14,56 +10,19 @@ class AlphaRepo:
     resource_locations = None
 
     def __init__(self):
-        self.resource_locations = config.resources.get('alpha_resources', None)
-        if self.resource_locations is not None:
-            self._validate_resource_locations(self.resource_locations)
-            # leaving as None here allows lazy loading of resources
-            self.resources = {key: None for key in self.resource_locations}
+        self.resources = resources.get('alpha_resources', dict())
+        # if self.resource_locations is not None:
+        #     # leaving as None here allows lazy loading of resources
+        #     def f(x): return self._parse_q2_data(self.resource_locations[x])
+        #     self.resources = {key: f(key) for key in self.resource_locations}
 
-    @staticmethod
-    def _validate_resource_locations(resource_locations):
-        if not isinstance(resource_locations, dict):
-            raise ConfigurationError('`alpha_resources` must be '
-                                     'able to be parsed into a python '
-                                     'dictionary.')
-        all_keys_str = all(isinstance(key, str) for key in
-                           resource_locations)
-        if not all_keys_str:
-            raise ConfigurationError('All `alpha_resources` keys must be '
-                                     'strings.')
-        all_values_fp = all(os.path.exists(val) for val in
-                            resource_locations.values())
-        if not all_values_fp:
-            raise ConfigurationError('All `alpha_resources` values must be '
-                                     'existing file paths.')
-        return True
-
-    def _load_resource(self, metric):
+    def _get_resource(self, metric):
         if metric not in self.available_metrics():
             raise UnknownMetric(f"No resource available for metric="
                                 f"'{metric}'")
         else:
-            res = self.resources[metric]
-            if res is None:
-                # TODO could have a more sophisticated parser here,
-                #  where multiple file types are accepted, but will assumed qza
-                #  for now
-                res = self._parse_q2_data(self.resource_locations[metric])
+            res = self.resources.get(metric, None)
             return res
-
-    @staticmethod
-    def _parse_q2_data(filepath):
-        try:
-            data = Artifact.load(filepath)
-        except ValueError as e:
-            raise ConfigurationError(*e.args)
-
-        if data.type != SampleData[AlphaDiversity]:
-            raise ConfigurationError(f"Expected alpha diversity to have type "
-                                     f"'SampleData[AlphaDiversity]'. "
-                                     f"Received '{data.type}'.")
-
-        return data.view(pd.Series)
 
     def available_metrics(self):
         """Return the metrics that are available with this Repo
@@ -89,14 +48,14 @@ class AlphaRepo:
 
         Returns
         -------
-        pd.Series
+        pandas.Series
             Contains alpha diversity with metric `metric` for the
             union of samples ids in the database the ids in `sample_ids`.
             Sets the name of the series to `metric`.
 
         """
         # this could raise an UnknownMetric or ConfigurationError
-        alpha_series = self._load_resource(metric)
+        alpha_series = self._get_resource(metric)
         # TODO the following could throw KeyErrors if a sample id is not in
         #  the index. Right now, the API checks for missing ID's before
         #  calling this.
@@ -125,7 +84,7 @@ class AlphaRepo:
             in the database.
 
         """
-        alpha_series = self._load_resource(metric)
+        alpha_series = self._get_resource(metric)
         if isinstance(sample_ids, str):
             return sample_ids in alpha_series.index
         else:
