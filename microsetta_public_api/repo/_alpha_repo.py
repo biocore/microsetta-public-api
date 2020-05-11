@@ -11,10 +11,6 @@ class AlphaRepo:
 
     def __init__(self):
         self.resources = resources.get('alpha_resources', dict())
-        # if self.resource_locations is not None:
-        #     # leaving as None here allows lazy loading of resources
-        #     def f(x): return self._parse_q2_data(self.resource_locations[x])
-        #     self.resources = {key: f(key) for key in self.resource_locations}
 
     def _get_resource(self, metric):
         if metric not in self.available_metrics():

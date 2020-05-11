@@ -12,7 +12,7 @@ class ResourceManager(dict):
 
     def update(self, other, **kwargs):
         """
-        Updates the resources this manager has. If the resource field
+        Updates the managers resources.
 
         Parameters
         ----------
