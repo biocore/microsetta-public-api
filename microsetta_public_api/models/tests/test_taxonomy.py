@@ -6,7 +6,7 @@ import numpy as np
 import numpy.testing as npt
 
 from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
-from microsetta_public_api.models._exceptions import DisjointError, UnknownID
+from microsetta_public_api.exceptions import DisjointError, UnknownID
 
 
 class TaxonomyTests(unittest.TestCase):

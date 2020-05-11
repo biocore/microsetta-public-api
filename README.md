@@ -10,6 +10,10 @@ Once the conda environment is created, activate it:
 
 `conda activate microsetta-public-api`
 
+Install QIIME 2 dependencies:
+
+`conda install -c qiime2 qiime2 q2-types`
+
 Install connexion version 2.0 (which supports the OpenAPI Specification 3.0) as well as the Swagger UI:
 
 `pip install "connexion[swagger-ui]" pyyaml`
@@ -29,3 +33,32 @@ which will start the server on http://localhost:8083 . Note that this usage is s
 
 The Swagger UI should now be available at http://localhost:8083/api/ui .
 
+## Configuring data sources
+
+You can use a JSON file to configure data resources for the server.
+
+### Alpha Diversity
+The Microsetta Public Server can be configured to serve [QIIME2](https://qiime2.org/)
+artifacts (`.qza` files) for artifacts by including an `"alpha_resources"` key
+in a configuration `JSON`. The value is expected to be a dictionary of `"<metric>": "</file/path/name.qza>"` pairs,
+where `"<metric>"` is the name of the metric stored by the QZA and `"</file/path/name.qza>"` is a path to the QZA
+on the host server.
+
+`sample_config.json`:
+```json
+{
+  "alpha_resources": {
+    "faith_pd": "/path/to/faith_pd.qza",
+    "observed_otus": "/path/to/observed/otus/metric.qza",
+    "chao1": "/some/other/path/values.qza"
+  }
+}
+```
+
+This can then be provided to `microsetta_public_api.server.build_app`, e.g.,:
+
+```python
+from microsetta_public_api.server import build_app
+app = build_app(resources_config_json='sample_config.json')
+app.run(port=8083, debug=True)
+```

@@ -1,0 +1,15 @@
+name: test-microsetta-public
+channels:
+  - conda-forge
+  - qiime2
+  - defaults
+dependencies:
+  - python
+  - flask
+  - scikit-bio
+  - biom-format
+  - pandas
+  - numpy
+  - pyyaml
+  - qiime2
+  - q2-types

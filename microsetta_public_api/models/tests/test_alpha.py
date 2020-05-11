@@ -3,7 +3,7 @@ import pandas as pd
 import pandas.testing as pdt
 import numpy.testing as npt
 
-from microsetta_public_api.models._exceptions import UnknownID
+from microsetta_public_api.exceptions import UnknownID
 from microsetta_public_api.models._alpha import GroupAlpha, Alpha, \
     GroupAlphaRaw
 
