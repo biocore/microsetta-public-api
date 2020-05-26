@@ -25,7 +25,7 @@ def get_alpha(sample_id, alpha_metric):
     return jsonify(ret_val), 200
 
 
-def alpha_group(body, alpha_metric):
+def alpha_group(body, alpha_metric, summary_statistics, percentiles):
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()

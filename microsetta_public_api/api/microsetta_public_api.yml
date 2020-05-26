@@ -70,6 +70,22 @@ paths:
 
       parameters:
         - $ref: '#/components/parameters/alpha_metric'
+        - in: query
+          name: summary_statistics
+          schema:
+            type: boolean
+            default: false
+          description: Indicates whether summary statistics should be returned with the alpha diversity
+        - in: query
+          name: percentiles
+          schema:
+            type: array
+            items:
+              type: number
+              nullable: true
+            default: null
+            nullable: true
+          required: false
 
       requestBody:
         content:
