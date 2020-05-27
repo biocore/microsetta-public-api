@@ -6,6 +6,18 @@ from microsetta_public_api.utils.testing import FlaskTests
 
 class AlphaDiversityTests(FlaskTests):
 
+    def setUp(self):
+        super().setUp()
+        self.request_content = {'metric': 'observed_otus',
+                                'sample_ids': ['sample-foo-bar',
+                                               'sample-baz-bat'],
+                                }
+        self.minimal_response = {'alpha_metric': 'faith_pd',
+                                 'alpha_diversity': {
+                                     'sample1': 7.24,
+                                 }
+                                 }
+
     def test_alpha_diversity_available_metrics_api(self):
         with patch('microsetta_public_api.api.diversity.alpha'
                    '.available_metrics_alpha'
@@ -116,9 +128,7 @@ class AlphaDiversityTests(FlaskTests):
             response = self.client.post(
                 '/api/diversity/alpha_group/observed_otus',
                 content_type='application/json',
-                data=json.dumps({'sample_ids': ['sample-foo-bar',
-                                                'sample-baz-bat']
-                                 })
+                data=json.dumps(self.request_content)
             )
 
             obs = json.loads(response.data)
@@ -142,10 +152,7 @@ class AlphaDiversityTests(FlaskTests):
             response = self.client.post(
                 '/api/diversity/alpha_group/observed_otus',
                 content_type='application/json',
-                data=json.dumps({'metric': 'observed_otus',
-                                 'sample_ids': ['sample-foo-bar',
-                                                'sample-baz-bat']
-                                 })
+                data=json.dumps(self.request_content)
             )
         api_out = json.loads(response.data.decode())
         self.assertEqual(api_out['text'],
@@ -167,10 +174,7 @@ class AlphaDiversityTests(FlaskTests):
             response = self.client.post(
                 '/api/diversity/alpha_group/observed_otus',
                 content_type='application/json',
-                data=json.dumps({'metric': 'observed_otus',
-                                 'sample_ids': ['sample-foo-bar',
-                                                'sample-baz-bat']
-                                 })
+                data=json.dumps(self.request_content)
             )
             api_out = json.loads(response.data.decode())
             self.assertEqual(api_out, exp)
@@ -191,9 +195,6 @@ class AlphaDiversityTests(FlaskTests):
             response = self.client.post(
                 '/api/diversity/alpha_group/observed_otus',
                 content_type='application/json',
-                data=json.dumps({'metric': 'observed_otus',
-                                 'sample_ids': ['sample-foo-bar',
-                                                'sample-baz-bat']
-                                 })
+                data=json.dumps(self.request_content)
             )
             self.assertEqual(response.status_code, 500)
