@@ -80,7 +80,7 @@ def mocked_jsonify(*args, **kwargs):
     def dump(data):
         return MockedResponse(json.dumps(data))
     if len(args) == 1 and len(kwargs) == 0:
-        return dump(args[0])
+        return dump(*args)
     elif len(args) > 1 and len(kwargs) == 0:
         return dump([arg for arg in args])
     elif len(args) == 0 and len(kwargs) > 0:

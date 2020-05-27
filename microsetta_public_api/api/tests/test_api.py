@@ -1,21 +1,19 @@
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
+from flask import jsonify
 import json
-import pandas as pd
-
-from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.utils.testing import FlaskTests
 
 
 class AlphaDiversityTests(FlaskTests):
 
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_available_metrics(self):
-        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
-                   '.resources', new_callable=PropertyMock
-                   ) as mock_resources:
-            mock_resources.return_value = {
-                'faith_pd': '/some/path', 'chao1': '/some/other/path',
-            }
+    def test_alpha_diversity_available_metrics_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.available_metrics_alpha'
+                   ) as mock_resources, self.app.app.app_context():
+            mock_resources.return_value = jsonify({
+                 'alpha_metrics': ['faith_pd', 'chao1']
+            }), 200
+
             _, self.client = self.build_app_test_client()
 
             exp_metrics = ['faith_pd', 'chao1']
@@ -25,35 +23,73 @@ class AlphaDiversityTests(FlaskTests):
             obs = json.loads(response.data)
             self.assertIn('alpha_metrics', obs)
             self.assertListEqual(exp_metrics, obs['alpha_metrics'])
+            self.assertEqual(response.status_code, 200)
 
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_single_sample(self):
-        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method,\
-                patch.object(AlphaRepo, 'exists') as mock_exists:
-            mock_exists.return_value = [True]
-            mock_method.return_value = pd.Series({
-                'sample-foo-bar': 8.25}, name='observed_otus')
+            mock_resources.return_value = jsonify({
+                'alpha_metrics': []
+            }), 200
+            response = self.client.get(
+                '/api/diversity/metrics/alpha/available')
+
+            obs = json.loads(response.data)
+            self.assertIn('alpha_metrics', obs)
+            self.assertListEqual([], obs['alpha_metrics'])
+            self.assertEqual(response.status_code, 200)
+
+    def test_alpha_diversity_available_metrics_api_bad_response(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.available_metrics_alpha'
+                   ) as mock_resources, self.app.app.app_context():
+            mock_resources.return_value = jsonify({
+                'some wrong keyword': ['faith_pd', 'chao1']
+            }), 200
 
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
+                '/api/diversity/metrics/alpha/available')
+
+            self.assertEqual(response.status_code, 500)
+            mock_resources.return_value = jsonify({
+                'some wrong additional keyword': ['faith_pd', 'chao1'],
+                'alpha_metrics': ['faith_pd', 'chao1'],
+            }), 200
+            self.assertEqual(response.status_code, 500)
+            mock_resources.return_value = jsonify({
+                'alpha_metrics': 'faith_pd',
+            }), 200
+            self.assertEqual(response.status_code, 500)
+
+    def test_alpha_diversity_single_sample_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.get_alpha'
+                   ) as mock_method, self.app.app.app_context():
+
+            exp = {
+                'sample_id': 'sample-foo-bar',
+                'alpha_metric': 'observed_otus',
+                'data': 8.25,
+            }
+            mock_output = jsonify(exp), 200
+            mock_method.return_value = mock_output
+
+            _, self.client = self.build_app_test_client()
+            response = self.client.get(
                 '/api/diversity/alpha/observed_otus/sample-foo-bar')
 
-        exp = {
-            'sample_id': 'sample-foo-bar',
-            'alpha_metric': 'observed_otus',
-            'data': 8.25,
-         }
-        obs = json.loads(response.data)
+            obs = json.loads(response.data)
 
-        self.assertDictEqual(exp, obs)
-        self.assertEqual(response.status_code, 200)
+            self.assertDictEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
 
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_unknown_id(self):
-        with patch.object(AlphaRepo, 'exists') as mock_exists:
-            mock_exists.return_value = [False]
+    def test_alpha_diversity_unknown_id_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.get_alpha'
+                   ) as mock_method, self.app.app.app_context():
 
+            mock_method.return_value = jsonify(error=404, text="Sample ID "
+                                                               "not found."), \
+                                       404
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
@@ -63,17 +99,17 @@ class AlphaDiversityTests(FlaskTests):
                          "Sample ID not found.")
         self.assertEqual(response.status_code, 404)
 
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_group(self):
-        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
-                patch.object(AlphaRepo, 'exists') as mock_exists, \
-                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
-            mock_metrics.return_value = ['observed_otus']
-            mock_exists.return_value = [True, True]
-            mock_method.return_value = pd.Series({
-                'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
-                name='observed_otus'
-                )
+    def test_alpha_diversity_group_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.alpha_group'
+                   ) as mock_method, self.app.app.app_context():
+            exp = {
+                'alpha_metric': 'observed_otus',
+                'alpha_diversity': {'sample-foo-bar': 8.25,
+                                    'sample-baz-bat': 9.01,
+                                    }
+            }
+            mock_method.return_value = jsonify(exp), 200
 
             _, self.client = self.build_app_test_client()
 
@@ -85,45 +121,21 @@ class AlphaDiversityTests(FlaskTests):
                                  })
             )
 
-        exp = {
-            'alpha_metric': 'observed_otus',
-            'alpha_diversity': {'sample-foo-bar': 8.25,
-                                'sample-baz-bat': 9.01,
-                                }
-        }
-        obs = json.loads(response.data)
+            obs = json.loads(response.data)
 
-        self.assertDictEqual(exp, obs)
-        self.assertEqual(response.status_code, 200)
+            self.assertDictEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
 
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_group_unknown_metric(self):
-        with patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
-            mock_metrics.return_value = ['metric-a', 'metric-b']
+    def test_alpha_diversity_group_unknown_metric_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.alpha_group'
+                   ) as mock_method, self.app.app.app_context():
 
-            _, self.client = self.build_app_test_client()
-
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps({'metric': 'observed_otus',
-                                 'sample_ids': ['sample-foo-bar',
-                                                'sample-baz-bat']
-                                 })
-            )
-        api_out = json.loads(response.data.decode())
-        self.assertRegex(api_out['text'],
-                         r"Requested metric: 'observed_otus' is unavailable. "
-                         r"Available metrics: \[(.*)\]")
-        self.assertEqual(response.status_code, 404)
-
-    # TODO refactor out the dependence on repo
-    def test_alpha_diversity_group_unknown_sample(self):
-        # One ID not found (out of two)
-        with patch.object(AlphaRepo, 'exists') as mock_exists, \
-                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
-            mock_metrics.return_value = ['observed_otus']
-            mock_exists.side_effect = [True, False]
+            available_metrics = ['metric1', 'metric2']
+            exp = dict(error=404, text=f"Requested metric: 'observed_otus' "
+                                       f"is unavailable. Available metrics: "
+                                       f"{available_metrics}")
+            mock_method.return_value = jsonify(exp), 404
 
             _, self.client = self.build_app_test_client()
 
@@ -136,17 +148,19 @@ class AlphaDiversityTests(FlaskTests):
                                  })
             )
         api_out = json.loads(response.data.decode())
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
+        self.assertEqual(api_out['text'],
+                         exp['text'])
         self.assertEqual(response.status_code, 404)
 
-        # Multiple IDs do not exist
-        with patch.object(AlphaRepo, 'exists') as mock_exists, \
-                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
-            mock_metrics.return_value = ['observed_otus']
-            mock_exists.side_effect = [False, False]
+    def test_alpha_diversity_group_unknown_sample_api(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.alpha_group'
+                   ) as mock_method, self.app.app.app_context():
+            missing_ids = ['sample-baz-bat']
+            exp = dict(missing_ids=missing_ids,
+                       error=404, text="Sample ID(s) not found for "
+                                       "metric: observed_otus")
+            mock_method.return_value = jsonify(exp), 404
 
             _, self.client = self.build_app_test_client()
 
@@ -158,10 +172,28 @@ class AlphaDiversityTests(FlaskTests):
                                                 'sample-baz-bat']
                                  })
             )
-        api_out = json.loads(response.data.decode())
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-foo-bar',
-                              'sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(response.status_code, 404)
+            api_out = json.loads(response.data.decode())
+            self.assertEqual(api_out, exp)
+            self.assertEqual(response.status_code, 404)
+
+    def test_alpha_diversity_group_unknown_sample_api_bad_response(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.alpha_group'
+                   ) as mock_method, self.app.app.app_context():
+            bad_missing_ids = 'sample-baz-bat'
+            exp = dict(missing_ids=bad_missing_ids,
+                       error=404, text="Sample ID(s) not found for "
+                                       "metric: observed_otus")
+            mock_method.return_value = jsonify(exp), 404
+
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.post(
+                '/api/diversity/alpha_group/observed_otus',
+                content_type='application/json',
+                data=json.dumps({'metric': 'observed_otus',
+                                 'sample_ids': ['sample-foo-bar',
+                                                'sample-baz-bat']
+                                 })
+            )
+            self.assertEqual(response.status_code, 500)
