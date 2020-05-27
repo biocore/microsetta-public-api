@@ -25,7 +25,8 @@ def get_alpha(sample_id, alpha_metric):
     return jsonify(ret_val), 200
 
 
-def alpha_group(body, alpha_metric, summary_statistics, percentiles):
+def alpha_group(body, alpha_metric, summary_statistics=False,
+                percentiles=None):
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
@@ -58,8 +59,7 @@ def alpha_group(body, alpha_metric, summary_statistics, percentiles):
         del alpha_data['name']
 
     response = jsonify(alpha_data)
-    response.status_code = 200
-    return response
+    return response, 200
 
 
 def available_metrics_alpha():
