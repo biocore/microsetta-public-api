@@ -10,6 +10,8 @@ paths:
   '/diversity/metrics/alpha/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
+      tags:
+        - Diversity
       summary: Get available alpha diversity metrics
       description: Get available alpha diversity metrics
       responses:
@@ -74,10 +76,16 @@ paths:
           name: summary_statistics
           schema:
             type: boolean
-            default: false
+            default: true
           description: >
             Indicates whether summary statistics should be returned.
-            If false, raw alpha diversity will be returned instead.
+        - in: query
+          name: return_raw
+          schema:
+            type: boolean
+            default: false
+          description: >
+            Indicates whether raw alpha diversity values should be returned.
         - in: query
           name: percentiles
           explode: false
