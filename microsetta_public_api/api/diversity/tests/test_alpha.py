@@ -115,7 +115,7 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                 },
                 alpha_metric=metric,
                 summary_statistics=True,
-                percentiles=[100, 0, 50, 25],
+                percentiles=[100, 0, 50, 20],
                 return_raw=True,
             )
 
@@ -131,9 +131,9 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                     'mean': 8,
                     'median': 7.75,
                     'std': sqrt(0.875),
-                    'group_size': 7,
-                    'percentile': [100, 0, 50, 25],
-                    'percentile_values': [9.5, 7, 7.75, 7.25]
+                    'group_size': 4,
+                    'percentile': [100, 0, 50, 20],
+                    'percentile_values': [9.5, 7, 7.75, 7.3]
                 }
             }
 
@@ -146,13 +146,16 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             self.assertCountEqual(exp['group_summary'].keys(),
                                   obs['group_summary'].keys()
                                   )
-            npt.assert_array_almost_equal(exp.pop('percentile'),
-                                          obs.pop('percentile'))
-            npt.assert_array_almost_equal(exp.pop('percentile_values'),
-                                          obs.pop('percentile_values'))
+            gs_exp = exp['group_summary']
+            gs_obs = obs['group_summary']
+
+            npt.assert_array_almost_equal(gs_exp.pop('percentile'),
+                                          gs_obs.pop('percentile'))
+            npt.assert_array_almost_equal(gs_exp.pop('percentile_values'),
+                                          gs_obs.pop('percentile_values'))
             # checks of the numerical parts of the expected and observed are
             #  almost the same
-            pdt.assert_series_equal(pd.Series(exp), pd.Series(obs),
+            pdt.assert_series_equal(pd.Series(gs_exp), pd.Series(gs_obs),
                                     check_exact=False)
 
     def test_alpha_diversity_group_return_summary_only(self):
@@ -183,8 +186,8 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                 },
                 alpha_metric=metric,
                 summary_statistics=True,
-                percentiles=[100, 0, 50, 25],
-                return_raw=True,
+                percentiles=[100, 0, 50, 20],
+                return_raw=False,
             )
 
             exp = {
@@ -193,9 +196,9 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                     'mean': 8,
                     'median': 7.75,
                     'std': sqrt(0.875),
-                    'group_size': 7,
-                    'percentile': [100, 0, 50, 25],
-                    'percentile_values': [9.5, 7, 7.75, 7.25]
+                    'group_size': 4,
+                    'percentile': [100, 0, 50, 20],
+                    'percentile_values': [9.5, 7, 7.75, 7.3]
                 }
             }
 
@@ -206,13 +209,15 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             self.assertCountEqual(exp['group_summary'].keys(),
                                   obs['group_summary'].keys()
                                   )
-            npt.assert_array_almost_equal(exp.pop('percentile'),
-                                          obs.pop('percentile'))
-            npt.assert_array_almost_equal(exp.pop('percentile_values'),
-                                          obs.pop('percentile_values'))
+            gs_exp = exp['group_summary']
+            gs_obs = obs['group_summary']
+            npt.assert_array_almost_equal(gs_exp.pop('percentile'),
+                                          gs_obs.pop('percentile'))
+            npt.assert_array_almost_equal(gs_exp.pop('percentile_values'),
+                                          gs_obs.pop('percentile_values'))
             # checks of the numerical parts of the expected and observed are
             #  almost the same
-            pdt.assert_series_equal(pd.Series(exp), pd.Series(obs),
+            pdt.assert_series_equal(pd.Series(gs_exp), pd.Series(gs_obs),
                                     check_exact=False)
 
     def test_alpha_diversity_group_percentiles_none(self):
@@ -250,8 +255,8 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             obs = json.loads(response.data)
             self.assertIn('group_summary', obs)
             summary = obs['group_summary']
-            self.assertIn('percentiles', summary)
-            perc = summary['percentiles']
+            self.assertIn('percentile', summary)
+            perc = summary['percentile']
             # check default value of percentiles is returned
             npt.assert_array_almost_equal(perc, list(range(10, 91, 10)))
 

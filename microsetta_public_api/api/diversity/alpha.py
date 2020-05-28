@@ -60,11 +60,20 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
                                                   alpha_metric,
                                                   )
-    alpha_ = Alpha(alpha_series)
-    alpha_data = alpha_.get_group_raw().to_dict()
+    alpha_ = Alpha(alpha_series, percentiles=percentiles)
+    alpha_data = dict()
 
-    if alpha_data['name'] is None:
-        del alpha_data['name']
+    if return_raw:
+        # not using name right now, so give it a placeholder name
+        alpha_values = alpha_.get_group_raw(name='').to_dict()
+        del alpha_values['name']
+        alpha_data.update(alpha_values)
+    if summary_statistics:
+        # not using name right now, so give it a placeholder name
+        alpha_summary = alpha_.get_group(name='').to_dict()
+        del alpha_summary['name']
+        alpha_data.update({'alpha_metric': alpha_summary.pop('alpha_metric')})
+        alpha_data.update({'group_summary': alpha_summary})
 
     response = jsonify(alpha_data)
     return response, 200
