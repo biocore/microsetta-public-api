@@ -270,6 +270,17 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
             )
             self.assertEqual(response.status_code, 200)
 
+            self.mock_method.return_value = jsonify(
+                error=400, text='at least one of summary_statistics'
+                                'and return_raw should be true'), 400
+            response = self.client.post(
+                '/api/diversity/alpha_group/observed_otus'
+                '?summary_statistics=true',
+                content_type='application/json',
+                data=json.dumps(self.request_content)
+            )
+            self.assertEqual(response.status_code, 400)
+
     def _minimal_query(self):
         minimal_query = '/api/diversity/alpha_group/observed_otus'
         return self.client.post(minimal_query,

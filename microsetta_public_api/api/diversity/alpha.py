@@ -27,6 +27,14 @@ def get_alpha(sample_id, alpha_metric):
 
 def alpha_group(body, alpha_metric, summary_statistics=True,
                 percentiles=None, return_raw=False):
+    if not (summary_statistics or return_raw):
+        # swagger does not account for parameter dependencies, so we should
+        #  give a bad request error here
+        return jsonify(
+            error=400, text='Either `summary_statistics`, `return_raw`, '
+                            'or both are required to be true.'
+            ), 400
+
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
