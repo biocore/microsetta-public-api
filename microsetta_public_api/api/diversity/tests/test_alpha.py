@@ -68,7 +68,10 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                 name='observed_otus'
             )
             metric = 'observed_otus'
-            response, code = alpha_group(self.post_body, metric, False, None)
+            response, code = alpha_group(self.post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=True)
 
         exp = {
             'alpha_metric': 'observed_otus',
@@ -84,10 +87,11 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
     def test_alpha_diversity_group_unknown_metric(self):
         with patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['metric-a', 'metric-b']
-            requested_metric = 'observed_otus'
-            response, code = alpha_group(self.post_body, requested_metric,
-                                         False,
-                                         None)
+            metric = 'observed_otus'
+            response, code = alpha_group(self.post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=True)
 
         api_out = json.loads(response.data)
         self.assertRegex(api_out['text'],
