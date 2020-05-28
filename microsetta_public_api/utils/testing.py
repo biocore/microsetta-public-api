@@ -32,6 +32,7 @@ class FlaskTests(TestCase):
     def setUp(self):
 
         self.app, self.client = self.build_app_test_client()
+        self.app_context = self.app.app.app_context
 
     @staticmethod
     def build_app_test_client():

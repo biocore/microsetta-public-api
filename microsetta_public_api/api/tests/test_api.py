@@ -8,7 +8,6 @@ class AlphaDiversityTestCase(FlaskTests):
 
     def setUp(self):
         super().setUp()
-        self.app_context = self.app.app.app_context
         self.request_content = {
                                 'sample_ids': ['sample-foo-bar',
                                                'sample-baz-bat'],
