@@ -3,8 +3,11 @@ from microsetta_public_api.api.diversity.alpha import (
     available_metrics_alpha, get_alpha, alpha_group
 )
 from unittest.mock import patch, PropertyMock
+import numpy.testing as npt
 import pandas as pd
+import pandas.testing as pdt
 import json
+from math import sqrt
 
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 
@@ -57,7 +60,7 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                          "Sample ID not found.")
         self.assertEqual(code, 404)
 
-    def test_alpha_diversity_group(self):
+    def test_alpha_diversity_group_return_raw_only(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
                 patch.object(AlphaRepo, 'exists') as mock_exists, \
                 patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
@@ -83,6 +86,174 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
 
         self.assertDictEqual(exp, obs)
         self.assertEqual(code, 200)
+
+    def test_alpha_diversity_group_return_summary_and_raw(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+
+            mock_metrics.return_value = ['observed_otus']
+            mock_exists.return_value = [True, True]
+            mock_method.return_value = pd.Series(
+                {
+                    'sample-foo-bar': 7,
+                    'sample-baz-bat': 9.5,
+                    'sample-qux-quux': 7.5,
+                    'sample-4': 8,
+                },
+                name='observed_otus'
+            )
+            metric = 'observed_otus'
+            response, code = alpha_group(
+                body={
+                    'sample_ids': [
+                        'sample-foo-bar',
+                        'sample-baz-bat',
+                        'sample-qux-quux',
+                        'sample-4',
+                    ]
+                },
+                alpha_metric=metric,
+                summary_statistics=True,
+                percentiles=[100, 0, 50, 25],
+                return_raw=True,
+            )
+
+            exp = {
+                'alpha_metric': 'observed_otus',
+                'alpha_diversity': {
+                    'sample-foo-bar': 7,
+                    'sample-baz-bat': 9.5,
+                    'sample-qux-quux': 7.5,
+                    'sample-4': 8,
+                    },
+                'group_summary': {
+                    'mean': 8,
+                    'median': 7.75,
+                    'std': sqrt(0.875),
+                    'group_size': 7,
+                    'percentile': [100, 0, 50, 25],
+                    'percentile_values': [9.5, 7, 7.75, 7.25]
+                }
+            }
+
+            self.assertEqual(code, 200)
+            obs = json.loads(response.data)
+            self.assertCountEqual(exp.keys(), obs.keys())
+            self.assertCountEqual(exp['alpha_metric'], obs['alpha_metric'])
+            self.assertDictEqual(exp['alpha_diversity'],
+                                 obs['alpha_diversity'])
+            self.assertCountEqual(exp['group_summary'].keys(),
+                                  obs['group_summary'].keys()
+                                  )
+            npt.assert_array_almost_equal(exp.pop('percentile'),
+                                          obs.pop('percentile'))
+            npt.assert_array_almost_equal(exp.pop('percentile_values'),
+                                          obs.pop('percentile_values'))
+            # checks of the numerical parts of the expected and observed are
+            #  almost the same
+            pdt.assert_series_equal(pd.Series(exp), pd.Series(obs),
+                                    check_exact=False)
+
+    def test_alpha_diversity_group_return_summary_only(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+
+            mock_metrics.return_value = ['observed_otus']
+            mock_exists.return_value = [True, True]
+            mock_method.return_value = pd.Series(
+                {
+                    'sample-foo-bar': 7,
+                    'sample-baz-bat': 9.5,
+                    'sample-qux-quux': 7.5,
+                    'sample-4': 8,
+                },
+                name='observed_otus'
+            )
+            metric = 'observed_otus'
+            response, code = alpha_group(
+                body={
+                    'sample_ids': [
+                        'sample-foo-bar',
+                        'sample-baz-bat',
+                        'sample-qux-quux',
+                        'sample-4',
+                    ]
+                },
+                alpha_metric=metric,
+                summary_statistics=True,
+                percentiles=[100, 0, 50, 25],
+                return_raw=True,
+            )
+
+            exp = {
+                'alpha_metric': 'observed_otus',
+                'group_summary': {
+                    'mean': 8,
+                    'median': 7.75,
+                    'std': sqrt(0.875),
+                    'group_size': 7,
+                    'percentile': [100, 0, 50, 25],
+                    'percentile_values': [9.5, 7, 7.75, 7.25]
+                }
+            }
+
+            self.assertEqual(code, 200)
+            obs = json.loads(response.data)
+            self.assertCountEqual(exp.keys(), obs.keys())
+            self.assertCountEqual(exp['alpha_metric'], obs['alpha_metric'])
+            self.assertCountEqual(exp['group_summary'].keys(),
+                                  obs['group_summary'].keys()
+                                  )
+            npt.assert_array_almost_equal(exp.pop('percentile'),
+                                          obs.pop('percentile'))
+            npt.assert_array_almost_equal(exp.pop('percentile_values'),
+                                          obs.pop('percentile_values'))
+            # checks of the numerical parts of the expected and observed are
+            #  almost the same
+            pdt.assert_series_equal(pd.Series(exp), pd.Series(obs),
+                                    check_exact=False)
+
+    def test_alpha_diversity_group_percentiles_none(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+
+            mock_metrics.return_value = ['observed_otus']
+            mock_exists.return_value = [True, True]
+            mock_method.return_value = pd.Series(
+                {
+                    'sample-foo-bar': 7,
+                    'sample-baz-bat': 9.5,
+                    'sample-qux-quux': 7.5,
+                    'sample-4': 8,
+                },
+                name='observed_otus'
+            )
+            metric = 'observed_otus'
+            response, code = alpha_group(
+                body={
+                    'sample_ids': [
+                        'sample-foo-bar',
+                        'sample-baz-bat',
+                        'sample-qux-quux',
+                        'sample-4',
+                    ]
+                },
+                alpha_metric=metric,
+                summary_statistics=True,
+                percentiles=None,
+                return_raw=False,
+            )
+            self.assertEqual(code, 200)
+            obs = json.loads(response.data)
+            self.assertIn('group_summary', obs)
+            summary = obs['group_summary']
+            self.assertIn('percentiles', summary)
+            perc = summary['percentiles']
+            # check default value of percentiles is returned
+            npt.assert_array_almost_equal(perc, list(range(10, 91, 10)))
 
     def test_alpha_diversity_group_unknown_metric(self):
         with patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
