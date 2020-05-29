@@ -125,161 +125,163 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.patcher.stop()
 
     def test_alpha_diversity_group_api(self):
+        exp = {
+            'alpha_metric': 'observed_otus',
+            'alpha_diversity': {'sample-foo-bar': 8.25,
+                                'sample-baz-bat': 9.01,
+                                }
+        }
+
         with self.app_context():
-            exp = {
-                'alpha_metric': 'observed_otus',
-                'alpha_diversity': {'sample-foo-bar': 8.25,
-                                    'sample-baz-bat': 9.01,
-                                    }
-            }
             self.mock_method.return_value = jsonify(exp), 200
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            print(response.data)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
 
-            obs = json.loads(response.data)
+        obs = json.loads(response.data)
 
-            self.assertDictEqual(exp, obs)
-            self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(exp, obs)
+        self.assertEqual(response.status_code, 200)
 
     def test_alpha_diversity_group_unknown_metric_api(self):
-        with self.app_context():
 
-            available_metrics = ['metric1', 'metric2']
-            exp = dict(error=404, text=f"Requested metric: 'observed_otus' "
-                                       f"is unavailable. Available metrics: "
-                                       f"{available_metrics}")
+        available_metrics = ['metric1', 'metric2']
+        exp = dict(error=404, text=f"Requested metric: 'observed_otus' "
+                                   f"is unavailable. Available metrics: "
+                                   f"{available_metrics}")
+        with self.app_context():
             self.mock_method.return_value = jsonify(exp), 404
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
         api_out = json.loads(response.data.decode())
         self.assertEqual(api_out['text'],
                          exp['text'])
         self.assertEqual(response.status_code, 404)
 
     def test_alpha_diversity_group_unknown_sample_api(self):
+        missing_ids = ['sample-baz-bat']
+        exp = dict(missing_ids=missing_ids,
+                   error=404, text="Sample ID(s) not found for "
+                                   "metric: observed_otus")
+
         with self.app_context():
-            missing_ids = ['sample-baz-bat']
-            exp = dict(missing_ids=missing_ids,
-                       error=404, text="Sample ID(s) not found for "
-                                       "metric: observed_otus")
             self.mock_method.return_value = jsonify(exp), 404
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            api_out = json.loads(response.data.decode())
-            self.assertEqual(api_out, exp)
-            self.assertEqual(response.status_code, 404)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        api_out = json.loads(response.data.decode())
+        self.assertEqual(api_out, exp)
+        self.assertEqual(response.status_code, 404)
 
     def test_alpha_diversity_group_unknown_sample_api_bad_response(self):
+        bad_missing_ids = 'sample-baz-bat'
+        exp = dict(missing_ids=bad_missing_ids,
+                   error=404, text="Sample ID(s) not found for "
+                                   "metric: observed_otus")
         with self.app_context():
-            bad_missing_ids = 'sample-baz-bat'
-            exp = dict(missing_ids=bad_missing_ids,
-                       error=404, text="Sample ID(s) not found for "
-                                       "metric: observed_otus")
             self.mock_method.return_value = jsonify(exp), 404
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 500)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 500)
 
     def test_alpha_diverstiy_group_default_arguments(self):
         with self.app_context():
             self.mock_method.return_value = jsonify(self.minimal_response), 200
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            self.client.post(
-                '/api/diversity/alpha_group/observed_otus',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.mock_method.assert_called_with(
-                alpha_metric='observed_otus',
-                body=self.request_content,
-                summary_statistics=True,
-                percentiles=None,
-                return_raw=False,
-            )
+        self.client.post(
+            '/api/diversity/alpha_group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.mock_method.assert_called_with(
+            alpha_metric='observed_otus',
+            body=self.request_content,
+            summary_statistics=True,
+            percentiles=None,
+            return_raw=False,
+        )
 
     def test_alpha_diversity_group_summary_statistics_queries(self):
         with self.app_context():
             self.mock_method.return_value = jsonify(self.minimal_response), 200
 
-            _, self.client = self.build_app_test_client()
+        _, self.client = self.build_app_test_client()
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?summary_statistics=true',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?summary_statistics=true',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 200)
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?summary_statistics=true&percentiles=1,2,45',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?summary_statistics=true&percentiles=1,2,45',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 200)
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?summary_statistics=false&percentiles=1,2,45',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?summary_statistics=false&percentiles=1,2,45',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 200)
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?summary_statistics=true&percentiles=0,50,100',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?summary_statistics=true&percentiles=0,50,100',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 200)
 
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?percentiles=50',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?percentiles=50',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 200)
 
+        with self.app_context():
             self.mock_method.return_value = jsonify(
                 error=400, text='at least one of summary_statistics'
                                 'and return_raw should be true'), 400
-            response = self.client.post(
-                '/api/diversity/alpha_group/observed_otus'
-                '?summary_statistics=true',
-                content_type='application/json',
-                data=json.dumps(self.request_content)
-            )
-            self.assertEqual(response.status_code, 400)
+        response = self.client.post(
+            '/api/diversity/alpha_group/observed_otus'
+            '?summary_statistics=true',
+            content_type='application/json',
+            data=json.dumps(self.request_content)
+        )
+        self.assertEqual(response.status_code, 400)
 
     def _minimal_query(self):
         minimal_query = '/api/diversity/alpha_group/observed_otus'
@@ -289,9 +291,8 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                                 )
 
     def test_alpha_diversity_group_summary_statistics_responses(self):
+        _, self.client = self.build_app_test_client()
         with self.app_context():
-            _, self.client = self.build_app_test_client()
-
             # test that alpha_metric, alpha_diversity is okay
             self.mock_method.return_value = jsonify(
                 {
@@ -299,9 +300,10 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                     'alpha_diversity': {'sample1': 4.5}
                 }
             ), 200
-            response = self._minimal_query()
-            self.assertEqual(response.status_code, 200)
+        response = self._minimal_query()
+        self.assertEqual(response.status_code, 200)
 
+        with self.app_context():
             # test that alpha_metric, group_summary is okay
             self.mock_method.return_value = jsonify(
                 {
@@ -316,9 +318,10 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                     },
                 }
             ), 200
-            response = self._minimal_query()
-            self.assertEqual(response.status_code, 200)
+        response = self._minimal_query()
+        self.assertEqual(response.status_code, 200)
 
+        with self.app_context():
             # test that alpha_metric, group_summary, _and_ alpha_diveristy is
             #  okay
             self.mock_method.return_value = jsonify(
@@ -335,14 +338,15 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                     'alpha_diversity': {'sample1': 4.5}
                 }
             ), 200
-            response = self._minimal_query()
-            self.assertEqual(response.status_code, 200)
+        response = self._minimal_query()
+        self.assertEqual(response.status_code, 200)
 
+        with self.app_context():
             # test that only alpha_metric is not okay
             self.mock_method.return_value = jsonify(
                 {
                     'alpha_metric': 'chao1',
                 }
             ), 200
-            response = self._minimal_query()
-            self.assertEqual(response.status_code, 500)
+        response = self._minimal_query()
+        self.assertEqual(response.status_code, 500)
