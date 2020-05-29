@@ -189,23 +189,6 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(api_out, exp)
         self.assertEqual(response.status_code, 404)
 
-    def test_alpha_diversity_group_unknown_sample_api_bad_response(self):
-        bad_missing_ids = 'sample-baz-bat'
-        exp = dict(missing_ids=bad_missing_ids,
-                   error=404, text="Sample ID(s) not found for "
-                                   "metric: observed_otus")
-        with self.app_context():
-            self.mock_method.return_value = jsonify(exp), 404
-
-        _, self.client = self.build_app_test_client()
-
-        response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus',
-            content_type='application/json',
-            data=json.dumps(self.request_content)
-        )
-        self.assertEqual(response.status_code, 500)
-
     def test_alpha_diverstiy_group_default_arguments(self):
         with self.app_context():
             self.mock_method.return_value = jsonify(self.minimal_response), 200

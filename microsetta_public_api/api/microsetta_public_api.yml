@@ -205,6 +205,106 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
+  '/taxonomy/available':
+    get:
+      operationId: microsetta_public_api.api.taxonomy.resources_available
+      tags:
+        - Taxonomy
+      summary: Get list of available taxonomy resources
+      description: Get list of available taxonomy resources
+      responses:
+        '200':
+          description: Successfully returned taxonomy resources
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: string
+                      example: "greengenes"
+                    example:
+                      - "greengenes"
+                      - "silva"
+
+  '/taxonomy/summarize_group/{resource}':
+    post:
+      operationId: microsetta_public_api.api.taxonomy.summarize_group
+      tags:
+        - Taxonomy
+      summary: Get taxonomy information for a group of samples
+      description: Get taxonomy information for a group of samples
+      parameters:
+        - in: path
+          name: resource
+          description: An identifier for a taxonomy and feature table resource
+          schema:
+            type: string
+            example: "greengenes"
+          required: true
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sample_ids
+              properties:
+                sample_ids:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/sample_id'
+                  example:
+                    - "sample1"
+                    - "sample2"
+                    - "sample3"
+
+      responses:
+        '200':
+          description: Successfuly return taxonomy information
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - taxonomy
+                  - features
+                  - feature_values
+                  - feature_variances
+                properties:
+                  taxonomy:
+                    type: string
+                    example: "(((((feature-2)e)d,feature-1)c)b)a;"
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "feature-1"
+                      - "feature-2"
+                  feature_values:
+                    type: array
+                    items:
+                      type: number
+                    example:
+                      - 0.75
+                      - 0.25
+                  feature_variances:
+                    type: array
+                    items:
+                      type: number
+                    example:
+                      - 0.05
+                      - 0.11
+
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 components:
   parameters:
     alpha_metric:
@@ -237,12 +337,4 @@ components:
         application/json:
           schema:
             type: object
-            properties:
-              missing_ids:
-                type: array
-                description: Missing IDs.
-                items:
-                  $ref: '#/components/schemas/sample_id'
-                  example:
-                    - "sample1"
-                    - "sample2"
+            additionalProperties: true
