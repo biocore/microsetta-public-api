@@ -25,7 +25,16 @@ def get_alpha(sample_id, alpha_metric):
     return jsonify(ret_val), 200
 
 
-def alpha_group(body, alpha_metric):
+def alpha_group(body, alpha_metric, summary_statistics=True,
+                percentiles=None, return_raw=False):
+    if not (summary_statistics or return_raw):
+        # swagger does not account for parameter dependencies, so we should
+        #  give a bad request error here
+        return jsonify(
+            error=400, text='Either `summary_statistics`, `return_raw`, '
+                            'or both are required to be true.'
+            ), 400
+
     sample_ids = body['sample_ids']
 
     alpha_repo = AlphaRepo()
@@ -51,15 +60,23 @@ def alpha_group(body, alpha_metric):
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
                                                   alpha_metric,
                                                   )
-    alpha_ = Alpha(alpha_series)
-    alpha_data = alpha_.get_group_raw().to_dict()
+    alpha_ = Alpha(alpha_series, percentiles=percentiles)
+    alpha_data = dict()
 
-    if alpha_data['name'] is None:
-        del alpha_data['name']
+    if return_raw:
+        # not using name right now, so give it a placeholder name
+        alpha_values = alpha_.get_group_raw(name='').to_dict()
+        del alpha_values['name']
+        alpha_data.update(alpha_values)
+    if summary_statistics:
+        # not using name right now, so give it a placeholder name
+        alpha_summary = alpha_.get_group(name='').to_dict()
+        del alpha_summary['name']
+        alpha_data.update({'alpha_metric': alpha_summary.pop('alpha_metric')})
+        alpha_data.update({'group_summary': alpha_summary})
 
     response = jsonify(alpha_data)
-    response.status_code = 200
-    return response
+    return response, 200
 
 
 def available_metrics_alpha():

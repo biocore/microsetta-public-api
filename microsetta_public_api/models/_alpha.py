@@ -165,7 +165,7 @@ class Alpha(ModelBase):
                              alpha_metric=self._series.name,
                              alpha_diversity=vals.to_dict())
 
-    def get_group(self, ids: List[str], name: str = None) -> GroupAlpha:
+    def get_group(self, ids: List[str] = None, name: str = None) -> GroupAlpha:
         """Get group values
 
         Parameters
@@ -188,6 +188,14 @@ class Alpha(ModelBase):
         GroupAlpha
             The corresponding distribution or individual data
         """
+        if ids is None:
+            ids = self._get_sample_ids()
+        elif len(ids) == 1:
+            name = ids[0]
+        else:
+            if name is None:
+                raise ValueError("Name not specified.")
+
         try:
             vals = self._series.loc[ids]
         except KeyError:
@@ -198,7 +206,7 @@ class Alpha(ModelBase):
 
         if len(ids) == 1:
             std = 0.
-            return GroupAlpha(name=ids[0],
+            return GroupAlpha(name=name,
                               alpha_metric=self._series.name,
                               mean=mean,
                               median=median,
@@ -219,4 +227,4 @@ class Alpha(ModelBase):
                               std=std,
                               group_size=len(vals),
                               percentile=self._percentiles,
-                              percentile_values=percentile_values)
+                              percentile_values=list(percentile_values))
