@@ -6,6 +6,7 @@ from unittest.case import TestCase
 
 import microsetta_public_api
 import microsetta_public_api.server
+import microsetta_public_api.utils._utils
 from microsetta_public_api.api.diversity import alpha as alpha_imp
 
 
@@ -95,8 +96,9 @@ class MockedJsonifyTestCase(TestCase):
 
     def setUp(self):
         # monkey patch jsonify, then restore it after these tests are complete
-        self.old_jsonify = _copy_func(alpha_imp.jsonify)
-        alpha_imp.jsonify = mocked_jsonify
+        self.old_jsonify = _copy_func(
+            microsetta_public_api.utils._utils.jsonify)
+        microsetta_public_api.utils._utils.jsonify = mocked_jsonify
 
     def tearDown(self):
-        alpha_imp.jsonify = self.old_jsonify
+        microsetta_public_api.utils._utils.jsonify = self.old_jsonify

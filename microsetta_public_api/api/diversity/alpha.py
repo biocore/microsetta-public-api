@@ -1,16 +1,12 @@
-from flask import jsonify as flask_jsonify
 from microsetta_public_api.models._alpha import Alpha
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
-
-
-def jsonify(*args, **kwargs):
-    return flask_jsonify(*args, **kwargs)
+from microsetta_public_api.utils import jsonify
 
 
 def get_alpha(sample_id, alpha_metric):
     alpha_repo = AlphaRepo()
     if not all(alpha_repo.exists([sample_id], alpha_metric)):
-        return jsonify(error=404, text="Sample ID not found."),\
+        return jsonify(error=404, text="Sample ID not found."), \
                404
     alpha_series = alpha_repo.get_alpha_diversity([sample_id],
                                                   alpha_metric)
@@ -53,8 +49,8 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
     if len(missing_ids) > 0:
         return jsonify(missing_ids=missing_ids,
                        error=404, text=f"Sample ID(s) not found for "
-                                       f"metric: {alpha_metric}"),\
-                       404
+                                       f"metric: {alpha_metric}"), \
+               404
 
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,

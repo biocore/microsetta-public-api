@@ -1,0 +1,2 @@
+class TaxonomyRepo:
+    pass
