@@ -333,3 +333,72 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
             ), 200
         response = self._minimal_query()
         self.assertEqual(response.status_code, 500)
+
+
+class TaxonomyResourcesAPITests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch('microsetta_public_api.api.taxonomy'
+                             '.resources_available')
+        self.mock_method = self.patcher.start()
+        self.url = '/api/taxonomy/available'
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_valid_response_single(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({'resources': [
+                'greengenes']}), 200
+        response = self.client.get(self.url)
+        self.assertEqual(200, response.status_code)
+
+    def test_valid_response_multiple(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({'resources': [
+                'greengenes', 'silva']}), 200
+        response = self.client.get(self.url)
+        self.assertEqual(200, response.status_code)
+
+    def test_invalid_response_string(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {'resources': 'greengenes'}), 200
+        response = self.client.get(self.url)
+        self.assertEqual(500, response.status_code)
+
+
+class TaxonomyGroupAPITests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch('microsetta_public_api.api.taxonomy'
+                             '.summarize_group')
+        self.mock_method = self.patcher.start()
+        self.request_content = {
+            'sample_ids': ['sample-foo-bar',
+                           'sample-baz-bat'],
+        }
+
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_valid_response(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'taxonomy': "(((((feature-2)e)d,feature-1)c)b)a;",
+                    'features': ['feature-1', 'feature-2'],
+                    'feature_values': [5.2, 7.15],
+                    'feature_variances': [0, 0],
+                }
+            ), 200
+
+        response = self.client.post('/api/taxonomy/summarize_group/greengenes',
+                                    content_type='application/json',
+                                    data=json.dumps(self.request_content))
+        self.assertEqual(200, response.status_code)
