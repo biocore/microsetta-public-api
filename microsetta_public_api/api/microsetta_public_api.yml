@@ -108,18 +108,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - sample_ids
-              properties:
-                sample_ids:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/sample_id'
-                  example:
-                    - "sample1"
-                    - "sample2"
-                    - "sample3"
+              $ref: "#/components/schemas/sampleIdList"
 
       responses:
         '200':
@@ -251,18 +240,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - sample_ids
-              properties:
-                sample_ids:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/sample_id'
-                  example:
-                    - "sample1"
-                    - "sample2"
-                    - "sample3"
+              $ref: "#/components/schemas/sampleIdList"
 
       responses:
         '200':
@@ -329,6 +307,19 @@ components:
     sample_id:
       type: string
       example: "sample_15"
+    sampleIdList:
+      type: object
+      required:
+        - sample_ids
+      properties:
+        sample_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/sample_id'
+          example:
+            - "sample1"
+            - "sample2"
+            - "sample3"
 
   responses:
     404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
