@@ -32,7 +32,5 @@ class ResourcesConfig(dict):
                                      'existing file paths.')
         return True
 
-    pass
-
 
 resources = ResourcesConfig()

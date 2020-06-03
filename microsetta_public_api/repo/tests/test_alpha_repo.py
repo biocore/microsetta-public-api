@@ -45,6 +45,7 @@ class TestAlphaRepoWithResources(TempfileTestCase):
             "SampleData[AlphaDiversity]", test_series2
         )
         imported_artifact.save(resource_filename2)
+        config.resources.clear()
         config.resources.update({
             'alpha_resources': {
                 'chao1': resource_filename1,
