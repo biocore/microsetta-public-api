@@ -3,11 +3,11 @@ import json
 import types
 import tempfile
 from unittest.case import TestCase
+from unittest.mock import patch
 
 import microsetta_public_api
 import microsetta_public_api.server
 import microsetta_public_api.utils._utils
-from microsetta_public_api.api.diversity import alpha as alpha_imp
 
 
 class TempfileTestCase(TestCase):
@@ -95,10 +95,11 @@ def mocked_jsonify(*args, **kwargs):
 class MockedJsonifyTestCase(TestCase):
 
     def setUp(self):
-        # monkey patch jsonify, then restore it after these tests are complete
-        self.old_jsonify = _copy_func(
-            microsetta_public_api.utils._utils.jsonify)
-        microsetta_public_api.utils._utils.jsonify = mocked_jsonify
+        self.jsonify_patcher = patch(
+            self.jsonify_to_patch,
+            new=mocked_jsonify,
+        )
+        self.mock_jsonify = self.jsonify_patcher.start()
 
     def tearDown(self):
-        microsetta_public_api.utils._utils.jsonify = self.old_jsonify
+        self.jsonify_patcher.stop()

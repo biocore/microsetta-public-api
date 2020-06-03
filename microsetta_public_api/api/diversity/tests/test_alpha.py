@@ -1,8 +1,8 @@
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
+from unittest.mock import patch, PropertyMock
 from microsetta_public_api.api.diversity.alpha import (
     available_metrics_alpha, get_alpha, alpha_group
 )
-from unittest.mock import patch, PropertyMock
 import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
@@ -13,6 +13,10 @@ from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 
 
 class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
+
+    # need to choose where jsonify is being loaded from
+    # see https://stackoverflow.com/a/46465025
+    jsonify_to_patch = 'microsetta_public_api.api.diversity.alpha.jsonify'
 
     @classmethod
     def setUpClass(cls):
