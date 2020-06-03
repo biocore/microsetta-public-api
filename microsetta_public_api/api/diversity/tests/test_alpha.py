@@ -16,7 +16,10 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
 
     # need to choose where jsonify is being loaded from
     # see https://stackoverflow.com/a/46465025
-    jsonify_to_patch = 'microsetta_public_api.api.diversity.alpha.jsonify'
+    jsonify_to_patch = [
+        'microsetta_public_api.api.diversity.alpha.jsonify',
+        'microsetta_public_api.utils._utils.jsonify',
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -276,7 +279,7 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
         api_out = json.loads(response.data)
         self.assertRegex(api_out['text'],
                          r"Requested metric: 'observed_otus' is unavailable. "
-                         r"Available metrics: \[(.*)\]")
+                         r"Available metric\(s\): \[(.*)\]")
         self.assertEqual(code, 404)
 
     def test_alpha_diversity_group_unknown_sample(self):

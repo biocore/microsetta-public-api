@@ -1,6 +1,8 @@
 from microsetta_public_api.models._alpha import Alpha
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.utils import jsonify
+from microsetta_public_api.utils._utils import validate_resource, \
+    check_missing_ids
 
 
 def get_alpha(sample_id, alpha_metric):
@@ -37,20 +39,19 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
 
     # figure out if the user asked for a metric we have data on
     available_metrics = alpha_repo.available_metrics()
-    if alpha_metric not in available_metrics:
-        return jsonify(error=404, text=f"Requested metric: '{alpha_metric}' "
-                                       f"is unavailable. Available metrics: "
-                                       f"{available_metrics}"), 404
+    type_ = 'metric'
+    missing_metric = validate_resource(available_metrics, alpha_metric,
+                                       type_)
+    if missing_metric:
+        return missing_metric
 
     # make sure all of the data the samples the user asked for have values
     # for the given metric
     missing_ids = [id_ for id_ in sample_ids if
                    not alpha_repo.exists(id_, alpha_metric)]
-    if len(missing_ids) > 0:
-        return jsonify(missing_ids=missing_ids,
-                       error=404, text=f"Sample ID(s) not found for "
-                                       f"metric: {alpha_metric}"), \
-               404
+    missing_ids_msg = check_missing_ids(missing_ids, alpha_metric, type_)
+    if missing_ids_msg:
+        return missing_ids_msg
 
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,

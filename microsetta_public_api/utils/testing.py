@@ -95,11 +95,21 @@ def mocked_jsonify(*args, **kwargs):
 class MockedJsonifyTestCase(TestCase):
 
     def setUp(self):
-        self.jsonify_patcher = patch(
-            self.jsonify_to_patch,
-            new=mocked_jsonify,
-        )
-        self.mock_jsonify = self.jsonify_patcher.start()
+        if isinstance(self.jsonify_to_patch, str):
+            self.jsonify_patcher = patch(
+                self.jsonify_to_patch,
+                new=mocked_jsonify,
+            )
+            self.mock_jsonify = self.jsonify_patcher.start()
+        else:
+            self.jsonify_patcher = [patch(jsonify_, new=mocked_jsonify) for
+                                    jsonify_ in self.jsonify_to_patch]
+            self.mock_jsonify = [patcher.start() for
+                                 patcher in self.jsonify_patcher]
 
     def tearDown(self):
-        self.jsonify_patcher.stop()
+        if isinstance(self.mock_jsonify, list):
+            for patcher in self.jsonify_patcher:
+                patcher.stop()
+        else:
+            self.jsonify_patcher.stop()
