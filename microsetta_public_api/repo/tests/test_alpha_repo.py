@@ -27,6 +27,9 @@ class TestAlphaRepoHelpers(TempfileTestCase):
 class TestAlphaRepoWithResources(TempfileTestCase):
 
     def setUp(self):
+        super().setUp()
+        self._config_copy = config.resources.copy()
+        self._resources_copy = resources.copy()
         self.no_resources_repo = AlphaRepo()
         resource_filename1 = self.create_tempfile(suffix='.qza').name
         resource_filename2 = self.create_tempfile(suffix='.qza').name
@@ -45,7 +48,6 @@ class TestAlphaRepoWithResources(TempfileTestCase):
             "SampleData[AlphaDiversity]", test_series2
         )
         imported_artifact.save(resource_filename2)
-        config.resources.clear()
         config.resources.update({
             'alpha_resources': {
                 'chao1': resource_filename1,
@@ -55,6 +57,12 @@ class TestAlphaRepoWithResources(TempfileTestCase):
         resources.update(config.resources)
 
         self.repo = AlphaRepo()
+
+    def tearDown(self):
+        config.resources = self._config_copy
+        resources.clear()
+        resources.update(self._resources_copy)
+        super().tearDown()
 
     def test_available_metrics(self):
         exp = ['chao1', 'faith_pd']
