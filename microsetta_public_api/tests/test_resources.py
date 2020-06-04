@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import biom
+from biom.util import biom_open
 from pandas.util.testing import assert_series_equal, assert_frame_equal
 from qiime2 import Artifact
 from q2_types.sample_data import SampleData, AlphaDiversity
@@ -154,11 +155,14 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         self.taxonomy_artifact.save(self.taxonomy_qza)
         self.table2_qza = self.create_tempfile(suffix='.qza').name
         self.table2_artifact.save(self.table2_qza)
+        self.table_biom = self.create_tempfile(suffix='.biom').name
+        with biom_open(self.table_biom, 'w') as f:
+            self.table.to_hdf5(f, 'test-table')
         self.resources = ResourceManager()
         self.config = {'table_resources': {
             'simple-table': {
                 'table': self.table_qza,
-                'table-type': FeatureTable[Frequency]
+                'q2-type': FeatureTable[Frequency]
             },
             'second-simple-table': {
                 'table': self.table2_qza,
@@ -176,6 +180,12 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                 'feature-data-taxonomy': self.taxonomy_qza,
                 'variances': self.table2_qza,
             },
+            'table-from-biom': {
+                'table': self.table_biom,
+                'feature-data-taxonomy': self.taxonomy_qza,
+                'variances': self.table_biom,
+                'table-format': 'biom',
+            }
         }}
 
     def test_simple_table(self):
@@ -211,6 +221,32 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         obs_table = new_table_config['table2']['table']
         assert_frame_equal(exp_table.to_dataframe(dense=True),
                            obs_table.to_dataframe(dense=True))
+
+    def test_two_tables_with_biom(self):
+        config = {'table_resources': {
+            'table1': self.config['table_resources']['simple-table'],
+            'table2': self.config['table_resources']['table-from-biom'],
+        }}
+        self.resources.update(config)
+        new_table_config = self.resources['table_resources']
+        self.assertCountEqual(list(self.resources['table_resources']),
+                              ['table1', 'table2'])
+        exp_table = self.table
+        obs_table = new_table_config['table1']['table']
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
+        exp_table = self.table
+        obs_table = new_table_config['table2']['table']
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
+        exp_var = self.table
+        obs_var = new_table_config['table2']['variances']
+        assert_frame_equal(exp_var.to_dataframe(dense=True),
+                           obs_var.to_dataframe(dense=True))
+        exp_tax = self.taxonomy_df
+        obs_tax = new_table_config['table2']['feature-data-taxonomy']
+        obs_tax['Confidence'] = obs_tax['Confidence'].astype('float')
+        assert_frame_equal(exp_tax, obs_tax)
 
     def test_table_with_taxonomy(self):
         subset_table = 'table-with-taxonomy'
