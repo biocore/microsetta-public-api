@@ -67,6 +67,27 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                          "Sample ID not found.")
         self.assertEqual(code, 404)
 
+    def test_alpha_diversity_improper_parameters(self):
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
+            mock_metrics.return_value = ['observed_otus']
+            mock_exists.return_value = [True, True]
+            mock_method.return_value = pd.Series({
+                'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
+                name='observed_otus'
+            )
+            metric = 'observed_otus'
+            response, code = alpha_group(self.post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=False)
+            obs = json.loads(response)
+            self.assertEqual(400, code)
+            self.assertEqual('Either `summary_statistics`, `return_raw`, '
+                             'or both are required to be true.',
+                             obs['text'])
+
     def test_alpha_diversity_group_return_raw_only(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
                 patch.object(AlphaRepo, 'exists') as mock_exists, \
