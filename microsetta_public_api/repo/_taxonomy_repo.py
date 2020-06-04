@@ -11,7 +11,7 @@ class TaxonomyRepo:
         def has_taxonomy(_, resource):
             return 'feature-data-taxonomy' in resource and 'table' in resource
 
-        self.tables = dict(filter(has_taxonomy, tables.items()))
+        self.tables = dict(filter(lambda x: has_taxonomy(*x), tables.items()))
 
     def _get_resource(self, name, component=None):
         if name not in self.tables:
@@ -19,7 +19,7 @@ class TaxonomyRepo:
         else:
             res = self.tables[name]
             if component is not None:
-                # should always gibe a table and data for
+                # should always give a table and data for
                 #  'feature-data-taxonomy' and 'table', but may return None
                 #  for 'variances
                 res = res.get(component, None)

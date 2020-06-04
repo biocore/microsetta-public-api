@@ -337,4 +337,3 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
         assert_allclose([2.0, 3.0],
                         obs['feature_variances']
                         )
-
