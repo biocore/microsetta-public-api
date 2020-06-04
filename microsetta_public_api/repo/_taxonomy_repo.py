@@ -3,8 +3,10 @@ from microsetta_public_api.resources import resources
 
 class TaxonomyRepo:
 
+    tables = None
+
     def __init__(self):
-        tables = resources.get('table_resources')
+        tables = resources.get('table_resources', dict())
 
         def has_taxonomy(_, resource):
             return 'feature-data-taxonomy' in resource and 'table' in resource
@@ -23,7 +25,7 @@ class TaxonomyRepo:
                 res = res.get(component, None)
             return res
 
-    def available_resources(self):
+    def resources(self):
         """Return the tables that have taxonomy information accompanying them
 
         Returns
@@ -34,7 +36,7 @@ class TaxonomyRepo:
         """
         return list(self.tables.keys())
 
-    def table(self, sample_ids, table_name):
+    def table(self, table_name):
         """Obtains subset of a table for a list of samples
 
         Parameters
@@ -46,23 +48,14 @@ class TaxonomyRepo:
             Table to use
 
         """
-        table = self._get_resource(table_name, component='table')
-        return self._filter_table(sample_ids, table)
+        return self._get_resource(table_name, component='table')
 
     def feature_data_taxonomy(self, table_name):
         return self._get_resource(table_name,
                                   component='feature-data-taxonomy')
 
-    def variances(self, sample_ids, table_name):
-        table = self._get_resource(table_name, component='variances')
-        return self._filter_table(sample_ids, table)
-
-    @staticmethod
-    def _filter_table(sample_ids, table):
-        if isinstance(sample_ids, str):
-            return table.filter([sample_ids])
-        else:
-            return table.filter(sample_ids)
+    def variances(self, table_name):
+        return self._get_resource(table_name, component='variances')
 
     def exists(self, sample_ids, table_name):
         """Checks if sample_ids exist for the given table.

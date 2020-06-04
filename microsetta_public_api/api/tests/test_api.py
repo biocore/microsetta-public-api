@@ -340,7 +340,7 @@ class TaxonomyResourcesAPITests(FlaskTests):
     def setUp(self):
         super().setUp()
         self.patcher = patch('microsetta_public_api.api.taxonomy'
-                             '.resources_available')
+                             '.resources')
         self.mock_method = self.patcher.start()
         self.url = '/api/taxonomy/available'
         _, self.client = self.build_app_test_client()
