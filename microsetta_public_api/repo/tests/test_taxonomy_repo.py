@@ -43,7 +43,7 @@ class TestTaxonomyRepoWithResources(TempfileTestCase):
     def setUp(self):
         self._config_copy = config.resources.copy()
         self._resources_copy = resources.copy()
-        self._no_resources_repo = TaxonomyRepo()
+        self.no_resources_repo = TaxonomyRepo()
         self.table1_filename = self.create_tempfile(suffix='.qza').name
         self.taxonomy1_filename = self.create_tempfile(suffix='.qza').name
         self.table2_filename = self.create_tempfile(suffix='.qza').name
@@ -143,6 +143,11 @@ class TestTaxonomyRepoWithResources(TempfileTestCase):
     def test_available_taxonomy_tables(self):
         exp = ['table2', 'table3', 'table4']
         obs = self.repo.resources()
+        self.assertCountEqual(exp, obs)
+
+    def test_available_taxonomy_tables_empty_repo(self):
+        exp = []
+        obs = self.no_resources_repo.resources()
         self.assertCountEqual(exp, obs)
 
     def test_get_table(self):
