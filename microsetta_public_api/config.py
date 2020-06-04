@@ -9,8 +9,8 @@ class ResourcesConfig(dict):
     def update(self, _m, **kwargs):
 
         for resource_field in self.resource_fields:
-            if resource_field in self:
-                self._validate_resource_locations(self[resource_field])
+            if resource_field in _m:
+                self._validate_resource_locations(_m[resource_field])
 
         return super().update(_m, **kwargs)
 

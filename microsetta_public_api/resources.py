@@ -199,6 +199,7 @@ class ResourceManager(dict):
         ...     )
 
         """
+        to_add = dict()
         if len(args) == 1 and isinstance(args[0], dict):
             other = args[0]
         elif len(args) == 0:
@@ -207,17 +208,19 @@ class ResourceManager(dict):
             raise TypeError(f'update expected at most 1 positional argument '
                             f'that is a dict. Got {args}')
 
+        to_add.update(other, **kwargs)
+
         for resource_name, transformer in self.transformers.items():
             if resource_name in other:
                 new_resource = transformer(other[resource_name],
                                            resource_name)
-                other.update({resource_name: new_resource})
+                to_add.update({resource_name: new_resource})
             if resource_name in kwargs:
                 new_resource = transformer(kwargs[resource_name],
                                            resource_name)
-                kwargs.update({resource_name: new_resource})
+                to_add.update({resource_name: new_resource})
 
-        return super().update(other, **kwargs)
+        return dict.update(self, to_add, **kwargs)
 
 
 resources = ResourceManager()
