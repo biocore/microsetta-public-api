@@ -196,7 +196,7 @@ paths:
 
   '/taxonomy/available':
     get:
-      operationId: microsetta_public_api.api.taxonomy.resources_available
+      operationId: microsetta_public_api.api.taxonomy.resources
       tags:
         - Taxonomy
       summary: Get list of available taxonomy resources
