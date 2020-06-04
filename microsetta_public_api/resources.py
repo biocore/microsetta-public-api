@@ -10,8 +10,8 @@ from q2_types.feature_data import FeatureData, Taxonomy
 
 
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
-    _validate_dict_of_qza_paths(dict_of_qza_paths,
-                                resource_name)
+    _validate_dict_of_paths(dict_of_qza_paths,
+                            resource_name)
     new_resource = _replace_paths_with_qza(dict_of_qza_paths,
                                            SampleData[AlphaDiversity],
                                            view_type=pd.Series)
@@ -30,16 +30,44 @@ def _transform_dict_of_table(dict_, resource_name):
 
 
 def _transform_single_table(dict_, resource_name):
-    _validate_dict_of_qza_paths(dict_, resource_name, allow_none=True,
-                                required_fields=['table'],
-                                non_qza_entries=['table-type'],
-                                allow_extras=True,
-                                )
+    taxonomy = {'feature-data-taxonomy': dict_.pop('feature-data-taxonomy',
+                                                   None)}
+    supported_table_types = {'qza', 'biom'}
+    table_type = dict_.get('table-format', 'qza')
+    if table_type not in supported_table_types:
+        raise ValueError(f"'table-format'={table_type} not in supported table "
+                         f"types: {supported_table_types}.")
+
+    _validate_dict_of_paths(dict_, resource_name, allow_none=True,
+                            required_fields=['table'],
+                            non_ext_entries=['q2-type', 'table-format'],
+                            allow_extras=True,
+                            extensions=['.' + table_type]
+                            )
+    _validate_dict_of_paths(taxonomy, resource_name,
+                            allow_none=True,
+                            )
+
+    if taxonomy['feature-data-taxonomy'] is not None:
+        dict_.update(taxonomy)
+
     semantic_types = {
-        'table': dict_.get('table-type', FeatureTable[Frequency]),
         'feature-data-taxonomy': FeatureData[Taxonomy],
-        'variances': FeatureTable[Frequency],
     }
+    biom_kws = set()
+    if table_type == 'qza':
+        semantic_types.update({
+            'table': dict_.get('table-type', FeatureTable[Frequency]),
+            'variances': FeatureTable[Frequency],
+        })
+    elif table_type == 'biom':
+        biom_kws.update({'table', 'variances'})
+    else:
+        # shouldn't happen because error check earlier but seems better than
+        # silently ignoring....
+        raise ValueError(f"'table-type'={table_type} not in supported table "
+                         f"types: {supported_table_types}.")
+
     views = {
         'table': biom.Table,
         'feature-data-taxonomy': pd.DataFrame,
@@ -52,6 +80,9 @@ def _transform_single_table(dict_, resource_name):
                                                semantic_types[key],
                                                view_type=views.get(key, None),
                                                )
+        elif key in biom_kws:
+            new_resource[key] = biom.load_table(value)
+
     return new_resource
 
 
@@ -71,38 +102,41 @@ def _parse_q2_data(filepath, semantic_type, view_type=None):
     return data
 
 
-def _validate_dict_of_qza_paths(dict_of_qza_paths, name, allow_none=False,
-                                required_fields=None, allow_extras=False,
-                                non_qza_entries=None,
-                                ):
-    if non_qza_entries is None:
-        non_qza_entries = []
-    if not isinstance(dict_of_qza_paths, dict):
+def _validate_dict_of_paths(dict_of_paths, name, allow_none=False,
+                            required_fields=None, allow_extras=False,
+                            non_ext_entries=None, extensions=None,
+                            ):
+    if extensions is None:
+        extensions = ['.qza']
+    if non_ext_entries is None:
+        non_ext_entries = []
+    if not isinstance(dict_of_paths, dict):
         raise ValueError(f"Expected '{name}' field to contain a dict. "
-                         f"Got {type(dict_of_qza_paths).__name__}")
+                         f"Got {type(dict_of_paths).__name__}")
     if required_fields:
         for field in required_fields:
-            if field not in dict_of_qza_paths:
+            if field not in dict_of_paths:
                 raise ValueError(f"Did not get required field '{field}'.")
         if not allow_extras:
-            allowed_keys = set(required_fields) | set(non_qza_entries)
+            allowed_keys = set(required_fields) | set(non_ext_entries)
             extra_keys = list(filter(lambda x: x not in allowed_keys,
-                                     dict_of_qza_paths.keys()))
+                                     dict_of_paths.keys()))
             if extra_keys:
                 raise ValueError(f"Extra keys: {extra_keys} not allowed.")
 
-    for key, value in dict_of_qza_paths.items():
-        if key in non_qza_entries:
+    for key, value in dict_of_paths.items():
+        if key in non_ext_entries:
             continue
-        is_qza = isinstance(value, str) and (value.endswith('.qza'))
+        has_ext = isinstance(value, str) and value.endswith(tuple(extensions))
         exists = isinstance(value, str) and os.path.exists(value)
         is_none = value is None
-        value_is_existing_qza_path = (is_qza and exists) or \
+        value_is_existing_qza_path = (has_ext and exists) or \
                                      (is_none and allow_none)
 
         if not value_is_existing_qza_path:
-            raise ValueError('Expected existing path with .qza '
-                             'extension. Got: {}'.format(value))
+            exp_ext = extensions[0] if len(extensions) == 1 else extensions
+            raise ValueError('Expected existing path with {} '
+                             'extension. Got: {}'.format(exp_ext, value))
 
 
 def _replace_paths_with_qza(dict_of_qza_paths, semantic_type, view_type=None):
@@ -150,14 +184,15 @@ class ResourceManager(dict):
         ...     },
         ...     table_resources={
         ...         'greengenes_13.8_insertion': {
-        ...             'table': '/path/to/feature-table.qza',
+        ...             'table': '/path/to/feature-table.biom',
         ...             'feature-data-taxonomy': '/a/feat-data-taxonomy.qza',
         ...             'variances': '/a/variance/feature-table.qza',
+        ...             'table-format': 'biom'
         ...         },
         ...         'some_other_feature_table': {
         ...             'table': '/another/path/tofeature-table.qza',
         ...             'variances': '/a/variance/feature-table.qza',
-        ...             'table-type': FeatureTable[Frequency],
+        ...             'q2-type': FeatureTable[Frequency],
         ...         },
         ...     }
         ...     some_other_resource='here is a string resource',
