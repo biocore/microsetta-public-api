@@ -35,18 +35,6 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                                                 'Confidence'])
         cls.taxonomy_df.set_index('Feature ID', inplace=True)
 
-        cls.table2 = biom.Table(np.array([[0, 1, 2],
-                                          [2, 4, 6],
-                                          [3, 0, 1]]),
-                                ['feature-1', 'feature-X', 'feature-3'],
-                                ['sample-1', 'sample-2', 'sample-3'])
-        cls.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                         ['feature-X', 'a; b; c; d; e', 0.34],
-                                         ['feature-3', 'a; f; g; h', 0.678]],
-                                        columns=['Feature ID', 'Taxon',
-                                                 'Confidence'])
-        cls.taxonomy2_df.set_index('Feature ID', inplace=True)
-
         # variances
         cls.table_vars = biom.Table(np.array([[0, 1, 2],
                                               [2, 4, 6],
