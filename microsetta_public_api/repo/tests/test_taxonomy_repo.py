@@ -9,7 +9,8 @@ from pandas.testing import assert_frame_equal
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
-from microsetta_public_api.utils.testing import TempfileTestCase
+from microsetta_public_api.utils.testing import (TempfileTestCase,
+                                                 ConfigTestCase)
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 
 
@@ -38,11 +39,11 @@ class TestTaxonomyRepoHelpers(TestCase):
         self.assertDictEqual({'table': 'some-other-tb'}, res)
 
 
-class TestTaxonomyRepoWithResources(TempfileTestCase):
+class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
 
     def setUp(self):
-        self._config_copy = config.resources.copy()
-        self._resources_copy = resources.copy()
+        TempfileTestCase.setUp(self)
+        ConfigTestCase.setUp(self)
         self.no_resources_repo = TaxonomyRepo()
         self.table1_filename = self.create_tempfile(suffix='.qza').name
         self.taxonomy1_filename = self.create_tempfile(suffix='.qza').name
@@ -135,10 +136,8 @@ class TestTaxonomyRepoWithResources(TempfileTestCase):
         self.repo = TaxonomyRepo()
 
     def tearDown(self):
-        config.resources = self._config_copy
-        resources.clear()
-        resources.update(self._resources_copy)
-        super().tearDown()
+        TempfileTestCase.tearDown(self)
+        ConfigTestCase.tearDown(self)
 
     def test_available_taxonomy_tables(self):
         exp = ['table2', 'table3', 'table4']

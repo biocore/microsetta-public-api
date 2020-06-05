@@ -1,4 +1,3 @@
-import json
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.models._taxonomy import Taxonomy
@@ -8,7 +7,7 @@ from microsetta_public_api.utils._utils import (validate_resource,
 
 
 def summarize_group(body, resource):
-    sample_ids = json.loads(body)['sample_ids']
+    sample_ids = body['sample_ids']
     return _summarize_group(sample_ids, resource)
 
 

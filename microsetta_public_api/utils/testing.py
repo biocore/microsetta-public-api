@@ -8,6 +8,8 @@ from unittest.mock import patch
 import microsetta_public_api
 import microsetta_public_api.server
 import microsetta_public_api.utils._utils
+from microsetta_public_api import config
+from microsetta_public_api.resources import resources
 
 
 class TempfileTestCase(TestCase):
@@ -113,3 +115,15 @@ class MockedJsonifyTestCase(TestCase):
                 patcher.stop()
         else:
             self.jsonify_patcher.stop()
+
+
+class ConfigTestCase(TestCase):
+
+    def setUp(self):
+        self._config_copy = config.resources.copy()
+        self._resources_copy = resources.copy()
+
+    def tearDown(self):
+        config.resources = self._config_copy
+        resources.clear()
+        dict.update(resources, self._resources_copy)
