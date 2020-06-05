@@ -3,15 +3,17 @@ from microsetta_public_api.resources import resources
 
 class TaxonomyRepo:
 
-    tables = None
-
     def __init__(self):
         tables = resources.get('table_resources', dict())
 
         def has_taxonomy(_, resource):
             return 'feature-data-taxonomy' in resource and 'table' in resource
 
-        self.tables = dict(filter(lambda x: has_taxonomy(*x), tables.items()))
+        self._tables = dict(filter(lambda x: has_taxonomy(*x), tables.items()))
+
+    @property
+    def tables(self):
+        return self._tables
 
     def _get_resource(self, name, component=None):
         if name not in self.tables:

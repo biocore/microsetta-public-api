@@ -63,7 +63,7 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
             mock_resources.return_value = [
                 'alpha', 'beta'
             ]
-            response, code = summarize_group(json.dumps(self.post_body),
+            response, code = summarize_group(self.post_body,
                                              'some-other-table'
                                              )
 
@@ -80,8 +80,8 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                 patch.object(TaxonomyRepo, 'resources') as mock_resources:
             mock_resources.return_value = ['foo-table']
             mock_exists.side_effect = [True, False]
-            response, code = summarize_group(json.dumps(
-                {'sample_ids': ['sample-1', 'sample-baz-bat']}), 'foo-table')
+            response, code = summarize_group(
+                {'sample_ids': ['sample-1', 'sample-baz-bat']}, 'foo-table')
 
         api_out = json.loads(response.data)
         self.assertListEqual(api_out['missing_ids'],
@@ -96,8 +96,8 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
             mock_metrics.return_value = ['bar-table']
             mock_exists.side_effect = [False, False]
             response, code = summarize_group(
-                json.dumps({'sample_ids': ['sample-foo-bar',
-                                           'sample-baz-bat']}), 'bar-table')
+                {'sample_ids': ['sample-foo-bar',
+                                'sample-baz-bat']}, 'bar-table')
         api_out = json.loads(response.data)
         self.assertListEqual(api_out['missing_ids'],
                              ['sample-foo-bar',
@@ -115,7 +115,7 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                     'feature-data-taxonomy': self.taxonomy_df,
                 },
             }
-            response, code = summarize_group(json.dumps(self.post_body),
+            response, code = summarize_group(self.post_body,
                                              "some-table")
         self.assertEqual(code, 200)
         exp_keys = ['taxonomy', 'features', 'feature_values',
@@ -146,7 +146,7 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                     'variances': self.table_vars,
                 },
             }
-            response, code = summarize_group(json.dumps(self.post_body),
+            response, code = summarize_group(self.post_body,
                                              "some-table")
         self.assertEqual(code, 200)
         exp_keys = ['taxonomy', 'features', 'feature_values',
@@ -178,7 +178,7 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                 },
             }
             response, code = summarize_group(
-                json.dumps({'sample_ids': ['sample-1']}), "some-table")
+                {'sample_ids': ['sample-1']}, "some-table")
 
         self.assertEqual(code, 200)
         exp_keys = ['taxonomy', 'features', 'feature_values',

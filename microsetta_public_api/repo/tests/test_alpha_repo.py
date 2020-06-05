@@ -6,7 +6,8 @@ from pandas.testing import assert_series_equal
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
-from microsetta_public_api.utils.testing import TempfileTestCase
+from microsetta_public_api.utils.testing import (TempfileTestCase,
+                                                 ConfigTestCase)
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.exceptions import UnknownMetric
 
@@ -24,12 +25,11 @@ class TestAlphaRepoHelpers(TempfileTestCase):
                 alpha_repo._get_resource('fake-test-metric')
 
 
-class TestAlphaRepoWithResources(TempfileTestCase):
+class TestAlphaRepoWithResources(TempfileTestCase, ConfigTestCase):
 
     def setUp(self):
-        super().setUp()
-        self._config_copy = config.resources.copy()
-        self._resources_copy = resources.copy()
+        ConfigTestCase.setUp(self)
+        TempfileTestCase.setUp(self)
         self.no_resources_repo = AlphaRepo()
         resource_filename1 = self.create_tempfile(suffix='.qza').name
         resource_filename2 = self.create_tempfile(suffix='.qza').name
@@ -59,10 +59,8 @@ class TestAlphaRepoWithResources(TempfileTestCase):
         self.repo = AlphaRepo()
 
     def tearDown(self):
-        config.resources = self._config_copy
-        resources.clear()
-        resources.update(self._resources_copy)
-        super().tearDown()
+        TempfileTestCase.tearDown(self)
+        ConfigTestCase.tearDown(self)
 
     def test_available_metrics(self):
         exp = ['chao1', 'faith_pd']

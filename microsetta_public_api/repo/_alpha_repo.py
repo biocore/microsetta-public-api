@@ -4,13 +4,14 @@ from microsetta_public_api.resources import resources
 
 class AlphaRepo:
 
-    # resources needs to be a class variable in order to be able to be
-    #  mocked in the test cases
-    resources = dict()
-    resource_locations = None
-
     def __init__(self):
-        self.resources = resources.get('alpha_resources', dict())
+        self._resources = resources.get('alpha_resources', dict())
+
+    # resources needs to be a property in order to be able to be
+    #  mocked in the test cases, but also be instance specific
+    @property
+    def resources(self):
+        return self._resources
 
     def _get_resource(self, metric):
         if metric not in self.available_metrics():
