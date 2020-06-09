@@ -5,6 +5,7 @@ import biom
 import numpy as np
 import numpy.testing as npt
 
+from qiime2 import Artifact
 from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
 from microsetta_public_api.exceptions import DisjointError, UnknownID
 
@@ -19,9 +20,9 @@ class TaxonomyTests(unittest.TestCase):
         self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
                                          ['feature-2', 'a; b; c; d; e', 0.345],
                                          ['feature-3', 'a; f; g; h', 0.678]],
-                                        columns=['FeatureID', 'Taxon',
+                                        columns=['Feature ID', 'Taxon',
                                                  'Confidence'])
-        self.taxonomy_df.set_index('FeatureID', inplace=True)
+        self.taxonomy_df.set_index('Feature ID', inplace=True)
         self.table_ranks = self.table.rankdata(inplace=False)
 
         self.table2 = biom.Table(np.array([[0, 1, 2],
@@ -32,9 +33,9 @@ class TaxonomyTests(unittest.TestCase):
         self.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
                                           ['feature-X', 'a; b; c; d; e', 0.34],
                                           ['feature-3', 'a; f; g; h', 0.678]],
-                                         columns=['FeatureID', 'Taxon',
+                                         columns=['Feature ID', 'Taxon',
                                                   'Confidence'])
-        self.taxonomy2_df.set_index('FeatureID', inplace=True)
+        self.taxonomy2_df.set_index('Feature ID', inplace=True)
         self.table2_ranks = self.table2.rankdata(inplace=False)
 
         # variances
@@ -46,6 +47,18 @@ class TaxonomyTests(unittest.TestCase):
         self.no_variances = biom.Table(np.zeros((3, 3)),
                                        ['feature-1', 'feature-2', 'feature-3'],
                                        ['sample-1', 'sample-2', 'sample-3'])
+
+    def test_qza_integration(self):
+        table_qza = Artifact.import_data(
+            "FeatureTable[Frequency]", self.table
+        )
+        taxonomy_qza = Artifact.import_data(
+            "FeatureData[Taxonomy]", self.taxonomy_df,
+        )
+        table = table_qza.view(biom.Table)
+        taxonomy_df = taxonomy_qza.view(pd.DataFrame)
+        taxonomy = Taxonomy(table, taxonomy_df)
+        taxonomy.get_group(['sample-1', 'sample-2'], 'foo')
 
     def test_get_sample_ids(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)

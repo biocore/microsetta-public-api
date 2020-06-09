@@ -44,6 +44,11 @@ in a configuration `JSON`. The value is expected to be a dictionary of `"<metric
 where `"<metric>"` is the name of the metric stored by the QZA and `"</file/path/name.qza>"` is a path to the QZA
 on the host server.
 
+The server can also be configured to serve information from feature tables with corresponding taxonomic
+feature data. Tables can either be QZA `FeatureTable`'s or biom tables. If a `biom` table is supplied,
+the `"table-format": "biom"` option must be specified. Taxonomy data is accepted with the
+`"feature-data-taxonomy"` keyword, which should correspond to the filepath to a QIIME2 `FeatureData[Taxonomy]`.
+
 `sample_config.json`:
 ```json
 {
@@ -51,6 +56,13 @@ on the host server.
     "faith_pd": "/path/to/faith_pd.qza",
     "observed_otus": "/path/to/observed/otus/metric.qza",
     "chao1": "/some/other/path/values.qza"
+  },
+  "table_resources": {
+    "taxonomy": {
+      "table": "/path/to/table.biom",
+      "table-format": "biom",
+      "feature-data-taxonomy": "/path/to/a/taxonomy-data.qza"
+    }
   }
 }
 ```

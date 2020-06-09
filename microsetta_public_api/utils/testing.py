@@ -3,10 +3,13 @@ import json
 import types
 import tempfile
 from unittest.case import TestCase
+from unittest.mock import patch
 
 import microsetta_public_api
 import microsetta_public_api.server
-from microsetta_public_api.api.diversity import alpha as alpha_imp
+import microsetta_public_api.utils._utils
+from microsetta_public_api import config
+from microsetta_public_api.resources import resources
 
 
 class TempfileTestCase(TestCase):
@@ -94,9 +97,33 @@ def mocked_jsonify(*args, **kwargs):
 class MockedJsonifyTestCase(TestCase):
 
     def setUp(self):
-        # monkey patch jsonify, then restore it after these tests are complete
-        self.old_jsonify = _copy_func(alpha_imp.jsonify)
-        alpha_imp.jsonify = mocked_jsonify
+        if isinstance(self.jsonify_to_patch, str):
+            self.jsonify_patcher = patch(
+                self.jsonify_to_patch,
+                new=mocked_jsonify,
+            )
+            self.mock_jsonify = self.jsonify_patcher.start()
+        else:
+            self.jsonify_patcher = [patch(jsonify_, new=mocked_jsonify) for
+                                    jsonify_ in self.jsonify_to_patch]
+            self.mock_jsonify = [patcher.start() for
+                                 patcher in self.jsonify_patcher]
 
     def tearDown(self):
-        alpha_imp.jsonify = self.old_jsonify
+        if isinstance(self.mock_jsonify, list):
+            for patcher in self.jsonify_patcher:
+                patcher.stop()
+        else:
+            self.jsonify_patcher.stop()
+
+
+class ConfigTestCase(TestCase):
+
+    def setUp(self):
+        self._config_copy = config.resources.copy()
+        self._resources_copy = resources.copy()
+
+    def tearDown(self):
+        config.resources = self._config_copy
+        resources.clear()
+        dict.update(resources, self._resources_copy)
