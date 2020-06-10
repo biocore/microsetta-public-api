@@ -1,4 +1,5 @@
 import pandas as pd
+from qiime2 import Metadata
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import (TempfileTestCase,
@@ -19,7 +20,9 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
                 'num_cat': [7.24, 7.24, 8.25, 7.24],
             }, index=pd.Series(['a', 'b', 'c', 'd'], name='#SampleID')
         )
-        config.resources.update({'metadata': self.test_metadata})
+        Metadata(self.test_metadata).save(self.metadata_filename)
+        config.resources.update({'metadata': self.metadata_filename})
+        resources.update(config.resources)
         self.repo = MetadataRepo()
 
     def tearDown(self):
@@ -27,7 +30,7 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         ConfigTestCase.tearDown(self)
 
     def test_categories(self):
-        exp = ['age_cat', 'num']
+        exp = ['age_cat', 'num_cat']
         obs = self.repo.categories
         self.assertCountEqual(exp, obs)
 
@@ -38,7 +41,7 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
 
     def test_category_values_numeric(self):
         exp = [7.24, 8.25]
-        obs = self.repo.category_values('num')
+        obs = self.repo.category_values('num_cat')
         self.assertCountEqual(exp, obs)
 
     def test_category_sample_id_matches_query_multiple_category(self):
