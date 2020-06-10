@@ -207,7 +207,8 @@ class ResourceManager(dict):
         ...             'variances': '/a/variance/feature-table.qza',
         ...             'q2-type': FeatureTable[Frequency],
         ...         },
-        ...     }
+        ...     },
+        ...     metadata='/path/to/some/metadata.txt',
         ...     some_other_resource='here is a string resource',
         ...     )
 
