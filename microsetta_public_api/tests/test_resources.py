@@ -39,6 +39,13 @@ class TestResourceManagerUpdateMetadata(TempfileTestCase):
         with self.assertRaises(MetadataFileError):
             self.resources.update({'metadata': self.metadata_fp_dne})
 
+    def test_resource_manager_update_metadata_non_string(self):
+        with self.assertRaises(MetadataFileError):
+            self.resources.update({'metadata': {'put': 'some',
+                                                'other': 'type'}})
+        with self.assertRaises(MetadataFileError):
+            self.resources.update({'metadata': 9})
+
 
 class TestResourceManagerUpdateAlpha(TempfileTestCase):
 
