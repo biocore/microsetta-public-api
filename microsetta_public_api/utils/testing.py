@@ -27,7 +27,13 @@ class TempfileTestCase(TestCase):
 
     def tearDown(self):
         for tempfile_ in self._tempfiles:
-            tempfile_.close()
+            try:
+                tempfile_.close()
+            # hoping this only happens if the tempfile is closed prior to
+            #  this teardown being called... which is nice for getting paths
+            #  you know coud exist on the machine
+            except OSError:
+                pass
 
 
 class FlaskTests(TestCase):
