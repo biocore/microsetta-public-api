@@ -4,6 +4,92 @@ import json
 from microsetta_public_api.utils.testing import FlaskTests
 
 
+class MetadataCategoryTests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.metadata.category_values')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_metadata_category_values_returns_string_array(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify([
+                '20s',
+                '30s',
+                '40s',
+                '50',
+            ])
+        _, self.client = self.build_app_test_client()
+        exp = ['20s', '30s', '40s', '50']
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with(category='age_cat')
+
+    def test_metadata_category_values_returns_numeric_array(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify([
+                20,
+                30,
+                7.15,
+                8.25,
+            ])
+        _, self.client = self.build_app_test_client()
+        exp = [20, 30, 7.15, 8.25]
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with(category='age_cat')
+
+    def test_metadata_category_values_returns_mixed_type_array(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify([
+                '20s',
+                30,
+                7.15,
+                8.25,
+            ])
+        _, self.client = self.build_app_test_client()
+        exp = ['20s', 30, 7.15, 8.25]
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with(category='age_cat')
+
+    def test_metadata_category_values_returns_empty(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify([])
+        _, self.client = self.build_app_test_client()
+        exp = []
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with(category='age_cat')
+
+    def test_metadata_category_values_returns_404(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                error=404, text='Unknown Category',
+            ), 404
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(404, response)
+        self.mock_method.assert_called_with(category='age_cat')
+
+
 class MetadataSampleIdsTests(FlaskTests):
 
     def setUp(self):
