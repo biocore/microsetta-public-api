@@ -4,6 +4,139 @@ import json
 from microsetta_public_api.utils.testing import FlaskTests
 
 
+class MetadataSampleIdsTests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.metadata.filter_sample_ids')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_metadata_sample_ids_returns_simple(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ]
+            })
+
+        _, self.client = self.build_app_test_client()
+        exp_ids = ['sample-1', 'sample-2']
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with(age_cat='30s', bmi='normal')
+
+    def test_metadata_sample_ids_returns_empty(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                ]
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertEqual(obs['sample_ids'], [])
+
+    def test_metadata_sample_ids_returns_extra_categories(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                ],
+                'some-extra-cat': ['stuff'],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+        self.assertStatusCode(500, response)
+
+    def test_metadata_sample_ids_get_extra_category_errors(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+                'some-extra-cat': ['stuff'],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal&gimme_cat"
+            "=something")
+        self.assertStatusCode(500, response)
+
+    def test_metadata_sample_ids_get_age_cat_succeeds(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s")
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with(age_cat='30s')
+
+    def test_metadata_sample_ids_get_bmi_succeeds(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?bmi=normal")
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with(bmi='normal')
+
+    def test_metadata_sample_ids_get_null_parameters_succeeds(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids")
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with()
+
+
 class AlphaDiversityTestCase(FlaskTests):
 
     def setUp(self):
