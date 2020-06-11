@@ -77,4 +77,3 @@ class MetadataRepo:
         if len(list_of_df) > 0:
             return pd.concat(list_of_df, **concat_kwargs)
         return pd.DataFrame(pd.Series(True, index=self._metadata.index))
-
