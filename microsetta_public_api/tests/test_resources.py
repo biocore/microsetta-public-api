@@ -2,13 +2,8 @@ import pandas as pd
 import numpy as np
 import biom
 from biom.util import biom_open
-<<<<<<< HEAD
-from pandas.util.testing import assert_series_equal, assert_frame_equal
-from qiime2 import Artifact
-=======
 from pandas.testing import assert_series_equal, assert_frame_equal
 from qiime2 import Artifact, Metadata
->>>>>>> debug-md-ci-testing
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.feature_table import FeatureTable, Frequency
 from qiime2.metadata.io import MetadataFileError
