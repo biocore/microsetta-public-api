@@ -42,14 +42,45 @@ class MetadataRepo:
         return list(self._metadata.columns)
 
     def category_values(self, category):
+        """
+
+        Parameters
+        ----------
+        category : str
+            Metadata category to return the values of
+
+        Returns
+        -------
+        list
+            Contains the unique values in the metadata category
+
+        Raises
+        ------
+        ValueError
+            If `category` is not an existing category in the metadata
+
+        """
         if category not in self._metadata.columns:
             raise ValueError(f'No category with name `{category}`')
         else:
             return list(self._metadata[category].unique())
 
     def sample_id_matches(self, query):
-        slice = self._process_query(query)
-        return self._metadata.index[slice]
+        """
+
+        Parameters
+        ----------
+        query : dict
+            Expects a jquerybuilder formatted query
+
+        Returns
+        -------
+        list
+            The sample IDs that match the given `query`
+
+        """
+        slice_ = self._process_query(query)
+        return list(self._metadata.index[slice_])
 
     def _process_query(self, query):
         group_fields = ["condition", "rules"]
