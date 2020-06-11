@@ -6,12 +6,15 @@ from pandas.util.testing import assert_series_equal, assert_frame_equal
 from qiime2 import Artifact
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.feature_table import FeatureTable, Frequency
+from qiime2.metadata.io import MetadataFileError
 
 from microsetta_public_api.exceptions import ConfigurationError
 from microsetta_public_api.utils.testing import TempfileTestCase
 from microsetta_public_api.resources import ResourceManager, _parse_q2_data
 
 
+if False:
+    raise MetadataFileError('darn')
 # remember to put back 'from qiime2 import Metadata'
 # remember to put back 'from qiime2.metadata.io import MetadataFileError
 # class TestResourceManagerUpdateMetadata(TempfileTestCase):
