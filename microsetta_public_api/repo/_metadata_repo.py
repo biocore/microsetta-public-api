@@ -1,4 +1,31 @@
+from operator import eq, ge
+from functools import partial
+import pandas as pd
 from microsetta_public_api.resources import resources
+
+ops = {
+    'equal': eq,
+    'greater_or_equal': ge,
+}
+
+conditions = {
+    "AND": partial(pd.DataFrame.all, axis=1),
+    "OR": partial(pd.DataFrame.any, axis=1)
+}
+
+
+def _is_rule(node):
+    rule_fields = ["id", "operator", "value"]
+    for field in rule_fields:
+        if field not in node:
+            return False
+
+    op = node["operator"]
+    if op not in ops:
+        raise ValueError(f"Only operators in {ops} are supported. "
+                         f"Got {op}")
+
+    return True
 
 
 class MetadataRepo:
@@ -21,4 +48,33 @@ class MetadataRepo:
             return list(self._metadata[category].unique())
 
     def sample_id_matches(self, query):
-        raise NotImplementedError()
+        slice = self._process_query(query)
+        return self._metadata.index[slice]
+
+    def _process_query(self, query):
+        group_fields = ["condition", "rules"]
+
+        if _is_rule(query):
+            category, op, value = query['id'], query['operator'], \
+                                  query['value']
+            return ops[op](self._metadata[category], value)
+        else:
+            for field in group_fields:
+                if field not in query:
+                    raise ValueError(f"query=`{query}` does not appear to be "
+                                     f"a rule or a group.")
+            if query['condition'] not in conditions:
+                raise ValueError(f"Only conditions in {conditions} are "
+                                 f"supported. Got {query['condition']}.")
+            else:
+                condition = conditions[query['condition']]
+
+            return condition(self._safe_concat([self._process_query(rule) for
+                                                rule in query['rules']],
+                                               axis=1))
+
+    def _safe_concat(self, list_of_df, **concat_kwargs):
+        if len(list_of_df) > 0:
+            return pd.concat(list_of_df, **concat_kwargs)
+        return pd.DataFrame(pd.Series(True, index=self._metadata.index))
+
