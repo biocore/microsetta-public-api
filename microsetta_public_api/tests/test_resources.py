@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import biom
 from biom.util import biom_open
-from pandas.util.testing import assert_series_equal, assert_frame_equal
+from pandas.testing import assert_series_equal, assert_frame_equal
 from qiime2 import Artifact, Metadata
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.feature_table import FeatureTable, Frequency
@@ -17,34 +17,32 @@ class TestResourceManagerUpdateMetadata(TempfileTestCase):
 
     def setUp(self):
         super().setUp()
+        self.resources = ResourceManager()
+
+    def test_resource_manager_update_metadata_correct(self):
         self.metadata_fp = self.create_tempfile(suffix='.txt').name
-        self.metadata_fh2 = self.create_tempfile(suffix='.txt')
-        self.metadata_fh2.close()
-        self.metadata_fp_dne = self.metadata_fh2.name
         self.test_metadata = pd.DataFrame({
             'age_cat': ['30s', '40s', '50s', '30s'],
             'num': [7.15, 9.04, 8.25, 7.24],
-            }, index=pd.Series(['a', 'b', 'c', 'd'], name='#SampleID')
+        }, index=pd.Series(['a', 'b', 'c', 'd'], name='#SampleID')
         )
         self.q2_metadata = Metadata(self.test_metadata)
         self.q2_metadata.save(self.metadata_fp)
-        self.resources = ResourceManager()
-
-    def test_resource_manager_update_metadata(self):
         self.resources.update({'metadata': self.metadata_fp})
         self.assertCountEqual(['metadata'], self.resources.keys())
         assert_frame_equal(self.resources['metadata'], self.test_metadata)
 
     def test_resource_manager_update_metadata_does_not_exist(self):
+        self.metadata_fh2 = self.create_tempfile(suffix='.txt')
+        self.metadata_fh2.close()
+        self.metadata_fp_dne = self.metadata_fh2.name
         with self.assertRaises(MetadataFileError):
             self.resources.update({'metadata': self.metadata_fp_dne})
 
-    def test_resource_manager_update_metadata_non_string(self):
-        with self.assertRaises(MetadataFileError):
+    def test_resource_manager_update_metadata_non_string_dict(self):
+        with self.assertRaisesRegex(MetadataFileError, r'\{(.*)\}'):
             self.resources.update({'metadata': {'put': 'some',
                                                 'other': 'type'}})
-        with self.assertRaises(MetadataFileError):
-            self.resources.update({'metadata': 9})
 
 
 class TestResourceManagerUpdateAlpha(TempfileTestCase):
