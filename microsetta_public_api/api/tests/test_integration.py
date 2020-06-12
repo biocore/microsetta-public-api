@@ -82,10 +82,16 @@ class MetadataIntegrationTests(IntegrationTests):
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertEqual(obs['sample_ids'], [])
 
-    def test_metadata_sample_ids_returns_extra_categories(self):
+    def test_metadata_sample_ids_extra_categories_have_no_effect(self):
+        exp_ids = ['sample-1', 'sample-4']
+        # num_cat is not configured to be able to be queried on, so this
+        #  tests to make sure it is ignored
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal&foo=bar")
-        self.assertStatusCode(404, response)
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal&num_cat=30")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
 
     def test_metadata_sample_ids_get_age_cat_only(self):
         response = self.client.get(
