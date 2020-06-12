@@ -87,3 +87,11 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         exp = {'sample_ids': ['sample-1', 'sample-3']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
+
+    def test_metadata_filter_sample_ids_category_unknown_expect_404(self):
+        with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                   'categories', new_callable=PropertyMock) as \
+                    mock_categories:
+            mock_categories.return_value = ['age_cat', 'bmi']
+            response, code = filter_sample_ids(some_other_cat='bar')
+        self.assertEqual(code, 404)
