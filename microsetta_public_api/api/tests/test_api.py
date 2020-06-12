@@ -113,12 +113,12 @@ class MetadataSampleIdsTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp_ids = ['sample-1', 'sample-2']
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertCountEqual(obs['sample_ids'], exp_ids)
-        self.mock_method.assert_called_with(age_cat='30s', bmi='normal')
+        self.mock_method.assert_called_with(age_cat='30s', bmi_cat='normal')
 
     def test_metadata_sample_ids_returns_empty(self):
         with self.app_context():
@@ -129,7 +129,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -146,7 +146,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(500, response)
 
     def test_metadata_sample_ids_get_extra_category_in_response_errors(self):
@@ -161,7 +161,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(500, response)
 
     def test_metadata_sample_ids_get_extra_category_in_query_404(self):
@@ -173,7 +173,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi=normal&gimme_cat"
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal&gimme_cat"
             "=something")
         self.assertStatusCode(404, response)
 
@@ -207,13 +207,13 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?bmi=normal")
+            "/api/metadata/sample-ids?bmi_cat=normal")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertCountEqual(obs['sample_ids'], exp_ids)
-        self.mock_method.assert_called_with(bmi='normal')
+        self.mock_method.assert_called_with(bmi_cat='normal')
 
     def test_metadata_sample_ids_get_null_parameters_succeeds(self):
         with self.app_context():

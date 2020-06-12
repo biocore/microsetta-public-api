@@ -49,10 +49,10 @@ paths:
             type: string
             example: '30s'
         - in: query
-          name: bmi
+          name: bmi_cat
           schema:
             type: string
-            example: 'normal'
+            example: 'Normal'
 
       responses:
         '200':
