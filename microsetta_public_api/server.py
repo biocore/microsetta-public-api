@@ -13,7 +13,8 @@ def build_app(resources_config_json=None):
     # microsetta.config.resources, this config can be updated by a json file
     # passed to `build_app`.
     if resources_config_json is not None:
-        resource_updates = json.load(resources_config_json)
+        with open(resources_config_json) as fp:
+            resource_updates = json.load(fp)
         config.resources.update(resource_updates)
 
         resources.update(config.resources)
@@ -26,5 +27,7 @@ def build_app(resources_config_json=None):
 
 
 if __name__ == "__main__":
-    app = build_app()
+    import sys
+    config_fp = sys.argv[1] if len(sys.argv) > 1 else None
+    app = build_app(resources_config_json=config_fp)
     app.run(port=8083, debug=True)
