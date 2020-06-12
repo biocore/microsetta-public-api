@@ -15,8 +15,19 @@ def category_values(category):
 def filter_sample_ids(**kwargs):
     repo = MetadataRepo()
     query = _format_query(kwargs)
+    is_invalid = _validate_query(kwargs, repo)
+    if is_invalid:
+        return is_invalid
     matching_ids = repo.sample_id_matches(query)
     return jsonify(sample_ids=matching_ids), 200
+
+
+def _validate_query(dict_, repo):
+    categories = set(repo.categories)
+    for id_ in dict_:
+        if id_ not in categories:
+            text = f"Metadata category: '{id_}' does not exist."
+            return jsonify(text=text, error=404), 404
 
 
 def _format_query(dict_):
