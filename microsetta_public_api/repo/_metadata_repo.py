@@ -43,7 +43,6 @@ class MetadataRepo:
 
     def category_values(self, category):
         """
-        
         Parameters
         ----------
         category : str
