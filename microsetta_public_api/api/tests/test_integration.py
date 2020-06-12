@@ -32,11 +32,13 @@ class MetadataIntegrationTests(IntegrationTests):
             {
                 'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
                 'bmi': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
-                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15, 8.25],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
             }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
                                 'sample-4', 'sample-5', 'sample-6'],
                                name='#SampleID')
         )
+
+        Metadata(self.metadata_table).save(self.metadata_path)
 
         config.resources.update({'metadata': self.metadata_path})
         resources.update(config.resources)
@@ -292,6 +294,7 @@ class AlphaIntegrationTests(IntegrationTests):
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
+        MetadataIntegrationTests,
         ):
 
     pass
