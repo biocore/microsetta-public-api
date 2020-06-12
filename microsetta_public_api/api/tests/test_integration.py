@@ -85,7 +85,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_sample_ids_returns_extra_categories(self):
         response = self.client.get(
             "/api/metadata/sample-ids?age_cat=30s&bmi=normal&foo=bar")
-        self.assertStatusCode(500, response)
+        self.assertStatusCode(404, response)
 
     def test_metadata_sample_ids_get_age_cat_only(self):
         response = self.client.get(
