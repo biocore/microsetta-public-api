@@ -149,7 +149,7 @@ class MetadataSampleIdsTests(FlaskTests):
             "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
         self.assertStatusCode(500, response)
 
-    def test_metadata_sample_ids_get_extra_category_errors(self):
+    def test_metadata_sample_ids_get_extra_category_in_response_errors(self):
         with self.app_context():
             self.mock_method.return_value = jsonify({
                 'sample_ids': [
@@ -161,9 +161,21 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi=normal")
+        self.assertStatusCode(500, response)
+
+    def test_metadata_sample_ids_get_extra_category_in_query_404(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'text': "Metadata category: 'gimme_cat' does not exits.",
+                'error': 404
+            }), 404
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
             "/api/metadata/sample-ids?age_cat=30s&bmi=normal&gimme_cat"
             "=something")
-        self.assertStatusCode(500, response)
+        self.assertStatusCode(404, response)
 
     def test_metadata_sample_ids_get_age_cat_succeeds(self):
         with self.app_context():

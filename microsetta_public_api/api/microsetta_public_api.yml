@@ -61,6 +61,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/sampleIdList"
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
 
   '/diversity/metrics/alpha/available':
