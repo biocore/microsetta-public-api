@@ -38,8 +38,12 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
                          r"Metadata category: 'foo' does not exist.")
 
     def test_metadata_filter_sample_ids_age_cat(self):
-        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches:
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
+            mock_categories.return_value = ['age_cat']
             response, code = filter_sample_ids(age_cat='30s')
         self.assertEqual(code, 200)
         exp = {'sample_ids': ['sample-1', 'sample-3']}
@@ -47,8 +51,12 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         self.assertDictEqual(exp, obs)
 
     def test_metadata_filter_sample_ids_bmi(self):
-        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches:
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+            patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                  'categories', new_callable=PropertyMock) as \
+                    mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
+            mock_categories.return_value = ['bmi']
             response, code = filter_sample_ids(bmi='normal')
         self.assertEqual(code, 200)
         exp = {'sample_ids': ['sample-1', 'sample-3']}
@@ -56,8 +64,12 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         self.assertDictEqual(exp, obs)
 
     def test_metadata_filter_sample_ids_bmi_and_age_cat(self):
-        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches:
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
+            mock_categories.return_value = ['bmi', 'age_cat']
             response, code = filter_sample_ids(bmi='normal', age_cat='30s')
         self.assertEqual(code, 200)
         exp = {'sample_ids': ['sample-1', 'sample-3']}
@@ -65,8 +77,12 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         self.assertDictEqual(exp, obs)
 
     def test_metadata_filter_sample_ids_neither_bmi_or_age_cat(self):
-        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches:
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
+            mock_categories.return_value = ['some_other_cat']
             response, code = filter_sample_ids(some_other_cat='bar')
         self.assertEqual(code, 200)
         exp = {'sample_ids': ['sample-1', 'sample-3']}
