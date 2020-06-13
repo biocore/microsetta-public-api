@@ -1,5 +1,7 @@
 import json
 from unittest.mock import patch, PropertyMock
+from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
+from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.metadata import (category_values,
@@ -9,7 +11,10 @@ from microsetta_public_api.api.metadata import (category_values,
 
 class MetadataImplementationTests(MockedJsonifyTestCase):
 
-    jsonify_to_patch = 'microsetta_public_api.api.metadata.jsonify'
+    jsonify_to_patch = [
+        'microsetta_public_api.api.metadata.jsonify',
+        'microsetta_public_api.utils._utils.jsonify',
+    ]
 
     def test_metadata_category_values(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
@@ -95,3 +100,54 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
             mock_categories.return_value = ['age_cat', 'bmi']
             response, code = filter_sample_ids(some_other_cat='bar')
         self.assertEqual(code, 404)
+
+    def test_metadata_filter_sample_ids_taxonomy_unknown(self):
+        response, code = filter_sample_ids(taxonomy='some-tax')
+        self.assertEqual(code, 404)
+
+    def test_metadata_filter_sample_ids_taxonomy_unknown(self):
+        response, code = filter_sample_ids(taxonomy='some-tax')
+        self.assertEqual(code, 404)
+
+    def test_metadata_filter_sample_ids_alpha_metric_unknown(self):
+        response, code = filter_sample_ids(alpha_metric='some-unknown-metric')
+        self.assertEqual(code, 404)
+
+    def test_metadata_filter_sample_ids_taxonomy_filter(self):
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                        mock_categories, \
+                patch('microsetta_public_api.api.metadata'
+                      '.TaxonomyRepo.exists') as mock_exists, \
+                patch('microsetta_public_api.api.metadata.validate_resource'
+                      '') as mock_invalid_resource:
+            mock_matches.return_value = ['sample-1', 'sample-2', 'sample-3']
+            mock_categories.return_value = ['age_cat']
+            mock_exists.side_effect = [False, True, True]
+            mock_invalid_resource.return_value = False
+            response, code = filter_sample_ids(age_cat='30s', taxonomy='agp')
+        self.assertEqual(200, code)
+        exp = {'sample_ids': ['sample-2', 'sample-3']}
+        obs = json.loads(response)
+        self.assertDictEqual(exp, obs)
+
+    def test_metadata_filter_sample_ids_alpha_metric_filter(self):
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                        mock_categories, \
+                patch('microsetta_public_api.api.metadata'
+                      '.AlphaRepo.exists') as mock_exists, \
+                patch('microsetta_public_api.api.metadata.validate_resource'
+                      '') as mock_invalid_resource:
+            mock_matches.return_value = ['sample-1', 'sample-2', 'sample-3']
+            mock_categories.return_value = ['age_cat']
+            mock_exists.side_effect = [True, False, True]
+            mock_invalid_resource.return_value = False
+            response, code = filter_sample_ids(age_cat='30s',
+                                               alpha_metric='faith_pd')
+        self.assertEqual(200, code)
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
+        obs = json.loads(response)
+        self.assertDictEqual(exp, obs)

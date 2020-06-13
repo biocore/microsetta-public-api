@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import biom
 from biom.util import biom_open
-from qiime2 import Artifact
+from qiime2 import Artifact, Metadata
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
@@ -21,6 +21,27 @@ class IntegrationTests(FlaskTests, TempfileTestCase, ConfigTestCase):
         TempfileTestCase.tearDown(self)
         FlaskTests.tearDown(self)
         ConfigTestCase.tearDown(self)
+
+
+class MetadataIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.metadata_path = self.create_tempfile(suffix='.txt').name
+        self.metadata_table = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6'],
+                               name='#SampleID')
+        )
+
+        Metadata(self.metadata_table).save(self.metadata_path)
+
+        config.resources.update({'metadata': self.metadata_path})
+        resources.update(config.resources)
 
 
 class TaxonomyIntegrationTests(IntegrationTests):
@@ -126,7 +147,6 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))
 
-        print(response.data)
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['taxonomy', 'features',
@@ -143,7 +163,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
         self.series_1 = pd.Series({
             'sample-foo-bar': 7.24, 'sample-baz-qux': 8.25,
-            'sample-quuz-corge': 6.4, },
+            'sample-3': 6.4, },
             name='observed_otus'
         )
 
@@ -201,6 +221,51 @@ class AlphaIntegrationTests(IntegrationTests):
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
+        MetadataIntegrationTests,
         ):
 
-    pass
+    def test_metadata_filter_on_taxonomy(self):
+        response = self.client.get('/api/metadata/sample-ids?taxonomy=table2')
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-1', 'sample-2', 'sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_taxonomy_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?taxonomy=table2&age_cat=50s')
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s')
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s'
+            '&taxonomy=table2')
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat_empty(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=30s'
+            '&taxonomy=table2')
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual([],
+                              obs['sample_ids'])
