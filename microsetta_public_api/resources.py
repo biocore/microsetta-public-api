@@ -3,6 +3,7 @@ import pandas as pd
 import biom
 from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
+from qiime2.core.type.grammar import TypeExp
 from qiime2 import Artifact, Metadata
 from qiime2.metadata.io import MetadataFileError
 from q2_types.sample_data import AlphaDiversity, SampleData
@@ -87,13 +88,18 @@ def _transform_single_table(dict_, resource_name):
     return new_resource
 
 
-def _parse_q2_data(filepath, semantic_type, view_type=None):
+def _parse_q2_data(filepath, semantic_type, view_type=None,
+                   ignore_predicate=True):
     try:
         data = Artifact.load(filepath)
     except ValueError as e:
         raise ConfigurationError(*e.args)
 
-    if data.type != semantic_type:
+    data_type = data.type
+    if ignore_predicate:
+        data_type = TypeExp(data_type.template, fields=data_type.fields)
+
+    if data_type != semantic_type:
         raise ConfigurationError(f"Expected QZA '{filepath}' to have type "
                                  f"'{semantic_type}'. "
                                  f"Received '{data.type}'.")

@@ -366,6 +366,21 @@ class TestResourceManagerQ2Parse(TempfileTestCase):
                                          view_type=pd.Series)
         assert_series_equal(test_series, loaded_artifact)
 
+    def test_parse_q2_data_with_predicate(self):
+        resource_filename = self.create_tempfile(suffix='.qza').name
+        test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
+                                name='chao1')
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity] % Properties('phylogenetic')",
+            test_series
+        )
+        imported_artifact.save(resource_filename)
+
+        loaded_artifact = _parse_q2_data(resource_filename,
+                                         SampleData[AlphaDiversity],
+                                         view_type=pd.Series)
+        assert_series_equal(test_series, loaded_artifact)
+
     def test_parse_q2_data_wrong_semantic_type(self):
         resource_filename = self.create_tempfile(suffix='.qza').name
         test_series = pd.Series({'feature1': 'k__1', 'feature2': 'k__2'},
