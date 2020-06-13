@@ -1,12 +1,45 @@
+from operator import eq, ge
+from functools import partial
+import pandas as pd
+from microsetta_public_api.resources import resources
+
+ops = {
+    'equal': eq,
+    'greater_or_equal': ge,
+}
+
+conditions = {
+    "AND": partial(pd.DataFrame.all, axis=1),
+    "OR": partial(pd.DataFrame.any, axis=1)
+}
+
+
+def _is_rule(node):
+    rule_fields = ["id", "operator", "value"]
+    for field in rule_fields:
+        if field not in node:
+            return False
+
+    op = node["operator"]
+    if op not in ops:
+        raise ValueError(f"Only operators in {ops} are supported. "
+                         f"Got {op}")
+
+    return True
+
+
 class MetadataRepo:
+
+    def __init__(self):
+        self._metadata = resources.get('metadata', pd.DataFrame())
 
     @property
     def metadata(self):
-        raise NotImplementedError()
+        return self._metadata
 
     @property
     def categories(self):
-        raise NotImplementedError()
+        return list(self._metadata.columns)
 
     def category_values(self, category):
         """
@@ -26,10 +59,14 @@ class MetadataRepo:
             If `category` is not an existing category in the metadata
 
         """
-        raise NotImplementedError()
+        if category not in self._metadata.columns:
+            raise ValueError(f'No category with name `{category}`')
+        else:
+            return list(self._metadata[category].unique())
 
     def sample_id_matches(self, query):
         """
+
         Parameters
         ----------
         query : dict
@@ -41,4 +78,32 @@ class MetadataRepo:
             The sample IDs that match the given `query`
 
         """
-        raise NotImplementedError()
+        slice_ = self._process_query(query)
+        return list(self._metadata.index[slice_])
+
+    def _process_query(self, query):
+        group_fields = ["condition", "rules"]
+
+        if _is_rule(query):
+            category, op, value = query['id'], query['operator'], \
+                                  query['value']
+            return ops[op](self._metadata[category], value)
+        else:
+            for field in group_fields:
+                if field not in query:
+                    raise ValueError(f"query=`{query}` does not appear to be "
+                                     f"a rule or a group.")
+            if query['condition'] not in conditions:
+                raise ValueError(f"Only conditions in {conditions} are "
+                                 f"supported. Got {query['condition']}.")
+            else:
+                condition = conditions[query['condition']]
+
+            return condition(self._safe_concat([self._process_query(rule) for
+                                                rule in query['rules']],
+                                               axis=1))
+
+    def _safe_concat(self, list_of_df, **concat_kwargs):
+        if len(list_of_df) > 0:
+            return pd.concat(list_of_df, **concat_kwargs)
+        return pd.DataFrame(pd.Series(True, index=self._metadata.index))
