@@ -53,6 +53,17 @@ paths:
           schema:
             type: string
             example: 'Normal'
+        - in: query
+          name: taxonomy
+          description: Filter IDs to those present in the table associated with `taxonomy`
+          schema:
+            type: string
+            example: 'genus-level-taxonomy'
+        - in: query
+          name: alpha_metric
+          description: Filter IDs to those present in the data for `alpha_metric`
+          schema:
+            $ref: '#/components/schemas/alpha_metric'
 
       responses:
         '200':
