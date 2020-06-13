@@ -1,7 +1,5 @@
 import json
 from unittest.mock import patch, PropertyMock
-from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
-from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.metadata import (category_values,
@@ -105,10 +103,6 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         response, code = filter_sample_ids(taxonomy='some-tax')
         self.assertEqual(code, 404)
 
-    def test_metadata_filter_sample_ids_taxonomy_unknown(self):
-        response, code = filter_sample_ids(taxonomy='some-tax')
-        self.assertEqual(code, 404)
-
     def test_metadata_filter_sample_ids_alpha_metric_unknown(self):
         response, code = filter_sample_ids(alpha_metric='some-unknown-metric')
         self.assertEqual(code, 404)
@@ -117,7 +111,7 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories, \
+                mock_categories, \
                 patch('microsetta_public_api.api.metadata'
                       '.TaxonomyRepo.exists') as mock_exists, \
                 patch('microsetta_public_api.api.metadata.validate_resource'
@@ -136,7 +130,7 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories, \
+                mock_categories, \
                 patch('microsetta_public_api.api.metadata'
                       '.AlphaRepo.exists') as mock_exists, \
                 patch('microsetta_public_api.api.metadata.validate_resource'
