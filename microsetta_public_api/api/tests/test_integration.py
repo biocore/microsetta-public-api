@@ -44,7 +44,7 @@ class MetadataIntegrationTests(IntegrationTests):
         resources.update(config.resources)
 
     def test_metadata_category_values_returns_string_array(self):
-        exp = ['30s', '40s', '50']
+        exp = ['30s', '40s', '50s']
         response = self.client.get(
             "/api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
