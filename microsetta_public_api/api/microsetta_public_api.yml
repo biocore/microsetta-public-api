@@ -7,6 +7,64 @@ servers:
   - url: '/api'
 
 paths:
+  '/metadata/category/values/{category}':
+    get:
+      operationId: microsetta_public_api.api.metadata.category_values
+      tags:
+        - Metadata
+      summary: Get values associated with metadata category
+      description: Get values associated with metadata category
+      parameters:
+        - in: path
+          name: category
+          description: Metadata category to return values of
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successfuly returned category values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - type: string
+                    - type: number
+        '404':
+            $ref: '#/components/responses/404NotFound'
+
+  '/metadata/sample-ids':
+    get:
+      operationId: microsetta_public_api.api.metadata.filter_sample_ids
+      tags:
+        - Metadata
+      summary: Get samples associated with query
+      description: Get samples associated with query
+      parameters:
+        - in: query
+          name: age_cat
+          schema:
+            type: string
+            example: '30s'
+        - in: query
+          name: bmi_cat
+          schema:
+            type: string
+            example: 'Normal'
+
+      responses:
+        '200':
+          description: Successfully returned sample ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sampleIdList"
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+
   '/diversity/metrics/alpha/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
@@ -312,6 +370,7 @@ components:
       type: object
       required:
         - sample_ids
+      additionalProperties: False
       properties:
         sample_ids:
           type: array

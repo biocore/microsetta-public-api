@@ -43,6 +43,14 @@ class FlaskTests(TestCase):
         client = app.app.test_client()
         return app, client
 
+    def assertStatusCode(self, exp_code, response):
+        try:
+            status_code = response.status_code
+            self.assertEqual(exp_code, status_code)
+        except AssertionError:
+            raise AssertionError(f'{exp_code} != {status_code}'
+                                 f'\nRecieved response data: {response.data}')
+
 
 def _copy_func(f, name=None):
     """
