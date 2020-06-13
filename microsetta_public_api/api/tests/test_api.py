@@ -135,35 +135,6 @@ class MetadataSampleIdsTests(FlaskTests):
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertEqual(obs['sample_ids'], [])
 
-    def test_metadata_sample_ids_returns_extra_categories(self):
-        with self.app_context():
-            self.mock_method.return_value = jsonify({
-                'sample_ids': [
-                    'sample-1',
-                ],
-                'some-extra-cat': ['stuff'],
-            })
-
-        _, self.client = self.build_app_test_client()
-        response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
-        self.assertStatusCode(500, response)
-
-    def test_metadata_sample_ids_get_extra_category_in_response_errors(self):
-        with self.app_context():
-            self.mock_method.return_value = jsonify({
-                'sample_ids': [
-                    'sample-1',
-                    'sample-2',
-                ],
-                'some-extra-cat': ['stuff'],
-            })
-
-        _, self.client = self.build_app_test_client()
-        response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
-        self.assertStatusCode(500, response)
-
     def test_metadata_sample_ids_get_extra_category_in_query_404(self):
         with self.app_context():
             self.mock_method.return_value = jsonify({
