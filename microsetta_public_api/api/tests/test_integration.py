@@ -4,6 +4,7 @@ import pandas as pd
 import biom
 from biom.util import biom_open
 from qiime2 import Artifact
+from numpy.testing import assert_allclose
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
@@ -126,12 +127,45 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))
 
-        print(response.data)
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['taxonomy', 'features',
                                'feature_values', 'feature_variances'],
                               obs.keys())
+
+        self.assertEqual('((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([2. / 5, 3. / 5],
+                        obs['feature_values']
+                        )
+        assert_allclose([0, 0],
+                        obs['feature_variances']
+                        )
+
+    def test_summarize_single_sample(self):
+        response = self.client.get(
+            '/api/taxonomy/single_sample/table2/sample-1',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['taxonomy', 'features',
+                               'feature_values', 'feature_variances'],
+                              obs.keys())
+        self.assertEqual('((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([2. / 5, 3. / 5],
+                        obs['feature_values']
+                        )
+        assert_allclose([0, 0],
+                        obs['feature_variances']
+                        )
 
 
 class AlphaIntegrationTests(IntegrationTests):
