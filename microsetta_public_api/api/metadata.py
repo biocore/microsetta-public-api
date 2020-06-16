@@ -22,38 +22,37 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
         return is_invalid
     matching_ids = repo.sample_id_matches(query)
 
-    if taxonomy is not None:
-        taxonomy_repo = TaxonomyRepo()
-        available_resources = taxonomy_repo.resources()
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, TaxonomyRepo, 'resources', taxonomy, 'resource',
+    )
 
-        type_ = 'resource'
-        missing_resource = validate_resource(available_resources, taxonomy,
-                                             type_)
-        if missing_resource:
-            return missing_resource
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, AlphaRepo, 'available_metrics', alpha_metric,
+        'metric', error_response=error_response, error_code=error_code,
+    )
 
-        matching_ids_ = [id_ for id_ in matching_ids if
-                         taxonomy_repo.exists(id_, taxonomy)]
-        matching_ids = matching_ids_
-
-    if alpha_metric is not None:
-        alpha_repo = AlphaRepo()
-
-        # figure out if the user asked for a metric we have data on
-        available_metrics = alpha_repo.available_metrics()
-        type_ = 'metric'
-        missing_metric = validate_resource(available_metrics, alpha_metric,
-                                           type_)
-        if missing_metric:
-            return missing_metric
-
-        # make sure all of the data the samples the user asked for have values
-        # for the given metric
-        matching_ids_ = [id_ for id_ in matching_ids if
-                         alpha_repo.exists(id_, alpha_metric)]
-        matching_ids = matching_ids_
+    if error_response:
+        return jsonify(*error_response), error_code
 
     return jsonify(sample_ids=matching_ids), 200
+
+
+def _filter_matching_ids(matching_ids, repo, category, value, resource_type,
+                         error_response=None, error_code=None):
+    if value is not None:
+        repo_instance = repo()
+        available_resources = getattr(repo_instance, category)()
+
+        missing_resource = validate_resource(available_resources, value,
+                                             resource_type)
+        if missing_resource:
+            error_response, error_code = missing_resource
+
+        else:
+            matching_ids_ = [id_ for id_ in matching_ids if
+                             repo_instance.exists(id_, value)]
+            matching_ids = matching_ids_
+    return matching_ids, error_code, error_response
 
 
 def _validate_query(dict_, repo):
