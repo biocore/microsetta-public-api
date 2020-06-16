@@ -7,7 +7,7 @@ from unittest.mock import patch, PropertyMock
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.taxonomy import (
-    resources, summarize_group, _summarize_group,
+    resources, summarize_group, _summarize_group, single_sample,
 )
 
 
@@ -337,3 +337,63 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
         assert_allclose([2.0, 3.0],
                         obs['feature_variances']
                         )
+
+    def test_taxonomy_from_list_summarize_single_simple(self):
+        with patch('microsetta_public_api.repo._taxonomy_repo.TaxonomyRepo.'
+                   'tables', new_callable=PropertyMock) as mock_tables:
+            mock_tables.return_value = {
+                'some-table': {
+                    'table': self.table,
+                    'feature-data-taxonomy': self.taxonomy_df,
+                    'variances': self.table_vars,
+                },
+            }
+            response, code = single_sample('sample-1',
+                                           "some-table")
+        self.assertEqual(code, 200)
+        exp_keys = ['taxonomy', 'features', 'feature_values',
+                    'feature_variances']
+        obs = json.loads(response)
+
+        self.assertCountEqual(exp_keys, obs.keys())
+        self.assertEqual('((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([2. / 5, 3. / 5],
+                        obs['feature_values']
+                        )
+        assert_allclose([2, 3],
+                        obs['feature_variances']
+                        )
+
+    def test_taxonomy_from_list_summarize_single_sample_simple(self):
+        with patch('microsetta_public_api.repo._taxonomy_repo.TaxonomyRepo.'
+                   'tables', new_callable=PropertyMock) as mock_tables:
+            mock_tables.return_value = {
+                'some-table': {
+                    'table': self.table,
+                    'feature-data-taxonomy': self.taxonomy_df,
+                },
+            }
+            response, code = single_sample(
+                'sample-1', "some-table")
+
+        self.assertEqual(code, 200)
+        exp_keys = ['taxonomy', 'features', 'feature_values',
+                    'feature_variances'
+                    ]
+        obs = json.loads(response)
+
+        self.assertCountEqual(exp_keys, obs.keys())
+        self.assertEqual('((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([2. / 5, 3. / 5],
+                        obs['feature_values']
+                        )
+        assert_allclose([0, 0],
+                        obs['feature_variances'])
