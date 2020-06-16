@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import biom
 from biom.util import biom_open
-from qiime2 import Artifact
+
+from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 
 from microsetta_public_api import config
@@ -22,6 +23,105 @@ class IntegrationTests(FlaskTests, TempfileTestCase, ConfigTestCase):
         TempfileTestCase.tearDown(self)
         FlaskTests.tearDown(self)
         ConfigTestCase.tearDown(self)
+
+
+class MetadataIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.metadata_path = self.create_tempfile(suffix='.txt').name
+        self.metadata_table = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6'],
+                               name='#SampleID')
+        )
+
+        Metadata(self.metadata_table).save(self.metadata_path)
+
+        config.resources.update({'metadata': self.metadata_path})
+        resources.update(config.resources)
+
+    def test_metadata_category_values_returns_string_array(self):
+        exp = ['30s', '40s', '50s']
+        response = self.client.get(
+            "/api/metadata/category/values/age_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+    def test_metadata_category_values_returns_numeric_array(self):
+        exp = [20, 30, 7.15, 8.25]
+        response = self.client.get(
+            "/api/metadata/category/values/num_cat")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+    def test_metadata_category_values_returns_404(self):
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/category/values/non-existing-cat")
+        self.assertStatusCode(404, response)
+
+    def test_metadata_sample_ids_returns_simple(self):
+        exp_ids = ['sample-1', 'sample-4']
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_returns_empty(self):
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=20s&bmi_cat=normal")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertEqual(obs['sample_ids'], [])
+
+    def test_metadata_sample_ids_extra_categories_have_no_effect(self):
+        exp_ids = ['sample-1', 'sample-4']
+        # num_cat is not configured to be able to be queried on, so this
+        #  tests to make sure it is ignored
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal&num_cat=30")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_get_age_cat_only(self):
+        response = self.client.get(
+            "/api/metadata/sample-ids?age_cat=30s")
+        exp_ids = ['sample-1', 'sample-4', 'sample-5']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_get_bmi_only(self):
+        response = self.client.get(
+            "/api/metadata/sample-ids?bmi_cat=normal")
+        exp_ids = ['sample-1', 'sample-4', 'sample-6']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_get_null_parameters_succeeds(self):
+        response = self.client.get(
+            "/api/metadata/sample-ids")
+        exp_ids = ['sample-1', 'sample-2', 'sample-3', 'sample-4',
+                   'sample-5', 'sample-6']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
 
 
 class TaxonomyIntegrationTests(IntegrationTests):
@@ -235,6 +335,7 @@ class AlphaIntegrationTests(IntegrationTests):
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
+        MetadataIntegrationTests,
         ):
 
     pass
