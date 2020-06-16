@@ -286,13 +286,7 @@ paths:
       summary: Get taxonomy information for a group of samples
       description: Get taxonomy information for a group of samples
       parameters:
-        - in: path
-          name: resource
-          description: An identifier for a taxonomy and feature table resource
-          schema:
-            type: string
-            example: "greengenes"
-          required: true
+        - $ref: '#/components/parameters/taxonomyResource'
 
       requestBody:
         content:
@@ -306,38 +300,29 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - taxonomy
-                  - features
-                  - feature_values
-                  - feature_variances
-                properties:
-                  taxonomy:
-                    type: string
-                    example: "(((((feature-2)e)d,feature-1)c)b)a;"
-                  features:
-                    type: array
-                    items:
-                      type: string
-                    example:
-                      - "feature-1"
-                      - "feature-2"
-                  feature_values:
-                    type: array
-                    items:
-                      type: number
-                    example:
-                      - 0.75
-                      - 0.25
-                  feature_variances:
-                    type: array
-                    items:
-                      type: number
-                    example:
-                      - 0.05
-                      - 0.11
-                    nullable: true
+                $ref: '#/components/schemas/taxonomyFeatures'
+
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/taxonomy/single_sample/{resource}/{sample_id}':
+    get:
+      operationId: microsetta_public_api.api.taxonomy.single_sample
+      tags:
+        - Taxonomy
+      summary: Get taxonomy information for a sample
+      description: Get taxonomy information for a sample
+      parameters:
+        - $ref: '#/components/parameters/sample_id'
+        - $ref: '#/components/parameters/taxonomyResource'
+
+      responses:
+        '200':
+          description: Successfuly return taxonomy information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyFeatures'
 
         '404':
           $ref: '#/components/responses/404NotFound'
@@ -357,6 +342,14 @@ components:
       description: Unique id specifying a sample associated with a source
       schema:
         $ref: '#/components/schemas/sample_id'
+      required: true
+    taxonomyResource:
+      name: resource
+      in: path
+      description: An identifier for a taxonomy and feature table resource
+      schema:
+        type: string
+        example: "greengenes"
       required: true
 
   schemas:
@@ -380,6 +373,37 @@ components:
             - "sample1"
             - "sample2"
             - "sample3"
+    taxonomyFeatures:
+      type: object
+      required:
+        - taxonomy
+        - features
+        - feature_values
+      properties:
+        taxonomy:
+          type: string
+          example: "(((((feature-2)e)d,feature-1)c)b)a;"
+        features:
+          type: array
+          items:
+            type: string
+          example:
+            - "feature-1"
+            - "feature-2"
+        feature_values:
+          type: array
+          items:
+            type: number
+          example:
+            - 0.75
+            - 0.25
+        feature_variances:
+          type: array
+          items:
+            type: number
+          example:
+            - 0.05
+            - 0.11
 
   responses:
     404NotFound:       # Can be referenced as '#/components/responses/404NotFound'

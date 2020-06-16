@@ -6,6 +6,11 @@ from microsetta_public_api.utils._utils import (validate_resource,
                                                 )
 
 
+def single_sample(sample_id, resource):
+    sample_ids = [sample_id]
+    return _summarize_group(sample_ids, resource)
+
+
 def summarize_group(body, resource):
     sample_ids = body['sample_ids']
     return _summarize_group(sample_ids, resource)
