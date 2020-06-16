@@ -186,6 +186,44 @@ class MetadataSampleIdsTests(FlaskTests):
         self.assertCountEqual(obs['sample_ids'], exp_ids)
         self.mock_method.assert_called_with(bmi_cat='normal')
 
+    def test_metadata_sample_ids_get_taxonomy_succeeds(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?taxonomy=ag-genus")
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with(taxonomy='ag-genus')
+
+    def test_metadata_sample_ids_get_alpha_metric_succeeds(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+
+        _, self.client = self.build_app_test_client()
+        response = self.client.get(
+            "/api/metadata/sample-ids?alpha_metric=faith_pd")
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        self.mock_method.assert_called_with(alpha_metric='faith_pd')
+
     def test_metadata_sample_ids_get_null_parameters_succeeds(self):
         with self.app_context():
             self.mock_method.return_value = jsonify({
@@ -603,4 +641,33 @@ class TaxonomyGroupAPITests(FlaskTests):
         response = self.client.post('/api/taxonomy/summarize_group/greengenes',
                                     content_type='application/json',
                                     data=json.dumps(self.request_content))
+        self.assertEqual(200, response.status_code)
+
+
+class TaxonomySingleSampleAPITests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch('microsetta_public_api.api.taxonomy'
+                             '.single_sample')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_valid_response_single_sample(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'taxonomy': "(((((feature-2)e)d,feature-1)c)b)a;",
+                    'features': ['feature-1', 'feature-2'],
+                    'feature_values': [5.2, 7.15],
+                    'feature_variances': [0, 0],
+                }
+            ), 200
+
+        response = self.client.get(
+            '/api/taxonomy/single_sample/greengenes/sample-1',
+        )
         self.assertEqual(200, response.status_code)
