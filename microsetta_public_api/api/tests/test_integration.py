@@ -122,7 +122,7 @@ class MetadataIntegrationTests(IntegrationTests):
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertCountEqual(obs['sample_ids'], exp_ids)
 
- 
+
 class TaxonomyIntegrationTests(IntegrationTests):
 
     def setUp(self):
