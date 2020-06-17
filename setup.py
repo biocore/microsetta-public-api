@@ -25,6 +25,7 @@ setup(
         'numpy',
         'biom-format>=2.0',
         'scikit-bio',
+        'altair',
     ],
     extras_require={
         "dev": [
