@@ -671,3 +671,68 @@ class TaxonomySingleSampleAPITests(FlaskTests):
             '/api/taxonomy/single_sample/greengenes/sample-1',
         )
         self.assertEqual(200, response.status_code)
+
+
+class PlottingAlphaAPITests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.plotting.plot_alpha_filtered')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_plotting_alpha_filtered(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    "data": {"url": "data/stocks.csv"},
+                    "transform": [{"filter": "datum.symbol==='GOOG'"}],
+                    "mark": {"type": "area", "line": True, "point": True},
+                    "encoding": {
+                        "x": {"field": "date", "type": "temporal"},
+                        "y": {"field": "price", "type": "quantitative"}
+                    }
+                }
+            ), 200
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/faith-pd/percentiles-plot')
+        self.assertStatusCode(200, response)
+
+    def test_plotting_alpha_filtered_all_parameters(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    "data": {"url": "data/stocks.csv"},
+                    "transform": [{"filter": "datum.symbol==='GOOG'"}],
+                    "mark": {"type": "area", "line": True, "point": True},
+                    "encoding": {
+                        "x": {"field": "date", "type": "temporal"},
+                        "y": {"field": "price", "type": "quantitative"}
+                    }
+                }
+            ), 200
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/faith-pd/percentiles-plot?age_cat'
+            '=30s&bmi_cat=Normal&percentiles=1,12,45')
+        self.assertStatusCode(200, response)
+        self.mock_method.assert_called_with(age_cat='30s',
+                                            bmi_cat='Normal',
+                                            alpha_metric='faith-pd',
+                                            percentiles=[1, 12, 45],
+                                            )
+
+    def test_plotting_alpha_filtered_404(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {'text': 'Bad metric',
+                 'error': 404,
+                }
+            ), 404
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/faith-pd/percentiles-plot?age_cat'
+            '=30s&bmi_cat=Normal&percentiles=1,12,45')
+        self.assertStatusCode(404, response)
