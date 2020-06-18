@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  </head>
+  <body>
+    <div id="vis"></div>
+    <script type="text/javascript">
+      var server = "http://localhost:8083";
+      var metric = "faith-pd";
+      var opt = {"renderer": "canvas", "actions": true};  /* Options for the embedding */
+      $.getJSON(server + "/api/plotting/diversity/alpha/faith-pd/percentiles-plot?age_cat=30s&bmi_cat=Normal&sample_id=sample-1",
+          function(json) {
+              // spec = json;
+              vegaEmbed("#vis", json, opt);
+          }
+      );
+    </script>
+  </body>
+</html>
