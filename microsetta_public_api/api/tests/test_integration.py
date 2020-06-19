@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import biom
 from biom.util import biom_open
-
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 
@@ -277,7 +276,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
         self.series_1 = pd.Series({
             'sample-foo-bar': 7.24, 'sample-baz-qux': 8.25,
-            'sample-quuz-corge': 6.4, },
+            'sample-3': 6.4, },
             name='observed_otus'
         )
 
@@ -338,4 +337,43 @@ class AllIntegrationTest(
         MetadataIntegrationTests,
         ):
 
-    pass
+    def test_metadata_filter_on_taxonomy(self):
+        response = self.client.get('/api/metadata/sample-ids?taxonomy=table2')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-1', 'sample-2', 'sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_taxonomy_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?taxonomy=table2&age_cat=50s')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s'
+            '&taxonomy=table2')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample-3'],
+                              obs['sample_ids'])
+
+    def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat_empty(self):
+        response = self.client.get(
+            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=30s'
+            '&taxonomy=table2')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual([],
+                              obs['sample_ids'])
