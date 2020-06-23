@@ -28,7 +28,7 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
         )
 
     if error_response:
-        return jsonify(*error_response), error_code
+        return error_response, error_code
 
     alpha_repo = AlphaRepo()
 

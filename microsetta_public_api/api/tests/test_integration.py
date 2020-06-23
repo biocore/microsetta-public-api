@@ -331,6 +331,67 @@ class AlphaIntegrationTests(IntegrationTests):
         self.assertEqual('observed_otus', obs['alpha_metric'])
 
 
+class PlottingIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.plotting_metadata_path = self.create_tempfile(suffix='.txt').name
+        self.plotting_metadata_table = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6'],
+                               name='#SampleID')
+        )
+
+        Metadata(self.plotting_metadata_table).save(
+            self.plotting_metadata_path)
+
+        config.resources.update({'metadata': self.plotting_metadata_path})
+
+        self.plotting_series1_filename = self.create_tempfile(
+            suffix='.qza').name
+        self.plotting_series2_filename = self.create_tempfile(
+            suffix='.qza').name
+
+        self.plotting_series_1 = pd.Series({
+            'sample-2': 7.24, 'sample-4': 8.25,
+            'sample-3': 6.4, },
+            name='observed_otus'
+        )
+
+        self.plotting_series_2 = pd.Series({
+            'sample-2': 9.01, 'sample-5': 9.04},
+            name='chao1'
+        )
+
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_1
+        )
+        imported_artifact.save(self.plotting_series1_filename)
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_2
+        )
+        imported_artifact.save(self.plotting_series2_filename)
+        config.resources.update({'alpha_resources': {
+            'observed_otus': self.plotting_series1_filename,
+            'chao1': self.plotting_series2_filename,
+        }})
+        resources.update(config.resources)
+
+    def test_percentiles_plot_with_filtering(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s'
+        )
+        # from unittest.mock import MagicMock
+        # response = MagicMock()
+        # response.status_code = 200
+        self.assertStatusCode(200, response)
+
+
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
