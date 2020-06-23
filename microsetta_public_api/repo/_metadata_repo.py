@@ -41,12 +41,16 @@ class MetadataRepo:
     def categories(self):
         return list(self._metadata.columns)
 
-    def category_values(self, category):
+    def category_values(self, category, exclude_na=True):
         """
         Parameters
         ----------
         category : str
             Metadata category to return the values of
+
+        exclude_na : bool
+            If True, not a number (na) values will be dropped from the
+            category values
 
         Returns
         -------
@@ -61,8 +65,10 @@ class MetadataRepo:
         """
         if category not in self._metadata.columns:
             raise ValueError(f'No category with name `{category}`')
-        else:
-            return list(self._metadata[category].unique())
+        category_values = self._metadata[category].unique()
+        if exclude_na:
+            category_values = category_values[~pd.isnull(category_values)]
+        return list(category_values)
 
     def sample_id_matches(self, query):
         """

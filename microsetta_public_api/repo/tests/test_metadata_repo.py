@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from qiime2 import Metadata
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
@@ -16,10 +17,10 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         self.metadata_filename = self.create_tempfile(suffix='.qza').name
 
         self.test_metadata = pd.DataFrame({
-                'age_cat': ['30s', '40s', '50s', '30s'],
-                'num_cat': [7.24, 7.24, 8.25, 7.24],
-                'other': [1, 2, 3, 4],
-            }, index=pd.Series(['a', 'b', 'c', 'd'], name='#SampleID')
+                'age_cat': ['30s', '40s', '50s', '30s', np.nan],
+                'num_cat': [7.24, 7.24, 8.25, 7.24, np.nan],
+                'other': [1, 2, 3, 4, np.nan],
+            }, index=pd.Series(['a', 'b', 'c', 'd', 'e'], name='#SampleID')
         )
         Metadata(self.test_metadata).save(self.metadata_filename)
         config.resources.update({'metadata': self.metadata_filename})
@@ -38,6 +39,16 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
     def test_category_values_string(self):
         exp = ['30s', '40s', '50s']
         obs = self.repo.category_values('age_cat')
+        self.assertCountEqual(exp, obs)
+
+    def test_category_values_with_na(self):
+        exp = ['30s', '40s', '50s', np.nan]
+        obs = self.repo.category_values('age_cat', exclude_na=False)
+        self.assertCountEqual(exp, obs)
+
+    def test_category_values_with_na_np_dropped(self):
+        exp = ['30s', '40s', '50s']
+        obs = self.repo.category_values('age_cat', exclude_na=True)
         self.assertCountEqual(exp, obs)
 
     def test_category_values_numeric(self):
@@ -112,7 +123,7 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         self.assertCountEqual(exp, obs)
 
     def test_category_sample_id_matches_query_no_category(self):
-        exp = ['a', 'b', 'c', 'd']
+        exp = ['a', 'b', 'c', 'd', 'e']
         query = {
             "condition": "AND",
             "rules": [

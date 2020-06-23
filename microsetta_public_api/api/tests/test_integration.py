@@ -31,11 +31,14 @@ class MetadataIntegrationTests(IntegrationTests):
         self.metadata_path = self.create_tempfile(suffix='.txt').name
         self.metadata_table = pd.DataFrame(
             {
-                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
-                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
-                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not',
+                            'normal', 'overweight'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15, np.nan],
             }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
-                                'sample-4', 'sample-5', 'sample-6'],
+                                'sample-4', 'sample-5', 'sample-6',
+                                'sample-7',
+                                ],
                                name='#SampleID')
         )
 
@@ -116,7 +119,7 @@ class MetadataIntegrationTests(IntegrationTests):
         response = self.client.get(
             "/api/metadata/sample-ids")
         exp_ids = ['sample-1', 'sample-2', 'sample-3', 'sample-4',
-                   'sample-5', 'sample-6']
+                   'sample-5', 'sample-6', 'sample-7']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
