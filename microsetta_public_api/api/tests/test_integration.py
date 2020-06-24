@@ -69,7 +69,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_sample_ids_returns_simple(self):
         exp_ids = ['sample-1', 'sample-4']
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
+            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -77,7 +77,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_returns_empty(self):
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=20s&bmi_cat=normal")
+            "/api/metadata/sample_ids?age_cat=20s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -88,7 +88,7 @@ class MetadataIntegrationTests(IntegrationTests):
         # num_cat is not configured to be able to be queried on, so this
         #  tests to make sure it is ignored
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal&num_cat=30")
+            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&num_cat=30")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -96,7 +96,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_age_cat_only(self):
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s")
+            "/api/metadata/sample_ids?age_cat=30s")
         exp_ids = ['sample-1', 'sample-4', 'sample-5']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -105,7 +105,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_bmi_only(self):
         response = self.client.get(
-            "/api/metadata/sample-ids?bmi_cat=normal")
+            "/api/metadata/sample_ids?bmi_cat=normal")
         exp_ids = ['sample-1', 'sample-4', 'sample-6']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -114,7 +114,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_null_parameters_succeeds(self):
         response = self.client.get(
-            "/api/metadata/sample-ids")
+            "/api/metadata/sample_ids")
         exp_ids = ['sample-1', 'sample-2', 'sample-3', 'sample-4',
                    'sample-5', 'sample-6']
         self.assertStatusCode(200, response)
@@ -221,7 +221,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
         self.assertCountEqual(['table2', 'table-fish'], obs['resources'])
 
     def test_summarize_group(self):
-        response = self.client.post('/api/taxonomy/summarize_group/table2',
+        response = self.client.post('/api/taxonomy/group/table2',
                                     content_type='application/json',
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))
@@ -246,7 +246,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
 
     def test_summarize_single_sample(self):
         response = self.client.get(
-            '/api/taxonomy/single_sample/table2/sample-1',
+            '/api/taxonomy/single/table2/sample-1',
         )
 
         self.assertEqual(response.status_code, 200)
@@ -300,7 +300,7 @@ class AlphaIntegrationTests(IntegrationTests):
         resources.update(config.resources)
 
     def test_resources_available(self):
-        response = self.client.get('/api/diversity/metrics/alpha/available')
+        response = self.client.get('/api/diversity/alpha/metrics/available')
 
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -309,7 +309,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_group_summary(self):
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100&return_raw=true',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample-foo-bar',
@@ -338,7 +338,7 @@ class AllIntegrationTest(
         ):
 
     def test_metadata_filter_on_taxonomy(self):
-        response = self.client.get('/api/metadata/sample-ids?taxonomy=table2')
+        response = self.client.get('/api/metadata/sample_ids?taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-1', 'sample-2', 'sample-3'],
@@ -346,7 +346,7 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_taxonomy_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample-ids?taxonomy=table2&age_cat=50s')
+            '/api/metadata/sample_ids?taxonomy=table2&age_cat=50s')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-3'],
@@ -354,7 +354,7 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s')
+            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=50s')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-3'],
@@ -362,7 +362,7 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=50s'
+            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=50s'
             '&taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -371,7 +371,7 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat_empty(self):
         response = self.client.get(
-            '/api/metadata/sample-ids?alpha_metric=observed_otus&age_cat=30s'
+            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=30s'
             '&taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)

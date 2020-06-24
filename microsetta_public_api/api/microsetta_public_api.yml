@@ -35,7 +35,7 @@ paths:
         '404':
             $ref: '#/components/responses/404NotFound'
 
-  '/metadata/sample-ids':
+  '/metadata/sample_ids':
     get:
       operationId: microsetta_public_api.api.metadata.filter_sample_ids
       tags:
@@ -63,7 +63,7 @@ paths:
           name: alpha_metric
           description: Filter IDs to those present in the data for `alpha_metric`
           schema:
-            $ref: '#/components/schemas/alpha_metric'
+            $ref: '#/components/schemas/alphaMetric'
 
       responses:
         '200':
@@ -76,7 +76,7 @@ paths:
           $ref: '#/components/responses/404NotFound'
 
 
-  '/diversity/metrics/alpha/available':
+  '/diversity/alpha/metrics/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
       tags:
@@ -96,13 +96,13 @@ paths:
                   alpha_metrics:
                     type: array
                     items:
-                      $ref: '#/components/schemas/alpha_metric'
+                      $ref: '#/components/schemas/alphaMetric'
                     example:
                       - "faith_pd"
                       - "observed_otus"
                       - "chao1"
 
-  '/diversity/alpha/{alpha_metric}/{sample_id}':
+  '/diversity/alpha/single/{alpha_metric}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.get_alpha
       tags:
@@ -110,8 +110,8 @@ paths:
       summary: Get single sample alpha diversity
       description: Get single sample alpha diversity
       parameters:
-        - $ref: '#/components/parameters/sample_id'
-        - $ref: '#/components/parameters/alpha_metric'
+        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/alphaMetric'
       responses:
         '200':
           description: Successfully return alpha diversity information
@@ -121,9 +121,9 @@ paths:
                 type: object
                 properties:
                   sample_id:
-                    $ref: '#/components/schemas/sample_id'
+                    $ref: '#/components/schemas/sampleId'
                   alpha_metric:
-                    $ref: '#/components/schemas/alpha_metric'
+                    $ref: '#/components/schemas/alphaMetric'
                   data:
                     type: number
                     example: 7.24
@@ -131,7 +131,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/diversity/alpha_group/{alpha_metric}':
+  '/diversity/alpha/group/{alpha_metric}':
     post:
       operationId: microsetta_public_api.api.diversity.alpha.alpha_group
       tags:
@@ -140,7 +140,7 @@ paths:
       description: Query alpha diversity for a group of samples
 
       parameters:
-        - $ref: '#/components/parameters/alpha_metric'
+        - $ref: '#/components/parameters/alphaMetric'
         - in: query
           name: summary_statistics
           schema:
@@ -191,7 +191,7 @@ paths:
                       - alpha_metric
                     properties:
                       alpha_metric:
-                        $ref: '#/components/schemas/alpha_metric'
+                        $ref: '#/components/schemas/alphaMetric'
                   - anyOf:
                     - type: object
                       required:
@@ -289,7 +289,7 @@ paths:
                       - "greengenes"
                       - "silva"
 
-  '/taxonomy/summarize_group/{resource}':
+  '/taxonomy/group/{resource}':
     post:
       operationId: microsetta_public_api.api.taxonomy.summarize_group
       tags:
@@ -316,7 +316,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/taxonomy/single_sample/{resource}/{sample_id}':
+  '/taxonomy/single/{resource}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.taxonomy.single_sample
       tags:
@@ -324,7 +324,7 @@ paths:
       summary: Get taxonomy information for a sample
       description: Get taxonomy information for a sample
       parameters:
-        - $ref: '#/components/parameters/sample_id'
+        - $ref: '#/components/parameters/sampleId'
         - $ref: '#/components/parameters/taxonomyResource'
 
       responses:
@@ -340,19 +340,19 @@ paths:
 
 components:
   parameters:
-    alpha_metric:
+    alphaMetric:
       name: alpha_metric
       in: path
       description: An alpha diversity metric
       schema:
-        $ref: '#/components/schemas/alpha_metric'
+        $ref: '#/components/schemas/alphaMetric'
       required: true
-    sample_id:
+    sampleId:
       name: sample_id
       in: path
       description: Unique id specifying a sample associated with a source
       schema:
-        $ref: '#/components/schemas/sample_id'
+        $ref: '#/components/schemas/sampleId'
       required: true
     taxonomyResource:
       name: resource
@@ -364,10 +364,10 @@ components:
       required: true
 
   schemas:
-    alpha_metric:
+    alphaMetric:
       type: string
       example: "faith_pd"
-    sample_id:
+    sampleId:
       type: string
       example: "sample_15"
     sampleIdList:
@@ -379,7 +379,7 @@ components:
         sample_ids:
           type: array
           items:
-            $ref: '#/components/schemas/sample_id'
+            $ref: '#/components/schemas/sampleId'
           example:
             - "sample1"
             - "sample2"
