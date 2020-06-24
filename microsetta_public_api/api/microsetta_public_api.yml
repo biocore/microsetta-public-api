@@ -35,7 +35,7 @@ paths:
         '404':
             $ref: '#/components/responses/404NotFound'
 
-  '/metadata/sample-ids':
+  '/metadata/sample_ids':
     get:
       operationId: microsetta_public_api.api.metadata.filter_sample_ids
       tags:
@@ -289,7 +289,7 @@ paths:
                       - "greengenes"
                       - "silva"
 
-  '/taxonomy/summarize_group/{resource}':
+  '/taxonomy/group/{resource}':
     post:
       operationId: microsetta_public_api.api.taxonomy.summarize_group
       tags:
@@ -316,7 +316,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/taxonomy/single_sample/{resource}/{sample_id}':
+  '/taxonomy/single/{resource}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.taxonomy.single_sample
       tags:

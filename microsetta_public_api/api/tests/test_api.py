@@ -113,7 +113,7 @@ class MetadataSampleIdsTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp_ids = ['sample-1', 'sample-2']
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
+            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -129,7 +129,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal")
+            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -144,7 +144,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s&bmi_cat=normal&gimme_cat"
+            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&gimme_cat"
             "=something")
         self.assertStatusCode(404, response)
 
@@ -159,7 +159,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?age_cat=30s")
+            "/api/metadata/sample_ids?age_cat=30s")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -178,7 +178,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?bmi_cat=normal")
+            "/api/metadata/sample_ids?bmi_cat=normal")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -197,7 +197,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?taxonomy=ag-genus")
+            "/api/metadata/sample_ids?taxonomy=ag-genus")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -216,7 +216,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids?alpha_metric=faith_pd")
+            "/api/metadata/sample_ids?alpha_metric=faith_pd")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -235,7 +235,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample-ids")
+            "/api/metadata/sample_ids")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -638,7 +638,7 @@ class TaxonomyGroupAPITests(FlaskTests):
                 }
             ), 200
 
-        response = self.client.post('/api/taxonomy/summarize_group/greengenes',
+        response = self.client.post('/api/taxonomy/group/greengenes',
                                     content_type='application/json',
                                     data=json.dumps(self.request_content))
         self.assertEqual(200, response.status_code)
@@ -668,6 +668,6 @@ class TaxonomySingleSampleAPITests(FlaskTests):
             ), 200
 
         response = self.client.get(
-            '/api/taxonomy/single_sample/greengenes/sample-1',
+            '/api/taxonomy/single/greengenes/sample-1',
         )
         self.assertEqual(200, response.status_code)
