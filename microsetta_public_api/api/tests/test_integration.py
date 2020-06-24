@@ -309,7 +309,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_group_summary(self):
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100&return_raw=true',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample-foo-bar',

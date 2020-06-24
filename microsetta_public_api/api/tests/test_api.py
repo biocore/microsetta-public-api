@@ -328,7 +328,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
 
             _, self.client = self.build_app_test_client()
             response = self.client.get(
-                '/api/diversity/alpha/observed_otus/sample-foo-bar')
+                '/api/diversity/alpha/single/observed_otus/sample-foo-bar')
 
             obs = json.loads(response.data)
 
@@ -346,7 +346,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
-                '/api/diversity/alpha/observed_otus/sample-foo-bar')
+                '/api/diversity/alpha/single/observed_otus/sample-foo-bar')
 
         self.assertRegex(response.data.decode(),
                          "Sample ID not found.")
@@ -378,7 +378,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus',
+            '/api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -400,7 +400,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus',
+            '/api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -421,7 +421,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus',
+            '/api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -436,7 +436,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         self.client.post(
-            '/api/diversity/alpha_group/observed_otus',
+            '/api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -455,7 +455,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -463,7 +463,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=1,2,45',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -471,7 +471,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=false&percentiles=1,2,45',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -479,7 +479,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -487,7 +487,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?percentiles=50',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -499,7 +499,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                 error=400, text='at least one of summary_statistics'
                                 'and return_raw should be true'), 400
         response = self.client.post(
-            '/api/diversity/alpha_group/observed_otus'
+            '/api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -507,7 +507,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 400)
 
     def _minimal_query(self):
-        minimal_query = '/api/diversity/alpha_group/observed_otus'
+        minimal_query = '/api/diversity/alpha/group/observed_otus'
         return self.client.post(minimal_query,
                                 content_type='application/json',
                                 data=json.dumps(self.request_content)

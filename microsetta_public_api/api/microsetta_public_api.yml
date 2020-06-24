@@ -102,7 +102,7 @@ paths:
                       - "observed_otus"
                       - "chao1"
 
-  '/diversity/alpha/{alpha_metric}/{sample_id}':
+  '/diversity/alpha/single/{alpha_metric}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.get_alpha
       tags:
@@ -131,7 +131,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/diversity/alpha_group/{alpha_metric}':
+  '/diversity/alpha/group/{alpha_metric}':
     post:
       operationId: microsetta_public_api.api.diversity.alpha.alpha_group
       tags:
