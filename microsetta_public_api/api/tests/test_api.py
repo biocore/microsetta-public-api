@@ -271,7 +271,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
 
             exp_metrics = ['faith_pd', 'chao1']
             response = self.client.get(
-                '/api/diversity/metrics/alpha/available')
+                '/api/diversity/alpha/metrics/available')
 
             obs = json.loads(response.data)
             self.assertIn('alpha_metrics', obs)
@@ -282,7 +282,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
                 'alpha_metrics': []
             }), 200
             response = self.client.get(
-                '/api/diversity/metrics/alpha/available')
+                '/api/diversity/alpha/metrics/available')
 
             obs = json.loads(response.data)
             self.assertIn('alpha_metrics', obs)
@@ -300,7 +300,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
-                '/api/diversity/metrics/alpha/available')
+                '/api/diversity/alpha/metrics/available')
 
             self.assertEqual(response.status_code, 500)
             mock_resources.return_value = jsonify({

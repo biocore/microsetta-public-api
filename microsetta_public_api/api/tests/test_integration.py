@@ -300,7 +300,7 @@ class AlphaIntegrationTests(IntegrationTests):
         resources.update(config.resources)
 
     def test_resources_available(self):
-        response = self.client.get('/api/diversity/metrics/alpha/available')
+        response = self.client.get('/api/diversity/alpha/metrics/available')
 
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
