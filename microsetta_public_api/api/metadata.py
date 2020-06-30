@@ -32,7 +32,7 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     )
 
     if error_response:
-        return jsonify(*error_response), error_code
+        return error_response, error_code
 
     return jsonify(sample_ids=matching_ids), 200
 
