@@ -125,6 +125,28 @@ class MetadataIntegrationTests(IntegrationTests):
         self.assertCountEqual(['sample_ids'], obs.keys())
         self.assertCountEqual(obs['sample_ids'], exp_ids)
 
+    def test_metadata_filter_on_metric_dne(self):
+        response = self.client.get(
+            # careful not to use a metric that exists in AlphaIntegrationTests
+            '/api/metadata/sample_ids?alpha_metric=bad-metric')
+        self.assertEqual(response.status_code, 404)
+
+    def test_metadata_filter_on_taxonomy_dne(self):
+        response = self.client.get(
+            # careful not to use a table that exists in
+            #  TaxonomyIntegrationTests
+            '/api/metadata/sample_ids?alpha_metric=bad-table')
+        self.assertEqual(response.status_code, 404)
+
+    def test_metadata_filter_on_metric_and_taxonomy_dne(self):
+        response = self.client.get(
+            # careful not to use a metric that exists in AlphaIntegrationTests
+            # careful not to use a table that exists in
+            #  TaxonomyIntegrationTests
+            '/api/metadata/sample_ids?alpha_metric=bad-metric&taxonomy=bad'
+            '-table')
+        self.assertEqual(response.status_code, 404)
+
 
 class TaxonomyIntegrationTests(IntegrationTests):
 
@@ -161,7 +183,6 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                           ['feature-3', 'a; f; g; h', 0.678]],
                                          columns=['Feature ID', 'Taxon',
                                                   'Confidence'])
-
         self.taxonomy2_df.set_index('Feature ID', inplace=True)
 
         self.table3 = biom.Table(np.array([[1, 2],
