@@ -11,6 +11,7 @@ from qiime2.metadata.io import MetadataFileError
 from microsetta_public_api.exceptions import ConfigurationError
 from microsetta_public_api.utils.testing import TempfileTestCase
 from microsetta_public_api.resources import ResourceManager, _parse_q2_data
+from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
 class TestResourceManagerUpdateMetadata(TempfileTestCase):
@@ -218,7 +219,12 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                 'feature-data-taxonomy': self.taxonomy_qza,
                 'variances': self.table_biom,
                 'table-format': 'biom',
-            }
+            },
+            'table-with-cached-taxonomy': {
+                'table': self.table_qza,
+                'feature-data-taxonomy': self.taxonomy_qza,
+                'cache-taxonomy': True,
+            },
         }}
 
     def test_simple_table(self):
@@ -348,6 +354,26 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         obs_tax = new_table_config['feature-data-taxonomy']
         obs_tax['Confidence'] = obs_tax['Confidence'].astype('float')
         assert_frame_equal(exp_tax, obs_tax)
+
+    def test_table_with_taxonomy_and_cached_taxonomy(self):
+        subset_table = 'table-with-cached-taxonomy'
+        config = {'table_resources': {
+            subset_table: self.config['table_resources'][subset_table]}}
+        self.resources.update(config)
+        self.assertListEqual(list(self.resources['table_resources']),
+                             [subset_table])
+        new_table_config = self.resources['table_resources'][
+            subset_table]
+        self.assertCountEqual(['table', 'feature-data-taxonomy',
+                               'cache-taxonomy', 'model'],
+                              new_table_config.keys())
+
+        exp_table = self.table
+        obs_table = new_table_config['table']
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
+        tax_model = new_table_config.get('model', None)
+        self.assertIsInstance(tax_model, TaxonomyModel)
 
 
 class TestResourceManagerQ2Parse(TempfileTestCase):
