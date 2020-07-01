@@ -114,15 +114,18 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
             'table2': {
                 'table': self.table1_filename,
                 'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': False,
             },
             'table3': {
                 'table': self.table3_filename,
                 'feature-data-taxonomy': self.taxonomy2_filename,
+                'cache-taxonomy': False,
                 'variances': self.table3_filename,
             },
             'table4': {
                 'table': self.table_biom,
                 'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': False,
                 'table-format': 'biom'
             },
             'table5': {

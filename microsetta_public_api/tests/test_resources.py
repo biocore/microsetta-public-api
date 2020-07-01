@@ -296,7 +296,7 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                              [subset_table])
         new_table_config = self.resources['table_resources'][
             subset_table]
-        self.assertCountEqual(['table', 'feature-data-taxonomy'],
+        self.assertCountEqual(['table', 'feature-data-taxonomy', 'model'],
                               new_table_config.keys())
 
         exp_table = self.table
@@ -339,7 +339,8 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                              [subset_table])
         new_table_config = self.resources['table_resources'][
             subset_table]
-        self.assertCountEqual(['table', 'variances', 'feature-data-taxonomy'],
+        self.assertCountEqual(['table', 'variances',
+                               'feature-data-taxonomy', 'model'],
                               new_table_config.keys())
 
         exp_table = self.table

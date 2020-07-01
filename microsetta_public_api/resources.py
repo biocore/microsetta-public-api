@@ -88,7 +88,7 @@ def _transform_single_table(dict_, resource_name):
         elif key in biom_kws:
             new_resource[key] = biom.load_table(value)
 
-    cache_taxonomy = new_resource.get('cache-taxonomy', False)
+    cache_taxonomy = new_resource.get('cache-taxonomy', True)
     if 'feature-data-taxonomy' in new_resource and cache_taxonomy:
         table = new_resource['table']
         taxonomy = new_resource['feature-data-taxonomy']
