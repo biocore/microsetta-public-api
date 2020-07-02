@@ -4,6 +4,10 @@ import types
 import tempfile
 from unittest.case import TestCase
 from unittest.mock import patch
+import pandas as pd
+import numpy as np
+from qiime2 import Metadata, Artifact
+
 
 import microsetta_public_api
 import microsetta_public_api.server
@@ -135,3 +139,58 @@ class ConfigTestCase(TestCase):
         config.resources = self._config_copy
         resources.clear()
         dict.update(resources, self._resources_copy)
+
+
+class TestDatabase:
+    def __init__(self, n_samples=2000, seed=None):
+        np.random.seed(seed)
+        sample_set = [f'sample-{i + 1}' for i in range(n_samples)]
+        age_categories = np.array(['30s', '40s', '50s'])
+        bmi_categories = np.array(['Normal', 'Overweight', 'Underweight'])
+
+        self.faith_pd_data = pd.Series(np.random.normal(6, 1.5, n_samples),
+                                  index=sample_set, name='faith_pd')
+
+        self.metadata_table = pd.DataFrame(
+            {
+                'age_cat': np.random.choice(age_categories,
+                                            len(sample_set)),
+                'bmi_cat': np.random.choice(bmi_categories,
+                                            len(sample_set)),
+            }, index=pd.Series(sample_set,
+                               name='#SampleID')
+        )
+
+        self._tempfiles = []
+
+    def create_tempfile(self, **named_temporary_file_kwargs):
+        new_tempfile = tempfile.NamedTemporaryFile(
+            **named_temporary_file_kwargs)
+        self._tempfiles = []
+        return new_tempfile
+
+    def __enter__(self):
+        metadata_file = self.create_tempfile(suffix='.txt')
+        metadata_path = metadata_file.name
+        Metadata(self.metadata_table).save(metadata_path)
+
+        faith_pd_file = self.create_tempfile(suffix='.qza')
+        faith_pd_path = faith_pd_file.name
+        faith_pd_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.faith_pd_data,
+        )
+        faith_pd_artifact.save(faith_pd_path)
+
+        config.resources.update({'metadata': metadata_path,
+                                 'alpha_resources': {
+                                     'faith-pd': faith_pd_path,
+                                 }
+                                 })
+        resources.update(config.resources)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for file_ in self._tempfiles:
+            file_.close()
+        config.resources.clear()
+        resources.clear()
+        return True
