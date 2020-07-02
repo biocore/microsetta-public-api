@@ -51,3 +51,11 @@ def resources():
         'resources': taxonomy_repo.resources(),
     }
     return jsonify(ret_val), 200
+
+
+def single_sample_taxa_present(sample_id, resource):
+    raise NotImplementedError()
+
+
+def group_taxa_present(body, resource):
+    raise NotImplementedError()
