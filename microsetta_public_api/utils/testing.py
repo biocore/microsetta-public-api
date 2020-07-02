@@ -149,7 +149,7 @@ class TestDatabase:
         bmi_categories = np.array(['Normal', 'Overweight', 'Underweight'])
 
         self.faith_pd_data = pd.Series(np.random.normal(6, 1.5, n_samples),
-                                  index=sample_set, name='faith_pd')
+                                       index=sample_set, name='faith_pd')
 
         self.metadata_table = pd.DataFrame(
             {
