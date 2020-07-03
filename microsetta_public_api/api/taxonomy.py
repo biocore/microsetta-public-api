@@ -57,19 +57,22 @@ def resources():
 
 def single_sample_taxa_present(sample_id, resource):
     sample_ids = [sample_id]
-    return _presence_absence_table(sample_ids, resource)
+    return _present_microbes_taxonomy_table(sample_ids, resource)
 
 
 def group_taxa_present(body, resource):
     sample_ids = body['sample_ids']
-    return _presence_absence_table(sample_ids, resource)
+    return _present_microbes_taxonomy_table(sample_ids, resource)
 
 
-def _presence_absence_table(sample_ids, resource):
+def _present_microbes_taxonomy_table(sample_ids, resource):
     taxonomy_repo = TaxonomyRepo()
     error_response = _check_resource_and_missing_ids(taxonomy_repo,
                                                      sample_ids, resource)
     if error_response:
         return error_response
 
-    raise NotImplementedError()
+    taxonomy_ = taxonomy_repo.model(resource)
+    taxonomy_table = taxonomy_.presence_data_table(sample_ids)
+    response = jsonify(taxonomy_table.to_dict())
+    return response, 200

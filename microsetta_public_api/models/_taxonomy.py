@@ -1,5 +1,6 @@
-from collections import namedtuple
-from typing import Iterable, Dict
+from collections import namedtuple, OrderedDict
+from typing import Iterable, Dict, Optional, List
+from abc import abstractmethod
 
 import skbio
 import biom
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from microsetta_public_api.exceptions import DisjointError, UnknownID
+from microsetta_public_api.utils import DataTable
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',
@@ -206,3 +208,59 @@ class Taxonomy(ModelBase):
                              feature_variances=list(feature_variances),
                              feature_ranks=None,
                              )
+
+    def presence_data_table(self, ids: Iterable[str],
+                            formatter: Optional['Formatter'] = None) -> \
+            DataTable:
+        if formatter is None:
+            formatter: Formatter = GreengenesFormatter()
+        table = self._table.filter(set(ids), inplace=False).remove_empty()
+        features = table.ids(axis='observation')
+        feature_taxons = self._features.loc[features]
+        feature_data = {i: formatter.dict_format(lineage)
+                        for i, lineage in feature_taxons['Taxon'].items()}
+
+        # ... this is a bear. Basically, add sample_id to the taxonomy
+        #  information, for each non zero entry in the table. Make a
+        #  DataFrame on this
+        sample_data = pd.DataFrame([{**{'SampleID': sample_id},
+                                     **feature_data[feature]}
+                                    for feature, sample_id in table.nonzero()],
+                                   # this enforces the column order
+                                   columns=['SampleID'] + formatter.labels,
+                                   # need the .astype('object') in case a
+                                   # column is completely empty (filled with
+                                   # Nan, default dtype is numeric,
+                                   # which cannot be replaced with None.
+                                   # Need None because it is valid for JSON,
+                                   # but NaN is not.
+                                   ).astype('object')
+        sample_data[pd.isna(sample_data)] = None
+        return DataTable.from_dataframe(sample_data)
+
+
+class Formatter:
+
+    labels: List
+
+    @abstractmethod
+    def dict_format(self, taxonomy_string):
+        raise NotImplementedError()
+
+
+class GreengenesFormatter(Formatter):
+    _map = OrderedDict(k__='Kingdom', p__='Phylum', c__='Class',
+                       o__='Order', f__='Family', g__='Genus', s__='Species')
+    labels = list(_map.values())
+
+    @classmethod
+    def dict_format(cls, taxonomy_string: str):
+        ranks = taxonomy_string.split('; ')
+        formatted = OrderedDict()
+
+        for rank in ranks:
+            name = rank[:3]
+            if name in cls._map:
+                formatted[cls._map[name]] = rank[3:]
+
+        return formatted

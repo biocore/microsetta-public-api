@@ -8,6 +8,7 @@ import numpy.testing as npt
 from qiime2 import Artifact
 from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
 from microsetta_public_api.exceptions import DisjointError, UnknownID
+from microsetta_public_api.utils import DataTable, create_data_entry
 
 
 class TaxonomyTests(unittest.TestCase):
@@ -36,8 +37,13 @@ class TaxonomyTests(unittest.TestCase):
                                          columns=['Feature ID', 'Taxon',
                                                   'Confidence'])
         self.taxonomy2_df.set_index('Feature ID', inplace=True)
+        self.taxonomy_greengenes_df = pd.DataFrame(
+            [['feature-1', 'k__a; p__b; o__c', 0.123],
+             ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
+             ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
+        self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
         self.table2_ranks = self.table2.rankdata(inplace=False)
-
         # variances
         self.table_vars = biom.Table(np.array([[0, 1, 2],
                                                [2, 4, 6],
@@ -145,13 +151,71 @@ class TaxonomyTests(unittest.TestCase):
         with self.assertRaisesRegex(UnknownID, "sample-X does not exist"):
             taxonomy.get_group(['sample-X'])
 
-    # def test_get_group_raw(self):
-    #     # dont do the taxonomy voodoo
-    #     # possibly provide a 2d representation
-    #     self.fail()
-    #
-    # def test_do_annotations(self):
-    #     self.fail("its only harder later")
+    def test_presence_data_table(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_greengenes_df,
+                            self.table_vars)
+        obs = taxonomy.presence_data_table(['sample-1', 'sample-2'])
+
+        exp_columns = ['SampleID', 'Kingdom', 'Phylum', 'Class', 'Order',
+                       'Family', 'Genus', 'Species']
+        DataEntry = create_data_entry(exp_columns)
+        exp = DataTable(
+            data=[
+                DataEntry(**{
+                    'SampleID': 'sample-1',
+                    'Kingdom': 'a',
+                    'Phylum': 'b',
+                    'Class': None,
+                    'Order': 'c',
+                    'Family': 'd',
+                    'Genus': 'e',
+                    'Species': None,
+                }),
+                DataEntry(**{
+                    'SampleID': 'sample-1',
+                    'Kingdom': 'a',
+                    'Phylum': 'f',
+                    'Class': None,
+                    'Order': 'g',
+                    'Family': 'h',
+                    'Genus': None,
+                    'Species': None,
+                }),
+                DataEntry(**{
+                    'SampleID': 'sample-2',
+                    'Kingdom': 'a',
+                    'Phylum': 'b',
+                    'Class': None,
+                    'Order': 'c',
+                    'Family': None,
+                    'Genus': None,
+                    'Species': None,
+                }),
+                DataEntry(**{
+                    'SampleID': 'sample-2',
+                    'Kingdom': 'a',
+                    'Phylum': 'b',
+                    'Class': None,
+                    'Order': 'c',
+                    'Family': 'd',
+                    'Genus': 'e',
+                    'Species': None,
+                }),
+            ],
+            columns=exp_columns,
+        )
+        self.assertListEqual(exp.columns, obs.columns)
+        # wouldn't want to do this on a huge dataframe..., but it checks if
+        #  there is a row of obs corresponding to each row of exp...
+        exp_df = pd.DataFrame(exp.data)
+        obs_df = pd.DataFrame(obs.data)
+        obs_df_copy = obs_df.copy()
+        for e_idx, row_exp in exp_df.iterrows():
+            for o_idx, row_obs in obs_df.iterrows():
+                if row_exp.eq(row_obs).all():
+                    obs_df_copy.drop(index=o_idx, inplace=True)
+                    break
+        self.assertTrue(obs_df_copy.empty)
 
 
 class GroupTaxonomyTests(unittest.TestCase):
