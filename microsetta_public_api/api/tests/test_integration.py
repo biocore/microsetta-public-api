@@ -232,6 +232,11 @@ class TaxonomyIntegrationTests(IntegrationTests):
                 'table': self.table_biom,
                 'table-format': 'biom',
             },
+            'table-cached-model': {
+                'table': self.table1_filename,
+                'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': True,
+            },
         }})
         resources.update(config.resources)
 
@@ -242,10 +247,35 @@ class TaxonomyIntegrationTests(IntegrationTests):
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertIn('resources', obs)
-        self.assertCountEqual(['table2', 'table-fish'], obs['resources'])
+        self.assertCountEqual(['table2', 'table-fish', 'table-cached-model'],
+                              obs['resources'])
 
     def test_summarize_group(self):
         response = self.client.post('/api/taxonomy/group/table2',
+                                    content_type='application/json',
+                                    data=json.dumps({'sample_ids': [
+                                        'sample-1']}))
+
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['taxonomy', 'features',
+                               'feature_values', 'feature_variances'],
+                              obs.keys())
+
+        self.assertEqual('((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([2. / 5, 3. / 5],
+                        obs['feature_values']
+                        )
+        assert_allclose([0, 0],
+                        obs['feature_variances']
+                        )
+
+    def test_summarize_group_cached_model(self):
+        response = self.client.post('/api/taxonomy/group/table-cached-model',
                                     content_type='application/json',
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))

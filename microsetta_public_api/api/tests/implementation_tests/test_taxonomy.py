@@ -9,6 +9,7 @@ from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.taxonomy import (
     resources, summarize_group, _summarize_group, single_sample,
 )
+from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
 class TaxonomyImplementationTests(MockedJsonifyTestCase):
@@ -253,6 +254,37 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                 'some-table': {
                     'table': self.table,
                     'feature-data-taxonomy': self.taxonomy_df,
+                },
+            }
+            response, code = _summarize_group(self.post_body['sample_ids'],
+                                              "some-table")
+        self.assertEqual(code, 200)
+        exp_keys = ['taxonomy', 'features', 'feature_values',
+                    'feature_variances']
+        obs = json.loads(response)
+
+        self.assertCountEqual(exp_keys, obs.keys())
+        self.assertEqual('((((feature-1,((feature-2)e)d)c)b,'
+                         '(((feature-3)h)g)f)a);',
+                         obs['taxonomy']
+                         )
+        self.assertListEqual(['feature-1', 'feature-2', 'feature-3'],
+                             obs['features'])
+        assert_allclose([1. / 10, 6. / 10, 3. / 10],
+                        obs['feature_values']
+                        )
+        assert_allclose([0, 0, 0],
+                        obs['feature_variances']
+                        )
+
+    def test_taxonomy_from_list_summarize_group_simple_cached_model(self):
+        with patch('microsetta_public_api.repo._taxonomy_repo.TaxonomyRepo.'
+                   'tables', new_callable=PropertyMock) as mock_tables:
+            mock_tables.return_value = {
+                'some-table': {
+                    'table': self.table,
+                    'feature-data-taxonomy': self.taxonomy_df,
+                    'model': TaxonomyModel(self.table, self.taxonomy_df)
                 },
             }
             response, code = _summarize_group(self.post_body['sample_ids'],
