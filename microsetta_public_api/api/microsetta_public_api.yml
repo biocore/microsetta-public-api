@@ -416,6 +416,10 @@ components:
     alphaMetric:
       type: string
       example: "faith_pd"
+    relativeAbundance:
+      type: number
+      minimum: 0
+      maximum: 1
     sampleId:
       type: string
       example: "sample_15"
@@ -448,31 +452,38 @@ components:
             properties:
               sampleId:
                 $ref: '#/components/schemas/sampleId'
+              relativeAbundance:
+                $ref: '#/components/schemas/relativeAbundance'
             example:
               - {
                   "sampleId": "sample1",
                   "Kingdom": "Bacteria",
-                  "Genus": "Bacteroides"
+                  "Genus": "Bacteroides",
+                  "relativeAbundance": 0.2
                 }
               - {
                   "sampleId": "sample1",
                   "Kingdom": "Bacteria",
-                  "Genus": "Clostridium"
+                  "Genus": "Clostridium",
+                  "relativeAbundance": 0.8
                 }
               - {
                   "sampleId": "sample2",
                   "Kingdom": "Bacteria",
-                  "Genus": "Bacteroides"
+                  "Genus": "Bacteroides",
+                  "relativeAbundance": 0.72
                 }
               - {
                   "sampleId": "sample2",
                   "Kingdom": "Bacteria",
-                  "Genus": null
+                  "Genus": null,
+                  "relativeAbundance": 0.28
                 }
               - {
                   "sampleId": "sample3",
                   "Kingdom": "Bacteria",
-                  "Genus": "Clostridium"
+                  "Genus": "Clostridium",
+                  "relativeAbundance": 1.0
                 }
         columns:
           type: array
@@ -487,6 +498,7 @@ components:
                   - "sampleId"
                   - "Kingdom"
                   - "Genus"
+                  - "relativeAbundance"
     taxonomyFeatures:
       type: object
       required:

@@ -682,33 +682,39 @@ class TaxonomyDataTableTests(FlaskTests):
             {
                 "sampleId": "sample1",
                 "Kingdom": "Bacteria",
-                "Genus": "Bacteroides"
+                "Genus": "Bacteroides",
+                "relativeAbundance": 0.7,
             },
             {
                 "sampleId": "sample1",
                 "Kingdom": "Bacteria",
-                "Genus": "Clostridium"
+                "Genus": "Clostridium",
+                "relativeAbundance": 0.3,
             },
             {
                 "sampleId": "sample2",
                 "Kingdom": "Bacteria",
-                "Genus": "Bacteroides"
+                "Genus": "Bacteroides",
+                "relativeAbundance": 0.2,
             },
             {
                 "sampleId": "sample2",
                 "Kingdom": "Bacteria",
-                "Genus": None
+                "Genus": None,
+                "relativeAbundance": 0.8,
             },
             {
                 "sampleId": "sample3",
                 "Kingdom": "Bacteria",
-                "Genus": "Clostridium"
+                "Genus": "Clostridium",
+                "relativeAbundance": 1.0,
             },
         ],
             'columns': [
             {'data': 'sampleId'},
             {'data': 'Kingdom'},
             {'data': 'Genus'},
+            {'data': 'relativeAbundance'}
         ]}
 
     def setUp(self):
