@@ -353,7 +353,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
 
         exp_columns = ['sampleId', 'Kingdom', 'Phylum', 'Class', 'Order',
-                       'Family', 'Genus', 'Species']
+                       'Family', 'Genus', 'Species', 'relativeAbundance']
         DataEntry = create_data_entry(exp_columns)
         exp = DataTable(
             data=[
@@ -366,6 +366,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                     'Family': 'd',
                     'Genus': 'e',
                     'Species': None,
+                    'relativeAbundance': 2. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-1',
@@ -376,6 +377,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                     'Family': 'h',
                     'Genus': None,
                     'Species': None,
+                    'relativeAbundance': 3. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-2',
@@ -386,6 +388,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                     'Family': None,
                     'Genus': None,
                     'Species': None,
+                    'relativeAbundance': 1. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-2',
@@ -396,6 +399,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                     'Family': 'd',
                     'Genus': 'e',
                     'Species': None,
+                    'relativeAbundance': 4. / 5,
                 }),
             ],
             columns=[{'data': col} for col in exp_columns],

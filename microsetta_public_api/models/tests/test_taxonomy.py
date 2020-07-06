@@ -157,7 +157,7 @@ class TaxonomyTests(unittest.TestCase):
         obs = taxonomy.presence_data_table(['sample-1', 'sample-2'])
 
         exp_columns = ['sampleId', 'Kingdom', 'Phylum', 'Class', 'Order',
-                       'Family', 'Genus', 'Species']
+                       'Family', 'Genus', 'Species', 'relativeAbundance']
         DataEntry = create_data_entry(exp_columns)
         exp = DataTable(
             data=[
@@ -170,6 +170,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Family': 'd',
                     'Genus': 'e',
                     'Species': None,
+                    'relativeAbundance': 2. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-1',
@@ -180,6 +181,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Family': 'h',
                     'Genus': None,
                     'Species': None,
+                    'relativeAbundance': 3. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-2',
@@ -190,6 +192,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Family': None,
                     'Genus': None,
                     'Species': None,
+                    'relativeAbundance': 1. / 5,
                 }),
                 DataEntry(**{
                     'sampleId': 'sample-2',
@@ -200,6 +203,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Family': 'd',
                     'Genus': 'e',
                     'Species': None,
+                    'relativeAbundance': 4. / 5,
                 }),
             ],
             columns=exp_columns,

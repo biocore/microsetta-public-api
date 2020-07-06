@@ -223,11 +223,15 @@ class Taxonomy(ModelBase):
         # ... this is a bear. Basically, add sample_id to the taxonomy
         #  information, for each non zero entry in the table. Make a
         #  DataFrame on this
-        sample_data = pd.DataFrame([{**{'sampleId': sample_id},
+        sample_data = pd.DataFrame([{**{'sampleId': sample_id,
+                                        'relativeAbundance':
+                                            table.get_value_by_ids(
+                                            feature, sample_id)},
                                      **feature_data[feature]}
                                     for feature, sample_id in table.nonzero()],
                                    # this enforces the column order
-                                   columns=['sampleId'] + formatter.labels,
+                                   columns=['sampleId'] + formatter.labels +
+                                           ['relativeAbundance'],
                                    # need the .astype('object') in case a
                                    # column is completely empty (filled with
                                    # Nan, default dtype is numeric,
