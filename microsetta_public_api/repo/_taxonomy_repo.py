@@ -1,4 +1,5 @@
 from microsetta_public_api.resources import resources
+from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
 class TaxonomyRepo:
@@ -58,6 +59,15 @@ class TaxonomyRepo:
 
     def variances(self, table_name):
         return self._get_resource(table_name, component='variances')
+
+    def model(self, table_name):
+        model = self._get_resource(table_name, component='model')
+        if model is None:
+            table = self.table(table_name)
+            features = self.feature_data_taxonomy(table_name)
+            variances = self.variances(table_name)
+            model = TaxonomyModel(table, features, variances)
+        return model
 
     def exists(self, sample_ids, table_name):
         """Checks if sample_ids exist for the given table.
