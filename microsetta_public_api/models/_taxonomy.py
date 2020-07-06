@@ -220,15 +220,16 @@ class Taxonomy(ModelBase):
         feature_data = {i: formatter.dict_format(lineage)
                         for i, lineage in feature_taxons['Taxon'].items()}
 
-        # ... this is a bear. Basically, add sample_id to the taxonomy
-        #  information, for each non zero entry in the table. Make a
-        #  DataFrame on this
-        sample_data = pd.DataFrame([{**{'sampleId': sample_id,
-                                        'relativeAbundance':
-                                            table.get_value_by_ids(
-                                            feature, sample_id)},
-                                     **feature_data[feature]}
-                                    for feature, sample_id in table.nonzero()],
+        entries = list()
+        for vec, sample_id, _ in table.iter(dense=False):
+            for feature_idx, val in zip(vec.indices, vec.data):
+                entries.append({
+                    **{'sampleId': sample_id,
+                       'relativeAbundance': val},
+                    **feature_data[features[feature_idx]],
+                })
+
+        sample_data = pd.DataFrame(entries,
                                    # this enforces the column order
                                    columns=['sampleId'] + formatter.labels +
                                            ['relativeAbundance'],
