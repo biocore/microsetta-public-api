@@ -156,13 +156,13 @@ class TaxonomyTests(unittest.TestCase):
                             self.table_vars)
         obs = taxonomy.presence_data_table(['sample-1', 'sample-2'])
 
-        exp_columns = ['SampleID', 'Kingdom', 'Phylum', 'Class', 'Order',
+        exp_columns = ['sampleId', 'Kingdom', 'Phylum', 'Class', 'Order',
                        'Family', 'Genus', 'Species']
         DataEntry = create_data_entry(exp_columns)
         exp = DataTable(
             data=[
                 DataEntry(**{
-                    'SampleID': 'sample-1',
+                    'sampleId': 'sample-1',
                     'Kingdom': 'a',
                     'Phylum': 'b',
                     'Class': None,
@@ -172,7 +172,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Species': None,
                 }),
                 DataEntry(**{
-                    'SampleID': 'sample-1',
+                    'sampleId': 'sample-1',
                     'Kingdom': 'a',
                     'Phylum': 'f',
                     'Class': None,
@@ -182,7 +182,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Species': None,
                 }),
                 DataEntry(**{
-                    'SampleID': 'sample-2',
+                    'sampleId': 'sample-2',
                     'Kingdom': 'a',
                     'Phylum': 'b',
                     'Class': None,
@@ -192,7 +192,7 @@ class TaxonomyTests(unittest.TestCase):
                     'Species': None,
                 }),
                 DataEntry(**{
-                    'SampleID': 'sample-2',
+                    'sampleId': 'sample-2',
                     'Kingdom': 'a',
                     'Phylum': 'b',
                     'Class': None,
@@ -204,7 +204,8 @@ class TaxonomyTests(unittest.TestCase):
             ],
             columns=exp_columns,
         )
-        self.assertListEqual(exp.columns, obs.columns)
+        self.assertListEqual([{'data': col} for col in exp.columns],
+                             obs.columns)
         # wouldn't want to do this on a huge dataframe..., but it checks if
         #  there is a row of obs corresponding to each row of exp...
         exp_df = pd.DataFrame(exp.data)

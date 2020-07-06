@@ -49,6 +49,8 @@ class TestDataTable(TestCase):
 
         dt = DataTable.from_dataframe(df)
 
+        dict_['columns'] = [{'data': 'foo'}, {'data': 'bar'}]
+
         obs_dict = dt.to_dict()
         obs = json.dumps(obs_dict)
         exp = json.dumps(dict_)

@@ -69,7 +69,7 @@ class DataTable(_data_table):
         """
         DataEntry = create_data_entry(df.columns)
         data = df.apply(lambda x: DataEntry(*x), axis=1).values.tolist()
-        columns = list(df.columns)
+        columns = [{"data": col} for col in df.columns]
         return cls(data, columns)
 
 
