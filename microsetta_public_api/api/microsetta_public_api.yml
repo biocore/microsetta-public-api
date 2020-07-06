@@ -338,6 +338,55 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/taxonomy/present/group/{resource}':
+    post:
+      operationId: microsetta_public_api.api.taxonomy.group_taxa_present
+      tags:
+        - Taxonomy
+      summary: Get a DataTable of taxa, broken down by rank, for a list of samples
+      description: Get a DataTable of taxa, broken down by rank, for a list of samples
+      parameters:
+        - $ref: '#/components/parameters/taxonomyResource'
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdList"
+
+      responses:
+        '200':
+          description: Successfully return taxonomy table
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sampleDataTable'
+
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/taxonomy/present/single/{resource}/{sample_id}':
+    get:
+      operationId: microsetta_public_api.api.taxonomy.single_sample_taxa_present
+      tags:
+        - Taxonomy
+      summary: Get a DataTable of taxa, broken down by rank, for a given sample
+      description: Get a DataTable of taxa, broken down by rank, for a given sample
+      parameters:
+        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/taxonomyResource'
+
+      responses:
+        '200':
+          description: Successfully return taxonomy table
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sampleDataTable'
+
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 components:
   parameters:
     alphaMetric:
@@ -374,7 +423,7 @@ components:
       type: object
       required:
         - sample_ids
-      additionalProperties: False
+      additionalProperties: false
       properties:
         sample_ids:
           type: array
@@ -384,6 +433,60 @@ components:
             - "sample1"
             - "sample2"
             - "sample3"
+    sampleDataTable:
+      type: object
+      required:
+        - data
+        - columns
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required:
+              - sampleId
+            properties:
+              sampleId:
+                $ref: '#/components/schemas/sampleId'
+            example:
+              - {
+                  "sampleId": "sample1",
+                  "Kingdom": "Bacteria",
+                  "Genus": "Bacteroides"
+                }
+              - {
+                  "sampleId": "sample1",
+                  "Kingdom": "Bacteria",
+                  "Genus": "Clostridium"
+                }
+              - {
+                  "sampleId": "sample2",
+                  "Kingdom": "Bacteria",
+                  "Genus": "Bacteroides"
+                }
+              - {
+                  "sampleId": "sample2",
+                  "Kingdom": "Bacteria",
+                  "Genus": null
+                }
+              - {
+                  "sampleId": "sample3",
+                  "Kingdom": "Bacteria",
+                  "Genus": "Clostridium"
+                }
+        columns:
+          type: array
+          items:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: string
+                example:
+                  - "sampleId"
+                  - "Kingdom"
+                  - "Genus"
     taxonomyFeatures:
       type: object
       required:
