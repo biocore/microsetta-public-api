@@ -260,7 +260,7 @@ class GreengenesFormatter(Formatter):
 
     @classmethod
     def dict_format(cls, taxonomy_string: str):
-        ranks = taxonomy_string.split('; ')
+        ranks = [rank_.strip() for rank_ in taxonomy_string.split(';')]
         formatted = OrderedDict()
 
         for rank in ranks:

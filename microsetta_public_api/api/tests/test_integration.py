@@ -175,7 +175,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                         columns=['Feature ID', 'Taxon',
                                                  'Confidence'])
         self.taxonomy_greengenes_df = pd.DataFrame(
-            [['feature-1', 'k__a; p__b; o__c', 0.123],
+            [['feature-1', 'k__a;p__b; o__c', 0.123],
              ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
              ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
