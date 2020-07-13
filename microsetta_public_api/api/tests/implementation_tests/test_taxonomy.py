@@ -492,7 +492,6 @@ class TaxonomyTaxaPresentDataTableImplementationTests(MockedJsonifyTestCase):
         self.assertEqual(code, 200)
         exp_keys = ['data', 'columns']
         obs = json.loads(response)
-        print(obs)
         self.assertCountEqual(exp_keys, obs.keys())
         self.assertCountEqual(obs['columns'], [{'data': 'sampleId'},
                                                {'data': 'rank_1'},
@@ -527,7 +526,6 @@ class TaxonomyTaxaPresentDataTableImplementationTests(MockedJsonifyTestCase):
         self.assertEqual(code, 200)
         exp_keys = ['data', 'columns']
         obs = json.loads(response)
-        print(obs)
         self.assertCountEqual(exp_keys, obs.keys())
         self.assertCountEqual(obs['columns'], [{'data': 'sampleId'},
                                                {'data': 'rank_1'},

@@ -43,13 +43,9 @@ class DataTable(_data_table):
 
     """
     def to_dict(self):
-        data = self.data.copy()
-        for i, entry in enumerate(data):
-            # this hinges on the entries of data being DataEntry, since we
-            # know they have a .to_dict() method
-            data[i] = entry.to_dict()
         dict_ = self._asdict()
-        dict_['data'] = data
+        dict_['data'] = [entry.to_dict() for entry in
+                         enumerate(self.data)]
         return dict_
 
     @classmethod

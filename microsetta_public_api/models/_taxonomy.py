@@ -227,11 +227,12 @@ class Taxonomy(ModelBase):
         entries = list()
         for vec, sample_id, _ in table.iter(dense=False):
             for feature_idx, val in zip(vec.indices, vec.data):
-                entries.append({
-                    **{'sampleId': sample_id,
-                       'relativeAbundance': val},
+                entry = {
+                    'sampleId': sample_id,
+                    'relativeAbundance': val,
                     **self._formatted_taxa_names[features[feature_idx]],
-                })
+                }
+                entries.append(entry)
 
         column_labels = ['sampleId'] + self._formatter.labels + [
                 'relativeAbundance'],
