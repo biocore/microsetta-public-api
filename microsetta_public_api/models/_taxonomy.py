@@ -234,12 +234,11 @@ class Taxonomy(ModelBase):
                 }
                 entries.append(entry)
 
-        column_labels = ['sampleId'] + self._formatter.labels + [
-                'relativeAbundance'],
         sample_data = pd.DataFrame(
             entries,
             # this enforces the column order
-            columns=column_labels,
+            columns=['sampleId'] + self._formatter.labels + [
+                'relativeAbundance'],
             # need the .astype('object') in case a
             # column is completely empty (filled with
             # Nan, default dtype is numeric,

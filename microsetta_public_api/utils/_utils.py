@@ -44,8 +44,7 @@ class DataTable(_data_table):
     """
     def to_dict(self):
         dict_ = self._asdict()
-        dict_['data'] = [entry.to_dict() for entry in
-                         enumerate(self.data)]
+        dict_['data'] = [entry.to_dict() for entry in self.data]
         return dict_
 
     @classmethod
