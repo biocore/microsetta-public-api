@@ -1,6 +1,6 @@
 from collections import namedtuple, OrderedDict
 from typing import Iterable, Dict, Optional, List
-from abc import abstractmethod
+from abc import abstractclassmethod
 
 import skbio
 import biom
@@ -248,7 +248,7 @@ class Formatter:
 
     labels: List
 
-    @abstractmethod
+    @abstractclassmethod
     def dict_format(self, taxonomy_string):
         raise NotImplementedError()
 
