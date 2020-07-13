@@ -233,19 +233,19 @@ class Taxonomy(ModelBase):
                     **self._formatted_taxa_names[features[feature_idx]],
                 })
 
-        sample_data = pd.DataFrame(entries,
-                                   # this enforces the column order
-                                   columns=
-                                   ['sampleId'] +
-                                   self._formatter.labels +
-                                   ['relativeAbundance'],
-                                   # need the .astype('object') in case a
-                                   # column is completely empty (filled with
-                                   # Nan, default dtype is numeric,
-                                   # which cannot be replaced with None.
-                                   # Need None because it is valid for JSON,
-                                   # but NaN is not.
-                                   ).astype('object')
+        column_labels = ['sampleId'] + self._formatter.labels + [
+                'relativeAbundance'],
+        sample_data = pd.DataFrame(
+            entries,
+            # this enforces the column order
+            columns=column_labels,
+            # need the .astype('object') in case a
+            # column is completely empty (filled with
+            # Nan, default dtype is numeric,
+            # which cannot be replaced with None.
+            # Need None because it is valid for JSON,
+            # but NaN is not.
+           ).astype('object')
         sample_data[pd.isna(sample_data)] = None
         return DataTable.from_dataframe(sample_data)
 
