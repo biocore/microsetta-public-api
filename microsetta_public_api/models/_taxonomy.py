@@ -1,6 +1,6 @@
 from collections import namedtuple, OrderedDict
 from typing import Iterable, Dict, Optional, List
-from abc import abstractclassmethod
+from abc import abstractmethod
 
 import skbio
 import biom
@@ -91,7 +91,9 @@ class Taxonomy(ModelBase):
     """Represent the full taxonomy and facilitate table oriented retrieval"""
 
     def __init__(self, table: biom.Table, features: pd.DataFrame,
-                 variances: biom.Table = None):
+                 variances: biom.Table = None,
+                 formatter: Optional['Formatter'] = None
+                 ):
         """Establish the taxonomy data
 
         Parameters
@@ -132,6 +134,15 @@ class Taxonomy(ModelBase):
         self._features = self._features.loc[self._feature_order]
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
+
+        if formatter is None:
+            formatter: Formatter = GreengenesFormatter()
+        self._formatter = formatter
+
+        feature_taxons = self._features
+        self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
+                                      for i, lineage in
+                                      feature_taxons['Taxon'].items()}
 
     def _get_sample_ids(self) -> np.ndarray:
         return self._table.ids()
@@ -209,16 +220,9 @@ class Taxonomy(ModelBase):
                              feature_ranks=None,
                              )
 
-    def presence_data_table(self, ids: Iterable[str],
-                            formatter: Optional['Formatter'] = None) -> \
-            DataTable:
-        if formatter is None:
-            formatter: Formatter = GreengenesFormatter()
+    def presence_data_table(self, ids: Iterable[str]) -> DataTable:
         table = self._table.filter(set(ids), inplace=False).remove_empty()
         features = table.ids(axis='observation')
-        feature_taxons = self._features.loc[features]
-        feature_data = {i: formatter.dict_format(lineage)
-                        for i, lineage in feature_taxons['Taxon'].items()}
 
         entries = list()
         for vec, sample_id, _ in table.iter(dense=False):
@@ -226,13 +230,15 @@ class Taxonomy(ModelBase):
                 entries.append({
                     **{'sampleId': sample_id,
                        'relativeAbundance': val},
-                    **feature_data[features[feature_idx]],
+                    **self._formatted_taxa_names[features[feature_idx]],
                 })
 
         sample_data = pd.DataFrame(entries,
                                    # this enforces the column order
-                                   columns=['sampleId'] + formatter.labels +
-                                           ['relativeAbundance'],
+                                   columns=
+                                   ['sampleId'] +
+                                   self._formatter.labels +
+                                   ['relativeAbundance'],
                                    # need the .astype('object') in case a
                                    # column is completely empty (filled with
                                    # Nan, default dtype is numeric,
@@ -248,8 +254,9 @@ class Formatter:
 
     labels: List
 
-    @abstractclassmethod
-    def dict_format(self, taxonomy_string):
+    @classmethod
+    @abstractmethod
+    def dict_format(cls, taxonomy_string):
         raise NotImplementedError()
 
 
