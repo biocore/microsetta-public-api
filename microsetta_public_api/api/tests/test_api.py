@@ -671,3 +671,99 @@ class TaxonomySingleSampleAPITests(FlaskTests):
             '/api/taxonomy/single/greengenes/sample-1',
         )
         self.assertEqual(200, response.status_code)
+
+
+class TaxonomyDataTableTests(FlaskTests):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.valid_response = {'data': [
+            {
+                "sampleId": "sample1",
+                "Kingdom": "Bacteria",
+                "Genus": "Bacteroides",
+                "relativeAbundance": 0.7,
+            },
+            {
+                "sampleId": "sample1",
+                "Kingdom": "Bacteria",
+                "Genus": "Clostridium",
+                "relativeAbundance": 0.3,
+            },
+            {
+                "sampleId": "sample2",
+                "Kingdom": "Bacteria",
+                "Genus": "Bacteroides",
+                "relativeAbundance": 0.2,
+            },
+            {
+                "sampleId": "sample2",
+                "Kingdom": "Bacteria",
+                "Genus": None,
+                "relativeAbundance": 0.8,
+            },
+            {
+                "sampleId": "sample3",
+                "Kingdom": "Bacteria",
+                "Genus": "Clostridium",
+                "relativeAbundance": 1.0,
+            },
+        ],
+            'columns': [
+            {'data': 'sampleId'},
+            {'data': 'Kingdom'},
+            {'data': 'Genus'},
+            {'data': 'relativeAbundance'}
+        ]}
+
+    def setUp(self):
+        super().setUp()
+        self.patcher_single = patch(
+            'microsetta_public_api.api.taxonomy.single_sample_taxa_present')
+        self.mock_method_single = self.patcher_single.start()
+        self.patcher_group = patch(
+            'microsetta_public_api.api.taxonomy.group_taxa_present')
+        self.mock_method_group = self.patcher_group.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher_group.stop()
+        self.patcher_single.stop()
+
+    def test_valid_response_single(self):
+        with self.app_context():
+            self.mock_method_single.return_value = jsonify(
+                self.valid_response
+            ), 200
+
+        response = self.client.get(
+            '/api/taxonomy/present/single/greengenes/sample-1',
+        )
+        self.assertEqual(200, response.status_code)
+
+    def test_valid_response_group(self):
+        with self.app_context():
+            self.mock_method_group.return_value = jsonify(
+                self.valid_response
+            ), 200
+
+        response = self.client.post(
+            '/api/taxonomy/present/group/greengenes',
+            content_type='application/json',
+            data=json.dumps({'sample_ids': ['sample1', 'sample2']})
+        )
+        self.assertEqual(200, response.status_code)
+
+    def test_404_valid(self):
+        with self.app_context():
+            self.mock_method_group.return_value = jsonify(
+                error=404, text='sample ids not found!'
+            ), 404
+
+        response = self.client.post(
+            '/api/taxonomy/present/group/greengenes',
+            content_type='application/json',
+            data=json.dumps({'sample_ids': ['sample1', 'sample2']})
+        )
+        self.assertEqual(404, response.status_code)
