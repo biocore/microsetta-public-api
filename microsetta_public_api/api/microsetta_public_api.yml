@@ -183,7 +183,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/diversity/metrics/alpha/available':
+  '/diversity/alpha/metrics/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
       tags:
@@ -359,9 +359,9 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/plotting/diversity/beta/pcoa/{named_sample_set}/contains/{sample_id}':
+  '/diversity/beta/pcoa/{named_sample_set}/contains/{sample_id}':
     get:
-      operationId: microsettta_public_api.api.diversity.beta.pcoa_contains
+      operationId: microsetta_public_api.api.diversity.beta.pcoa_contains
       tags:
         - Beta Diversity
       summary: Get whether the given `sample_id` is contained in the `named_sample_set`

@@ -37,6 +37,10 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     return jsonify(sample_ids=matching_ids), 200
 
 
+def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
+    raise NotImplementedError()
+
+
 def _filter_matching_ids(matching_ids, repo, category, value, resource_type,
                          error_response=None, error_code=None):
     if value is not None:
