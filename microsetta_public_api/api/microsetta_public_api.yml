@@ -64,7 +64,6 @@ paths:
           description: Filter IDs to those present in the data for `alpha_metric`
           schema:
             $ref: '#/components/schemas/alphaMetric'
-
       responses:
         '200':
           description: Successfully returned sample ids
@@ -74,7 +73,6 @@ paths:
                 $ref: "#/components/schemas/sampleIdList"
         '404':
           $ref: '#/components/responses/404NotFound'
-
     post:
       operationId: microsetta_public_api.api.metadata.filter_sample_ids_query_builder
       tags:
@@ -98,7 +96,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/metadataQuery'
-
       responses:
         '200':
           description: Successfully returned sample ids
@@ -186,7 +183,6 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-
   '/diversity/metrics/alpha/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
@@ -249,7 +245,6 @@ paths:
         - Diversity
       summary: Query alpha diversity for a group of samples
       description: Query alpha diversity for a group of samples
-
       parameters:
         - $ref: '#/components/parameters/alphaMetric'
         - in: query
@@ -276,13 +271,11 @@ paths:
             Percentiles that should be returned. If not specified, then
             `10,20,30,40,50,60,70,80,90` will be used.
             Ignored if `summary_statistics=false`.
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfuly return alpha diversity information
@@ -360,15 +353,43 @@ paths:
                                 - 8.25
                                 - 9.01
                                 - 9.04
-
         '404':
           $ref: '#/components/responses/404NotFound'
         '400':
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/plotting/diversity/beta/pcoa/{beta_metric}':
-    # TODO this should probably be more like '/plotting/diversity/beta/pcoa/{named_sample_set}
+  '/plotting/diversity/beta/pcoa/{named_sample_set}/contains/{sample_id}':
+    get:
+      operationId: microsettta_public_api.api.diversity.beta.pcoa_contains
+      tags:
+        - Beta Diversity
+      summary: Get whether the given `sample_id` is contained in the `named_sample_set`
+      description: Get whether the given `sample_id` is contained in the `named_sample_set`
+      parameters:
+        - in: path
+          name: named_sample_set
+          description: The named sample set that should be plotted
+          schema:
+            type: string
+            example: 'habitat-type'
+          required: true
+        - in: path
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+          required: true
+      responses:
+        '200':
+          description: a `boolean`, which indicates if `sample_id` is contained in `named_sample_set`
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/plotting/diversity/beta/pcoa/{beta_metric}/{named_sample_set}':
     get:
       operationId: microsetta_public_api.api.plotting.plot_beta
       tags:
@@ -381,7 +402,14 @@ paths:
           name: beta_metric
           description: Plot the data for samples using this metric
           schema:
-            $ref: '#/components/schemas/alphaMetric' # TODO change to betaMetric
+            $ref: '#/components/schemas/betaMetric'
+          required: true
+        - in: path
+          name: named_sample_set
+          description: The named sample set that should be plotted
+          schema:
+            type: string
+            example: 'habitat-type'
           required: true
         - in: query
           name: sample_id
@@ -433,13 +461,11 @@ paths:
       description: Get taxonomy information for a group of samples
       parameters:
         - $ref: '#/components/parameters/taxonomyResource'
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfuly return taxonomy information
@@ -447,7 +473,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonomyFeatures'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -461,7 +486,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/sampleId'
         - $ref: '#/components/parameters/taxonomyResource'
-
       responses:
         '200':
           description: Successfuly return taxonomy information
@@ -469,7 +493,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonomyFeatures'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -482,13 +505,11 @@ paths:
       description: Get a DataTable of taxa, broken down by rank, for a list of samples
       parameters:
         - $ref: '#/components/parameters/taxonomyResource'
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfully return taxonomy table
@@ -496,7 +517,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sampleDataTable'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -510,7 +530,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/sampleId'
         - $ref: '#/components/parameters/taxonomyResource'
-
       responses:
         '200':
           description: Successfully return taxonomy table
@@ -518,8 +537,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sampleDataTable'
-
-        '404':
+         '404':
           $ref: '#/components/responses/404NotFound'
 
 components:
@@ -558,6 +576,9 @@ components:
     alphaMetric:
       type: string
       example: "faith_pd"
+    betaMetric:
+      type: string
+      example: "unifrac"
     metadataQuery:
       # TODO try to make this a little more informative (challenging due to recursive definition)
       type: object
