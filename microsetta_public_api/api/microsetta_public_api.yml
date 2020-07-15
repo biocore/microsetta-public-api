@@ -75,8 +75,119 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+    post:
+      operationId: microsetta_public_api.api.metadata.filter_sample_ids_query_builder
+      tags:
+        - Metadata
+      summary: Query samples associated with query
+      description: Query samples associated with query
+      parameters:
+        - in: query
+          name: taxonomy
+          description: Filter IDs to those present in the table associated with `taxonomy`
+          schema:
+            type: string
+            example: 'genus-level-taxonomy'
+        - in: query
+          name: alpha_metric
+          description: Filter IDs to those present in the data for `alpha_metric`
+          schema:
+            $ref: '#/components/schemas/alphaMetric'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
 
-  '/diversity/alpha/metrics/available':
+      responses:
+        '200':
+          description: Successfully returned sample ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sampleIdList"
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
+      tags:
+        - Plotting
+        - Diversity
+      summary: Get a Vega schema for alpha diversity cdf matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      parameters:
+        - in: path
+          name: alpha_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/alphaMetric'
+          required: true
+        - in: query
+          name: age_cat
+          schema:
+            type: string
+            example: '30s'
+        - in: query
+          name: bmi_cat
+          schema:
+            type: string
+            example: 'Normal'
+        - in: query
+          $ref: '#/components/parameters/percentiles'
+        - in: query
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_json_query
+      tags:
+        - Plotting
+        - Diversity
+      summary: Get a Vega schema for alpha diversity cdf matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      parameters:
+        - in: path
+          name: alpha_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/alphaMetric'
+          required: true
+        - in: query
+          $ref: '#/components/parameters/percentiles'
+        - in: query
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+
+  '/diversity/metrics/alpha/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
       tags:
@@ -159,14 +270,7 @@ paths:
           name: percentiles
           explode: false
           schema:
-            type: array
-            items:
-              type: number
-              minimum: 0
-              maximum: 100
-              nullable: true
-            default: null
-            nullable: true
+            $ref: '#/components/schemas/percentiles'
           required: false
           description: >
             Percentiles that should be returned. If not specified, then
@@ -262,6 +366,37 @@ paths:
         '400':
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
+
+  '/plotting/diversity/beta/pcoa/{beta_metric}':
+    # TODO this should probably be more like '/plotting/diversity/beta/pcoa/{named_sample_set}
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a Vega schema for PCOA plot
+      description: Get a Vega schema for PCOA plot
+      parameters:
+        - in: path
+          name: beta_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/alphaMetric' # TODO change to betaMetric
+          required: true
+        - in: query
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
   '/taxonomy/available':
     get:
@@ -411,11 +546,69 @@ components:
         type: string
         example: "greengenes"
       required: true
+    percentiles:
+      name: percentiles
+      in: query
+      explode: false
+      schema:
+        $ref: '#/components/schemas/percentiles'
+      required: false
 
   schemas:
     alphaMetric:
       type: string
       example: "faith_pd"
+    metadataQuery:
+      # TODO try to make this a little more informative (challenging due to recursive definition)
+      type: object
+      additionalProperties: true
+      description: >
+        A jQuery [QueryBuilder](https://querybuilder.js.org/)-formatted query.
+      example:
+        {
+          "condition": "AND",
+          "rules": [
+          {
+            "id": "age_years",
+            "field": "age_years",
+            "type": "double",
+            "input": "number",
+            "operator": "less",
+            "value": 10.25
+          },
+          {
+            "condition": "OR",
+            "rules": [
+            {
+              "id": "bmi_cat",
+              "field": "bmi_cat",
+              "type": "integer",
+              "input": "select",
+              "operator": "equal",
+              "value": 2
+            },
+            {
+              "id": "bmi_cat",
+              "field": "bmi_cat",
+              "type": "integer",
+              "input": "select",
+              "operator": "equal",
+              "value": 1
+            }
+            ]
+          }
+          ],
+          "valid": true
+        }
+    percentiles:
+      type: array
+      items:
+        type: number
+        minimum: 0
+        maximum: 100
+        nullable: true
+      default: null
+      nullable: true
     relativeAbundance:
       type: number
       minimum: 0
