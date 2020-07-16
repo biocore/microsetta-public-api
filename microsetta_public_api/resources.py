@@ -10,6 +10,8 @@ from q2_types.sample_data import AlphaDiversity, SampleData
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
 
+from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
+
 
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     _validate_dict_of_paths(dict_of_qza_paths,
@@ -42,7 +44,8 @@ def _transform_single_table(dict_, resource_name):
 
     _validate_dict_of_paths(dict_, resource_name, allow_none=True,
                             required_fields=['table'],
-                            non_ext_entries=['q2-type', 'table-format'],
+                            non_ext_entries=['q2-type', 'table-format',
+                                             'cache-taxonomy'],
                             allow_extras=True,
                             extensions=['.' + table_type]
                             )
@@ -84,6 +87,14 @@ def _transform_single_table(dict_, resource_name):
                                                )
         elif key in biom_kws:
             new_resource[key] = biom.load_table(value)
+
+    cache_taxonomy = new_resource.get('cache-taxonomy', True)
+    if 'feature-data-taxonomy' in new_resource and cache_taxonomy:
+        table = new_resource['table']
+        taxonomy = new_resource['feature-data-taxonomy']
+        variances = new_resource.get('variances', None)
+        model = TaxonomyModel(table, taxonomy, variances)
+        new_resource['model'] = model
 
     return new_resource
 

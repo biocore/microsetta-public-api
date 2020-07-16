@@ -12,6 +12,7 @@ from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import (TempfileTestCase,
                                                  ConfigTestCase)
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
+from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
 class TestTaxonomyRepoHelpers(TestCase):
@@ -113,15 +114,18 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
             'table2': {
                 'table': self.table1_filename,
                 'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': False,
             },
             'table3': {
                 'table': self.table3_filename,
                 'feature-data-taxonomy': self.taxonomy2_filename,
+                'cache-taxonomy': False,
                 'variances': self.table3_filename,
             },
             'table4': {
                 'table': self.table_biom,
                 'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': False,
                 'table-format': 'biom'
             },
             'table5': {
@@ -130,6 +134,11 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
             'table6': {
                 'table': self.table_biom,
                 'table-format': 'biom',
+            },
+            'cached-taxonomy-table': {
+                'table': self.table1_filename,
+                'feature-data-taxonomy': self.taxonomy1_filename,
+                'cache-taxonomy': True,
             },
         }})
         resources.update(config.resources)
@@ -140,7 +149,7 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
         ConfigTestCase.tearDown(self)
 
     def test_available_taxonomy_tables(self):
-        exp = ['table2', 'table3', 'table4']
+        exp = ['table2', 'table3', 'table4', 'cached-taxonomy-table']
         obs = self.repo.resources()
         self.assertCountEqual(exp, obs)
 
@@ -154,6 +163,11 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
         obs = self.repo.table('table2')
         self.assertEqual(exp, obs)
 
+    def test_get_table_cached_taxonomy(self):
+        exp = self.table
+        obs = self.repo.table('cached-taxonomy-table')
+        self.assertEqual(exp, obs)
+
     def test_get_table_invalid(self):
         with self.assertRaises(ValueError):
             self.repo.table('table1')
@@ -163,6 +177,16 @@ class TestTaxonomyRepoWithResources(TempfileTestCase, ConfigTestCase):
         obs = self.repo.feature_data_taxonomy('table4')
         obs['Confidence'] = obs['Confidence'].astype('float64')
         assert_frame_equal(exp, obs)
+
+    def test_get_taxonomy_model_cached(self):
+        exp = resources['table_resources']['cached-taxonomy-table']['model']
+        obs = self.repo.model('cached-taxonomy-table')
+        self.assertIs(exp, obs)
+
+    def test_get_taxonomy_model_non_cached(self):
+        self.assertNotIn('model', resources['table_resources']['table2'])
+        obs = self.repo.model('table2')
+        self.assertIsInstance(obs, TaxonomyModel)
 
     def test_get_taxonomy_invalid(self):
         with self.assertRaises(ValueError):
