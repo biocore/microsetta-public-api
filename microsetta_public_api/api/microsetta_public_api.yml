@@ -80,18 +80,6 @@ paths:
         - Metadata
       summary: Query samples associated with query
       description: Query samples associated with query
-      parameters:
-        - in: query
-          name: taxonomy
-          description: Filter IDs to those present in the table associated with `taxonomy`
-          schema:
-            type: string
-            example: 'genus-level-taxonomy'
-        - in: query
-          name: alpha_metric
-          description: Filter IDs to those present in the data for `alpha_metric`
-          schema:
-            $ref: '#/components/schemas/alphaMetric'
       requestBody:
         content:
           application/json:
@@ -109,18 +97,9 @@ paths:
 
   '/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
-      - in: path
-        name: alpha_metric
-        description: Plot the data for samples using this metric
-        schema:
-          $ref: '#/components/schemas/alphaMetric'
-        required: true
-      - in: query
-        $ref: '#/components/parameters/percentiles'
-      - in: query
-        name: sample_id
-        schema:
-          $ref: '#/components/schemas/sampleId'
+      - $ref: '#/components/parameters/alphaMetric'
+      - $ref: '#/components/parameters/percentiles'
+      - $ref: '#/components/parameters/sampleIdQuery'
     get:
       operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
       tags:
@@ -206,7 +185,7 @@ paths:
       summary: Get single sample alpha diversity
       description: Get single sample alpha diversity
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/alphaMetric'
       responses:
         '200':
@@ -348,7 +327,7 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/diversity/beta/pcoa/contains/{beta_metric}/{named_sample_set}/{sample_id}':
+  '/diversity/beta/pcoa/contains/{beta_metric}/{named_sample_set}':
     get:
       operationId: microsetta_public_api.api.diversity.beta.pcoa_contains
       tags:
@@ -356,24 +335,9 @@ paths:
       summary: Get whether the given `sample_id` is contained in the `named_sample_set`
       description: Get whether the given `sample_id` is contained in the `named_sample_set`
       parameters:
-        - in: path
-          name: beta_metric
-          description: Plot the data for samples using this metric
-          schema:
-            $ref: '#/components/schemas/betaMetric'
-          required: true
-        - in: path
-          name: named_sample_set
-          description: The named sample set that should be plotted
-          schema:
-            type: string
-            example: 'habitat-type'
-          required: true
-        - in: path
-          name: sample_id
-          schema:
-            $ref: '#/components/schemas/sampleId'
-          required: true
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
       responses:
         '200':
           description: a `boolean`, which indicates if `sample_id` is contained in `named_sample_set`
@@ -393,22 +357,9 @@ paths:
       summary: Get a Vega schema for PCOA plot
       description: Get a Vega schema for PCOA plot
       parameters:
-        - in: path
-          name: beta_metric
-          description: Plot the data for samples using this metric
-          schema:
-            $ref: '#/components/schemas/betaMetric'
-          required: true
-        - in: path
-          name: named_sample_set
-          description: The named sample set that should be plotted
-          schema:
-            $ref: '#/components/schemas/namedSampleSet'
-          required: true
-        - in: query
-          name: sample_id
-          schema:
-            $ref: '#/components/schemas/sampleId'
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
       responses:
         '200':
           description: Successfully returned Vega JSON
@@ -478,7 +429,7 @@ paths:
       summary: Get taxonomy information for a sample
       description: Get taxonomy information for a sample
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/taxonomyResource'
       responses:
         '200':
@@ -522,7 +473,7 @@ paths:
       summary: Get a DataTable of taxa, broken down by rank, for a given sample
       description: Get a DataTable of taxa, broken down by rank, for a given sample
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/taxonomyResource'
       responses:
         '200':
@@ -544,18 +495,8 @@ paths:
       summary: Get an Emperor compatible PCoA schema
       description: Get an Emperor compatible PCoA schema
       parameters:
-        - in: path
-          name: beta_metric
-          description: Plot the data for samples using this metric
-          schema:
-            $ref: '#/components/schemas/betaMetric'
-          required: true
-        - in: path
-          name: named_sample_set
-          description: The named sample set that should be plotted
-          schema:
-            $ref: '#/components/schemas/namedSampleSet'
-          required: true
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
       responses:
         '200':
           description: Successfully return Emperor Schema
@@ -575,9 +516,30 @@ components:
       schema:
         $ref: '#/components/schemas/alphaMetric'
       required: true
-    sampleId:
+    betaMetric:
+      name: beta_metric
+      in: path
+      description: Plot the data for samples using this metric
+      schema:
+        $ref: '#/components/schemas/betaMetric'
+      required: true
+    namedSampleSet:
+      name: named_sample_set
+      in: path
+      description: The named sample set that should be plotted
+      schema:
+        $ref: '#/components/schemas/namedSampleSet'
+      required: true
+    sampleIdPath:
       name: sample_id
       in: path
+      description: Unique id specifying a sample associated with a source
+      schema:
+        $ref: '#/components/schemas/sampleId'
+      required: true
+    sampleIdQuery:
+      name: sample_id
+      in: query
       description: Unique id specifying a sample associated with a source
       schema:
         $ref: '#/components/schemas/sampleId'

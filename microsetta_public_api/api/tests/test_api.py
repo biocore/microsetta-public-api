@@ -696,7 +696,8 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/pcoa/contains/unifrac/body-site/sample-12'
+            '/api/diversity/beta/pcoa/contains/unifrac/body-site'
+            '?sample_id=sample-12'
         )
 
         self.assertStatusCode(200, response)
@@ -714,7 +715,8 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/pcoa/contains/unifrac/body-site/sample-12'
+            '/api/diversity/beta/pcoa/contains/unifrac/body-site'
+            '?sample_id=sample-12'
         )
 
         self.assertStatusCode(404, response)
