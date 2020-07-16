@@ -1097,3 +1097,71 @@ class PlottingTests(FlaskTests):
             named_sample_set='body-site',
             sample_id='10377.12',
         )
+
+
+class EmperorTests(FlaskTests):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.sample_emperor_schema = {
+            "decomposition": {
+                "coordinates": [
+                    [-0.1776, 0.6011, -0.2033, -0.3368],
+                    [0.2561, 0.4013, -0.32037, 0.09316],
+                ],
+                "percents_explained":
+                    [63.21, 23.25, 8.55, 3.14],
+                "sample_ids":
+                    ['sample-1', 'sample-715'],
+            },
+            "metadata": [
+                ["fecal", 0.7, 9, "30s", "Normal"],
+                ["sebum", 20.4, None, "40s", "Overweight"]
+            ],
+            "metadata_headers": [
+                "body-habitat",
+                "latitude",
+                "days_post_surgery",
+                "age_cat",
+                "bmi_cat",
+            ],
+        }
+
+    def test_emperor_plot(self):
+        method = 'microsetta_public_api.api.emperor.plot_pcoa'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                self.sample_emperor_schema
+            )
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/emperor/pcoa/unifrac/body-habitat'
+        )
+
+        self.assertStatusCode(200, response)
+        self.assertDictEqual(self.sample_emperor_schema,
+                             json.loads(response.data))
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-habitat',
+        )
+
+    def test_emperor_plot_404(self):
+        method = 'microsetta_public_api.api.emperor.plot_pcoa'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='Not found', code=404
+            ), 404
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/emperor/pcoa/unifrac/body-habitat'
+        )
+
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-habitat',
+        )
