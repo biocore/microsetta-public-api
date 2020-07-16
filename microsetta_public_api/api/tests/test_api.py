@@ -696,7 +696,7 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/pcoa/contains/unifrac/body-site'
+            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
             '?sample_id=sample-12'
         )
 
@@ -715,7 +715,7 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/pcoa/contains/unifrac/body-site'
+            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
             '?sample_id=sample-12'
         )
 
@@ -1068,7 +1068,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/beta/pcoa/unifrac/body-site"
+            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
             "?sample_id=10377.12",
         )
         self.assertStatusCode(200, response)
@@ -1090,7 +1090,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/beta/pcoa/unifrac/body-site"
+            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
             "?sample_id=10377.12",
         )
         self.assertStatusCode(404, response)
@@ -1139,7 +1139,7 @@ class EmperorTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/emperor/pcoa/unifrac/body-habitat'
+            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
         )
 
         self.assertStatusCode(200, response)
@@ -1159,7 +1159,7 @@ class EmperorTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/emperor/pcoa/unifrac/body-habitat'
+            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
         )
 
         self.assertStatusCode(404, response)

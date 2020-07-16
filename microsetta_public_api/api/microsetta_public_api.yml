@@ -327,7 +327,7 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/diversity/beta/pcoa/contains/{beta_metric}/{named_sample_set}':
+  /diversity/beta/{beta_metric}/pcoa/{named_sample_set}/contains:
     get:
       operationId: microsetta_public_api.api.diversity.beta.pcoa_contains
       tags:
@@ -348,7 +348,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/plotting/diversity/beta/pcoa/{beta_metric}/{named_sample_set}':
+  '/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
     get:
       operationId: microsetta_public_api.api.plotting.plot_beta
       tags:
@@ -485,7 +485,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/emperor/pcoa/{beta_metric}/{named_sample_set}':
+  '/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
     get:
       operationId: microsetta_public_api.api.emperor.plot_pcoa
       tags:
