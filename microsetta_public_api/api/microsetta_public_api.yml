@@ -359,7 +359,7 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/diversity/beta/pcoa/{named_sample_set}/contains/{sample_id}':
+  '/diversity/beta/pcoa/contains/{beta_metric}/{named_sample_set}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.diversity.beta.pcoa_contains
       tags:
@@ -367,6 +367,12 @@ paths:
       summary: Get whether the given `sample_id` is contained in the `named_sample_set`
       description: Get whether the given `sample_id` is contained in the `named_sample_set`
       parameters:
+        - in: path
+          name: beta_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/betaMetric'
+          required: true
         - in: path
           name: named_sample_set
           description: The named sample set that should be plotted
