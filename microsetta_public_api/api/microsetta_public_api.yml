@@ -414,8 +414,7 @@ paths:
           name: named_sample_set
           description: The named sample set that should be plotted
           schema:
-            type: string
-            example: 'habitat-type'
+            $ref: '#/components/schemas/namedSampleSet'
           required: true
         - in: query
           name: sample_id
@@ -546,6 +545,38 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/emperor/pcoa/{beta_metric}/{named_sample_set}':
+    get:
+      operationId: microsetta_public_api.api.emperor.plot_pcoa
+      tags:
+        - Plotting
+        - Beta Diversity
+        - Emperor
+      summary: Get an Emperor compatible PCoA schema
+      description: Get an Emperor compatible PCoA schema
+      parameters:
+        - in: path
+          name: beta_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/betaMetric'
+          required: true
+        - in: path
+          name: named_sample_set
+          description: The named sample set that should be plotted
+          schema:
+            $ref: '#/components/schemas/namedSampleSet'
+          required: true
+      responses:
+        '200':
+          description: Successfully return Emperor Schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/emperorPCoA'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 components:
   parameters:
     alphaMetric:
@@ -582,9 +613,65 @@ components:
     alphaMetric:
       type: string
       example: "faith_pd"
+    anyValue:
+      nullable: true
     betaMetric:
       type: string
       example: "unifrac"
+    coordinates:
+      description: >
+        2D array of coordinates
+      type: array
+      items:
+        type: array
+        items:
+          type: number
+      example:
+        - [-0.1776, 0.6011, -0.2033, -0.3368]
+        - [0.2561, 0.4013, -0.32037, 0.09316]
+    emperorDecomposition:
+      type: object
+      properties:
+        coordinates:
+          $ref: '#/components/schemas/coordinates'
+        percents_explained:
+          $ref: '#/components/schemas/percentsExplained'
+        sample_ids:
+          $ref: '#/components/schemas/sampleIdArray'
+    emperorPCoA:
+      type: object
+      description: >
+        # TODO
+      properties:
+        decomposition:
+          $ref: '#/components/schemas/emperorDecomposition'
+        metadata:
+          $ref: '#/components/schemas/metadata'
+        metadata_headers:
+          $ref: '#/components/schemas/metadataHeaders'
+    metadata:
+      description: >
+        2d array of metadata values
+      type: array
+      items:
+        type: array
+        items:
+          $ref: '#/components/schemas/metadataValue'
+        example:
+          - ["fecal", 0.7, 9, "30s", "Normal"]
+          - ["sebum", 20.4, null, "40s", "Overweight"]
+    metadataHeaders:
+      description: >
+        List of metadata column names
+      type: array
+      items:
+        type: string
+      example:
+        - "body-habitat"
+        - "latitude"
+        - "days_post_surgery"
+        - "age_cat"
+        - "bmi_cat"
     metadataQuery:
       # TODO try to make this a little more informative (challenging due to recursive definition)
       type: object
@@ -627,6 +714,11 @@ components:
           ],
           "valid": true
         }
+    metadataValue:
+      $ref: '#/components/schemas/anyValue'
+    namedSampleSet:
+      type: string
+      example: 'body-site'
     percentiles:
       type: array
       items:
@@ -636,6 +728,19 @@ components:
         nullable: true
       default: null
       nullable: true
+    percentsExplained:
+      description: >
+        Percent explained for axis labels
+      type: array
+      items:
+        type: number
+        minimum: 0
+        maximum: 100
+      example:
+        - 63.21
+        - 23.25
+        - 8.55
+        - 3.14
     relativeAbundance:
       type: number
       minimum: 0
@@ -643,6 +748,15 @@ components:
     sampleId:
       type: string
       example: "sample_15"
+    sampleIdArray:
+      description: >
+        List of sample identifiers
+      type: array
+      items:
+        $ref: '#/components/schemas/sampleId'
+      example:
+        - 'sample-1'
+        - 'sample-715'
     sampleIdList:
       type: object
       required:
