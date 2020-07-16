@@ -6,6 +6,7 @@ from unittest.case import TestCase
 from unittest.mock import patch
 import pandas as pd
 import numpy as np
+import biom
 from qiime2 import Metadata, Artifact
 
 
@@ -151,6 +152,18 @@ class TestDatabase:
         self.faith_pd_data = pd.Series(np.random.normal(6, 1.5, n_samples),
                                        index=sample_set, name='faith_pd')
 
+        self.taxonomy_greengenes_df = pd.DataFrame(
+            [['feature-1', 'k__a; p__b; o__c', 0.123],
+             ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
+             ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
+        self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
+
+        self.table = biom.Table(
+            np.random.multinomial(5, [1/3.] * 3, size=n_samples).transpose(),
+            ['feature-1', 'feature-2', 'feature-3'],
+            sample_set)
+
         self.metadata_table = pd.DataFrame(
             {
                 'age_cat': np.random.choice(age_categories,
@@ -181,10 +194,31 @@ class TestDatabase:
         )
         faith_pd_artifact.save(faith_pd_path)
 
+        taxonomy_file = self.create_tempfile(suffix='.qza')
+        taxonomy_path = taxonomy_file.name
+        imported_artifact = Artifact.import_data(
+            "FeatureData[Taxonomy]", self.taxonomy_greengenes_df
+        )
+        imported_artifact.save(taxonomy_path)
+
+        table_file = self.create_tempfile(suffix='.qza')
+        table_path = table_file.name
+        imported_artifact = Artifact.import_data(
+            "FeatureTable[Frequency]", self.table
+        )
+        imported_artifact.save(table_path)
+
         config.resources.update({'metadata': metadata_path,
                                  'alpha_resources': {
                                      'faith-pd': faith_pd_path,
-                                 }
+                                 },
+                                 'table_resources': {
+                                     'greengenes': {
+                                         'table': table_path,
+                                         'feature-data-taxonomy':
+                                             taxonomy_path,
+                                     }
+                                 },
                                  })
         resources.update(config.resources)
 

@@ -20,6 +20,8 @@ class TestDatabaseTests(TestCase):
         with TestDatabase():
             self.assertIn('metadata', resources)
             self.assertIn('alpha_resources', resources)
+            self.assertIn('table_resources', resources)
 
         self.assertNotIn('metadata', resources)
         self.assertNotIn('alpha_resources', resources)
+        self.assertNotIn('table_resources', resources)
