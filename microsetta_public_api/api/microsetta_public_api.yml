@@ -36,6 +36,18 @@ paths:
             $ref: '#/components/responses/404NotFound'
 
   '/metadata/sample_ids':
+    parameters:
+      - in: query
+        name: taxonomy
+        description: Filter IDs to those present in the table associated with `taxonomy`
+        schema:
+          type: string
+          example: 'genus-level-taxonomy'
+      - in: query
+        name: alpha_metric
+        description: Filter IDs to those present in the data for `alpha_metric`
+        schema:
+          $ref: '#/components/schemas/alphaMetric'
     get:
       operationId: microsetta_public_api.api.metadata.filter_sample_ids
       tags:
@@ -53,17 +65,6 @@ paths:
           schema:
             type: string
             example: 'Normal'
-        - in: query
-          name: taxonomy
-          description: Filter IDs to those present in the table associated with `taxonomy`
-          schema:
-            type: string
-            example: 'genus-level-taxonomy'
-        - in: query
-          name: alpha_metric
-          description: Filter IDs to those present in the data for `alpha_metric`
-          schema:
-            $ref: '#/components/schemas/alphaMetric'
       responses:
         '200':
           description: Successfully returned sample ids
@@ -107,6 +108,19 @@ paths:
           $ref: '#/components/responses/404NotFound'
 
   '/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
+    parameters:
+      - in: path
+        name: alpha_metric
+        description: Plot the data for samples using this metric
+        schema:
+          $ref: '#/components/schemas/alphaMetric'
+        required: true
+      - in: query
+        $ref: '#/components/parameters/percentiles'
+      - in: query
+        name: sample_id
+        schema:
+          $ref: '#/components/schemas/sampleId'
     get:
       operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
       tags:
@@ -115,12 +129,6 @@ paths:
       summary: Get a Vega schema for alpha diversity cdf matching criteria
       description: Get a Vega schema for alpha diversity cdf matching criteria
       parameters:
-        - in: path
-          name: alpha_metric
-          description: Plot the data for samples using this metric
-          schema:
-            $ref: '#/components/schemas/alphaMetric'
-          required: true
         - in: query
           name: age_cat
           schema:
@@ -131,12 +139,6 @@ paths:
           schema:
             type: string
             example: 'Normal'
-        - in: query
-          $ref: '#/components/parameters/percentiles'
-        - in: query
-          name: sample_id
-          schema:
-            $ref: '#/components/schemas/sampleId'
       responses:
         '200':
           description: Successfully returned Vega JSON
@@ -154,19 +156,6 @@ paths:
         - Alpha Diversity
       summary: Get a Vega schema for alpha diversity cdf matching criteria
       description: Get a Vega schema for alpha diversity cdf matching criteria
-      parameters:
-        - in: path
-          name: alpha_metric
-          description: Plot the data for samples using this metric
-          schema:
-            $ref: '#/components/schemas/alphaMetric'
-          required: true
-        - in: query
-          $ref: '#/components/parameters/percentiles'
-        - in: query
-          name: sample_id
-          schema:
-            $ref: '#/components/schemas/sampleId'
       requestBody:
         content:
           application/json:
