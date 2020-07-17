@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- ajax header(s) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap header(s) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- vega header(s) -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  </head>
+  <body>
+    <script type="text/javascript">
+        var server = "http://localhost:8083";
+        var opt = {"renderer": "canvas", "actions": true};  /* Options for the Vega embedding */
+        var metric = "faith-pd";
+
+        function addSortedMetadataCategories(category, picker) {
+            $.getJSON(server + "/api/metadata/category/values/" + category,
+                function(data) {
+                  data.sort();
+                  for (let idx in data) {
+                      $(picker).append('<option value=' + data[idx] + '>' + data[idx] + '</option>');
+                  }
+                }
+            );
+        }
+
+        function formatQuery(categories) {
+            let base = server + "/api/plotting/diversity/alpha/" + metric +
+                '/percentiles-plot';
+            let query = [];
+            for (let [request_key, category] of Object.entries(categories)) {
+                if (category !== "") {
+                    query.push(request_key + '=' + category);
+                }
+            }
+            if (query.length !== 0){
+                base = base + '?' + query.join('&');
+            }
+            return base;
+        }
+
+        function plotQuery() {
+            $.getJSON(
+                formatQuery({
+                    age_cat: $('#ageCategories').val(),
+                    bmi_cat: $('#bmiCategories').val(),
+                    sample_id: $('#sampleId').val()
+                }),
+                function (json) {
+                    vegaEmbed("#vis", json, opt);
+                }
+            );
+        }
+
+        addSortedMetadataCategories('age_cat', '#ageCategories');
+        addSortedMetadataCategories('bmi_cat', '#bmiCategories');
+
+    </script>
+    <div id="frame" style="margin: 20px">
+      <div class="form-row">
+        <label for="ageCategories"> Age Category </label>
+        <select class="selectpicker" id="ageCategories">
+          <option value=""> Any </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="bmiCategories"> BMI Category </label>
+        <select class="selectpicker" id="bmiCategories">
+          <option value=""> Any </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="sampleId"> Sample ID </label>
+        <input class="form-control" id="sampleId" placeholder="Enter sample ID">
+      </div>
+
+      <div class="form-row" style="margin-block:10px">
+        <button onclick="plotQuery()"> Recalculate </button>
+      </div>
+
+      <div id="vis"></div>
+
+    </div>
+  </body>
+</html>
