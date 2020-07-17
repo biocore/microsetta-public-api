@@ -14,47 +14,33 @@ def category_values(category):
         return jsonify(text=text, error=404), 404
 
 
+def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
+    matching_ids = repo.sample_id_matches(query)
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, TaxonomyRepo, 'resources', taxonomy, 'resource',
+    )
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, AlphaRepo, 'available_metrics', alpha_metric,
+        'metric', error_response=error_response, error_code=error_code,
+    )
+    if error_response:
+        return error_response, error_code
+    return jsonify(sample_ids=matching_ids), 200
+
+
 def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     repo = MetadataRepo()
     query = _format_query(kwargs)
     is_invalid = _validate_query(kwargs, repo)
     if is_invalid:
         return is_invalid
-    matching_ids = repo.sample_id_matches(query)
-
-    matching_ids, error_code, error_response = _filter_matching_ids(
-        matching_ids, TaxonomyRepo, 'resources', taxonomy, 'resource',
-    )
-
-    matching_ids, error_code, error_response = _filter_matching_ids(
-        matching_ids, AlphaRepo, 'available_metrics', alpha_metric,
-        'metric', error_response=error_response, error_code=error_code,
-    )
-
-    if error_response:
-        return error_response, error_code
-
-    return jsonify(sample_ids=matching_ids), 200
+    return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
 
 
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
     query = body
     repo = MetadataRepo()
-    # TODO probably want some form of validation here
-    matching_ids = repo.sample_id_matches(query)
-    matching_ids, error_code, error_response = _filter_matching_ids(
-        matching_ids, TaxonomyRepo, 'resources', taxonomy, 'resource',
-    )
-
-    matching_ids, error_code, error_response = _filter_matching_ids(
-        matching_ids, AlphaRepo, 'available_metrics', alpha_metric,
-        'metric', error_response=error_response, error_code=error_code,
-    )
-
-    if error_response:
-        return error_response, error_code
-
-    return jsonify(sample_ids=matching_ids), 200
+    return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
 
 
 def _filter_matching_ids(matching_ids, repo, category, value, resource_type,
