@@ -2,9 +2,11 @@ import json
 from unittest.mock import patch, PropertyMock
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
-from microsetta_public_api.api.metadata import (category_values,
-                                                filter_sample_ids,
-                                                )
+from microsetta_public_api.api.metadata import (
+    category_values,
+    filter_sample_ids,
+    filter_sample_ids_query_builder,
+)
 
 
 class MetadataImplementationTests(MockedJsonifyTestCase):
@@ -13,6 +15,24 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         'microsetta_public_api.api.metadata.jsonify',
         'microsetta_public_api.utils._utils.jsonify',
     ]
+
+    filter_methods = [filter_sample_ids, filter_sample_ids_query_builder]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.sample_querybuilder = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "age_cat",
+                    "field": "age_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "30s"
+                },
+            ]
+        }
 
     def test_metadata_category_values(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
@@ -100,12 +120,19 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         self.assertEqual(code, 404)
 
     def test_metadata_filter_sample_ids_taxonomy_unknown(self):
-        response, code = filter_sample_ids(taxonomy='some-tax')
-        self.assertEqual(code, 404)
+        args = [[], [dict(condition="AND", rules=[])]]
+        for method, arg in zip(self.filter_methods, args):
+            with self.subTest():
+                response, code = method(*arg, taxonomy='some-tax')
+                self.assertEqual(code, 404)
 
     def test_metadata_filter_sample_ids_alpha_metric_unknown(self):
-        response, code = filter_sample_ids(alpha_metric='some-unknown-metric')
-        self.assertEqual(code, 404)
+        args = [[], [dict(condition="AND", rules=[])]]
+        for method, arg in zip(self.filter_methods, args):
+            with self.subTest():
+                response, code = method(*arg,
+                                        alpha_metric='some-unknown-metric')
+                self.assertEqual(code, 404)
 
     def test_metadata_filter_sample_ids_taxonomy_filter(self):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
@@ -143,5 +170,48 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
                                                alpha_metric='faith_pd')
         self.assertEqual(200, code)
         exp = {'sample_ids': ['sample-1', 'sample-3']}
+        obs = json.loads(response)
+        self.assertDictEqual(exp, obs)
+
+    def test_metadata_filter_sample_ids_query_builder(self):
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                        mock_categories:
+            mock_matches.return_value = ['sample-1', 'sample-3']
+            mock_categories.return_value = ['age_cat']
+            response, code = filter_sample_ids_query_builder(
+                self.sample_querybuilder,
+            )
+        self.assertEqual(code, 200)
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
+        obs = json.loads(response)
+        self.assertDictEqual(exp, obs)
+
+    def test_metadata_filter_sample_ids_query_builder_resource_filters(self):
+        with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
+                patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
+                      'categories', new_callable=PropertyMock) as \
+                        mock_categories, \
+                patch('microsetta_public_api.api.metadata'
+                      '.TaxonomyRepo.exists') as mock_exists, \
+                patch('microsetta_public_api.api.metadata'
+                      '.AlphaRepo.exists') as mock_exists_alpha, \
+                patch('microsetta_public_api.api.metadata.validate_resource'
+                      '') as mock_invalid_resource:
+            mock_matches.return_value = ['sample-1', 'sample-2', 'sample-3']
+            mock_categories.return_value = ['age_cat']
+            # filters sample_id's down to ['sample-2', 'sample-3']
+            mock_exists.side_effect = [False, True, True]
+            # filters ['sample-2', 'sample-3'] down to ['sample-2']
+            mock_exists_alpha.side_effect = [True, False]
+            mock_invalid_resource.side_effect = [False, False]
+            response, code = filter_sample_ids_query_builder(
+                self.sample_querybuilder,
+                taxonomy='agp',
+                alpha_metric='alpha_met',
+            )
+        self.assertEqual(200, code)
+        exp = {'sample_ids': ['sample-2']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
