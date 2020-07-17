@@ -581,6 +581,120 @@ class PlottingIntegrationTests(IntegrationTests):
         )
         self.assertStatusCode(200, response)
 
+    def test_percentiles_plot_with_filtering_422_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
 
 class AllIntegrationTest(
         AlphaIntegrationTests,

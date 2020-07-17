@@ -16,66 +16,21 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
     if is_invalid:
         return is_invalid
 
-    matching_ids = repo.sample_id_matches(query)
-
-    matching_ids, error_code, error_response = _filter_matching_ids(
-        matching_ids, AlphaRepo, 'available_metrics', alpha_metric, 'metric',
-    )
-    if sample_id:
-        _, error_code, error_response = _filter_matching_ids(
-            [sample_id], AlphaRepo, 'available_metrics', alpha_metric,
-            'metric', error_code=error_code, error_response=error_response,
-        )
-
-    if error_response:
-        return error_response, error_code
-
-    if len(matching_ids) <= 1:
-        return jsonify(text='Did not find more than 1 ID\'s matching '
-                            'request. Plot would be nonsensical.'), 422
-
-    alpha_repo = AlphaRepo()
-
-    # retrieve the alpha diversity for each sample
-    alpha_series = alpha_repo.get_alpha_diversity(matching_ids,
-                                                  alpha_metric,
-                                                  )
-    alpha_ = Alpha(alpha_series, percentiles=percentiles)
-    alpha_summary = alpha_.get_group(name='').to_dict()
-
-    df = pd.DataFrame({'percentile': alpha_summary['percentile'],
-                       'values': alpha_summary['percentile_values'],
-                       }
-                      )
-    chart = alt.Chart(df).encode(
-        x=alt.X("values", stack=None, title=alpha_metric),
-        y=alt.Y("percentile", title='Percentile'),
-    )
-
-    chart = chart.mark_area(opacity=0.3) + chart.mark_line() + \
-        chart.mark_point()
-
-    if sample_id:
-        # get_alpha_diversity returns a pd.Series, so subset it
-        sample_diversity, = alpha_repo.get_alpha_diversity(sample_id,
-                                                           alpha_metric)
-        sample_df = pd.DataFrame({'sample-value': [sample_diversity]})
-        vertical_line = alt.Chart(sample_df).mark_rule().encode(
-            x=alt.X('sample-value'),
-            )
-        chart = (chart + vertical_line)
-
-    return jsonify(**chart.to_dict()), 200
+    return _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles,
+                                                query, repo, sample_id)
 
 
 def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
-                        sample_id=None):
+                                   sample_id=None):
     repo = MetadataRepo()
-    query = body
 
-    # TODO refactor to reduce repeated code
+    return _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles,
+                                                body, repo, sample_id)
+
+
+def _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles, query,
+                                         repo, sample_id):
     matching_ids = repo.sample_id_matches(query)
-
     matching_ids, error_code, error_response = _filter_matching_ids(
         matching_ids, AlphaRepo, 'available_metrics', alpha_metric, 'metric',
     )
@@ -84,19 +39,18 @@ def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
             [sample_id], AlphaRepo, 'available_metrics', alpha_metric,
             'metric', error_code=error_code, error_response=error_response,
         )
-
     if error_response:
         return error_response, error_code
-
+    if len(matching_ids) <= 1:
+        return jsonify(text='Did not find more than 1 ID\'s matching '
+                            'request. Plot would be nonsensical.'), 422
     alpha_repo = AlphaRepo()
-
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(matching_ids,
                                                   alpha_metric,
                                                   )
     alpha_ = Alpha(alpha_series, percentiles=percentiles)
     alpha_summary = alpha_.get_group(name='').to_dict()
-
     df = pd.DataFrame({'percentile': alpha_summary['percentile'],
                        'values': alpha_summary['percentile_values'],
                        }
@@ -105,10 +59,8 @@ def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
         x=alt.X("values", stack=None, title=alpha_metric),
         y=alt.Y("percentile", title='Percentile'),
     )
-
     chart = chart.mark_area(opacity=0.3) + chart.mark_line() + \
             chart.mark_point()
-
     if sample_id:
         # get_alpha_diversity returns a pd.Series, so subset it
         sample_diversity, = alpha_repo.get_alpha_diversity(sample_id,
@@ -118,7 +70,6 @@ def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
             x=alt.X('sample-value'),
         )
         chart = (chart + vertical_line)
-
     return jsonify(**chart.to_dict()), 200
 
 
