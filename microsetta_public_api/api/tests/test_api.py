@@ -243,6 +243,118 @@ class MetadataSampleIdsTests(FlaskTests):
         self.assertCountEqual(obs['sample_ids'], exp_ids)
         self.mock_method.assert_called_with()
 
+    def test_metadata_sample_ids_post_query_builder(self):
+        with self.app_context(), patch('microsetta_public_api.api.metadata'
+                                       '.filter_sample_ids_query_builder') as \
+                mock_method:
+            mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+            _, self.client = self.build_app_test_client()
+
+        request_body = \
+            {
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_years",
+                        "field": "age_years",
+                        "type": "double",
+                        "input": "number",
+                        "operator": "less",
+                        "value": 10.25
+                    },
+                ],
+                "valid": True
+            }
+
+        response = self.client.post(
+            "/api/metadata/sample_ids",
+            content_type='application/json',
+            data=json.dumps(request_body)
+        )
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        mock_method.assert_called_with(body=request_body)
+
+    def test_metadata_sample_ids_post_query_builder_extra_args(self):
+        with self.app_context(), patch('microsetta_public_api.api.metadata'
+                                       '.filter_sample_ids_query_builder') as \
+                mock_method:
+            mock_method.return_value = jsonify({
+                'sample_ids': [
+                    'sample-1',
+                    'sample-2',
+                ],
+            })
+            _, self.client = self.build_app_test_client()
+
+        request_body = \
+            {
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_years",
+                        "field": "age_years",
+                        "type": "double",
+                        "input": "number",
+                        "operator": "less",
+                        "value": 10.25
+                    },
+                ],
+                "valid": True
+            }
+
+        response = self.client.post(
+            "/api/metadata/sample_ids?taxonomy=gg&alpha_metric=faith-pd",
+            content_type='application/json',
+            data=json.dumps(request_body)
+        )
+        exp_ids = ['sample-1', 'sample-2']
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+        mock_method.assert_called_with(body=request_body, taxonomy='gg',
+                                       alpha_metric='faith-pd')
+
+    def test_metadata_sample_ids_post_query_builder_404(self):
+        with self.app_context(), patch('microsetta_public_api.api.metadata'
+                                       '.filter_sample_ids_query_builder') as \
+                mock_method:
+            mock_method.return_value = jsonify(text='Not found', code=404), 404
+            _, self.client = self.build_app_test_client()
+
+        request_body = \
+            {
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_years",
+                        "field": "age_years",
+                        "type": "double",
+                        "input": "number",
+                        "operator": "less",
+                        "value": 10.25
+                    },
+                ],
+                "valid": True
+            }
+
+        response = self.client.post(
+            "/api/metadata/sample_ids",
+            content_type='application/json',
+            data=json.dumps(request_body)
+        )
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(body=request_body)
+
 
 class AlphaDiversityTestCase(FlaskTests):
 
@@ -575,6 +687,46 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 500)
 
 
+class BetaDiversityTests(FlaskTests):
+
+    def test_pcoa_contains(self):
+        method = 'microsetta_public_api.api.diversity.beta.pcoa_contains'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = True
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
+            '?sample_id=sample-12'
+        )
+
+        self.assertStatusCode(200, response)
+        self.assertEqual(json.loads(response.data), True)
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-site',
+            sample_id='sample-12',
+        )
+
+    def test_pcoa_contains_404(self):
+        method = 'microsetta_public_api.api.diversity.beta.pcoa_contains'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(text='Sample not found'), 404
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
+            '?sample_id=sample-12'
+        )
+
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-site',
+            sample_id='sample-12',
+        )
+
+
 class TaxonomyResourcesAPITests(FlaskTests):
 
     def setUp(self):
@@ -767,3 +919,251 @@ class TaxonomyDataTableTests(FlaskTests):
             data=json.dumps({'sample_ids': ['sample1', 'sample2']})
         )
         self.assertEqual(404, response.status_code)
+
+
+class PlottingTests(FlaskTests):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.sample_vega_schema = {
+            "data": {"url": "data/population.json"},
+            "transform": [{
+                "filter": "datum.year == 2000"
+            }],
+            "mark": "bar",
+            "encoding": {
+                "x": {
+                    "aggregate": "sum",
+                    "field": "people",
+                    "type": "quantitative",
+                    "axis": {"title": "population"}
+                }
+            },
+            "config": {"view": {"step": 15}}
+        }
+
+    def test_alpha_percentiles_plot_get(self):
+        method = 'microsetta_public_api.api.plotting.plot_alpha_filtered'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                self.sample_vega_schema
+            ), 200
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
+            "&sample_id=10377.12"
+        )
+        self.assertStatusCode(200, response)
+        self.assertDictEqual(self.sample_vega_schema,
+                             json.loads(response.data))
+        mock_method.assert_called_with(alpha_metric='faith-pd',
+                                       age_cat='30s',
+                                       bmi_cat='Normal',
+                                       percentiles=[1, 2, 3, 5],
+                                       sample_id='10377.12',
+                                       )
+
+    def test_alpha_percentiles_plot_get_404(self):
+        method = 'microsetta_public_api.api.plotting.plot_alpha_filtered'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='not found', code=404,
+            ), 404
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
+            "&sample_id=10377.12"
+        )
+        self.assertStatusCode(404, response)
+
+    def test_alpha_percentiles_plot_post(self):
+        method = 'microsetta_public_api.api.plotting' \
+                 '.plot_alpha_filtered_json_query'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                self.sample_vega_schema
+            ), 200
+            _, self.client = self.build_app_test_client()
+
+        request_body = \
+            {
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_years",
+                        "field": "age_years",
+                        "type": "double",
+                        "input": "number",
+                        "operator": "less",
+                        "value": 10.25
+                    },
+                ],
+                "valid": True
+            }
+
+        response = self.client.post(
+            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "?&percentiles=1,2,3,5&sample_id=10377.12",
+            content_type='application/json',
+            data=json.dumps(request_body)
+        )
+        self.assertStatusCode(200, response)
+        self.assertDictEqual(self.sample_vega_schema,
+                             json.loads(response.data))
+        mock_method.assert_called_with(alpha_metric='faith-pd',
+                                       body=request_body,
+                                       percentiles=[1, 2, 3, 5],
+                                       sample_id='10377.12',
+                                       )
+
+    def test_alpha_percentiles_plot_post_404(self):
+        method = 'microsetta_public_api.api.plotting' \
+                 '.plot_alpha_filtered_json_query'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='not found', code=404
+            ), 404
+            _, self.client = self.build_app_test_client()
+
+        request_body = \
+            {
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_years",
+                        "field": "age_years",
+                        "type": "double",
+                        "input": "number",
+                        "operator": "less",
+                        "value": 10.25
+                    },
+                ],
+                "valid": True
+            }
+
+        response = self.client.post(
+            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "?&percentiles=1,2,3,5&sample_id=10377.12",
+            content_type='application/json',
+            data=json.dumps(request_body)
+        )
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(alpha_metric='faith-pd',
+                                       body=request_body,
+                                       percentiles=[1, 2, 3, 5],
+                                       sample_id='10377.12',
+                                       )
+
+    def test_beta_vega_plot(self):
+        method = 'microsetta_public_api.api.plotting.plot_beta'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                self.sample_vega_schema
+            )
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
+            "?sample_id=10377.12",
+        )
+        self.assertStatusCode(200, response)
+        self.assertDictEqual(self.sample_vega_schema,
+                             json.loads(response.data))
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-site',
+            sample_id='10377.12',
+        )
+
+    def test_beta_vega_plot_404(self):
+        method = 'microsetta_public_api.api.plotting.plot_beta'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='Not found',
+                code=404
+            ), 404
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
+            "?sample_id=10377.12",
+        )
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-site',
+            sample_id='10377.12',
+        )
+
+
+class EmperorTests(FlaskTests):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.sample_emperor_schema = {
+            "decomposition": {
+                "coordinates": [
+                    [-0.1776, 0.6011, -0.2033, -0.3368],
+                    [0.2561, 0.4013, -0.32037, 0.09316],
+                ],
+                "percents_explained":
+                    [63.21, 23.25, 8.55, 3.14],
+                "sample_ids":
+                    ['sample-1', 'sample-715'],
+            },
+            "metadata": [
+                ["fecal", 0.7, 9, "30s", "Normal"],
+                ["sebum", 20.4, None, "40s", "Overweight"]
+            ],
+            "metadata_headers": [
+                "body-habitat",
+                "latitude",
+                "days_post_surgery",
+                "age_cat",
+                "bmi_cat",
+            ],
+        }
+
+    def test_emperor_plot(self):
+        method = 'microsetta_public_api.api.emperor.plot_pcoa'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                self.sample_emperor_schema
+            )
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
+        )
+
+        self.assertStatusCode(200, response)
+        self.assertDictEqual(self.sample_emperor_schema,
+                             json.loads(response.data))
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-habitat',
+        )
+
+    def test_emperor_plot_404(self):
+        method = 'microsetta_public_api.api.emperor.plot_pcoa'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='Not found', code=404
+            ), 404
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
+        )
+
+        self.assertStatusCode(404, response)
+        mock_method.assert_called_with(
+            beta_metric='unifrac',
+            named_sample_set='body-habitat',
+        )
