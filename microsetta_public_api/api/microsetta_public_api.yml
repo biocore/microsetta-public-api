@@ -99,7 +99,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/alphaMetric'
       - $ref: '#/components/parameters/percentiles'
-      - $ref: '#/components/parameters/sampleIdQuery'
+      - $ref: '#/components/parameters/sampleIdQueryOpt'
     get:
       operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
       tags:
@@ -150,6 +150,8 @@ paths:
                 additionalProperties: true
         '404':
           $ref: '#/components/responses/404NotFound'
+        '422':
+          $ref: '#/components/responses/422UnprocessableEntity'
 
   '/diversity/alpha/metrics/available':
     get:
@@ -544,6 +546,13 @@ components:
       schema:
         $ref: '#/components/schemas/sampleId'
       required: true
+    sampleIdQueryOpt:
+      name: sample_id
+      in: query
+      description: Unique id specifying a sample associated with a source
+      schema:
+        $ref: '#/components/schemas/sampleId'
+      required: false
     taxonomyResource:
       name: resource
       in: path
@@ -819,6 +828,14 @@ components:
   responses:
     404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
       description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    422UnprocessableEntity:
+      description: >
+        The request was well-formed but was unable to be followed.
       content:
         application/json:
           schema:

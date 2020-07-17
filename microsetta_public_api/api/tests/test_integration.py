@@ -435,14 +435,44 @@ class PlottingIntegrationTests(IntegrationTests):
         }})
         resources.update(config.resources)
 
-    def test_percentiles_plot_with_filtering(self):
+    def test_percentiles_plot_with_filtering_422(self):
         response = self.client.get(
             '/api/plotting/diversity/alpha/chao1/percentiles-plot'
             '?age_cat=30s'
         )
-        # from unittest.mock import MagicMock
-        # response = MagicMock()
-        # response.status_code = 200
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s&sample_id=sample-2'
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?bmi_cat=not'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?bmi_cat=not&sample_id=sample-2'
+        )
         self.assertStatusCode(200, response)
 
 

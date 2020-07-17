@@ -30,6 +30,10 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
     if error_response:
         return error_response, error_code
 
+    if len(matching_ids) <= 1:
+        return jsonify(text='Did not find more than 1 ID\'s matching '
+                            'request. Plot would be nonsensical.'), 422
+
     alpha_repo = AlphaRepo()
 
     # retrieve the alpha diversity for each sample
