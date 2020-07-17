@@ -38,7 +38,23 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
 
 
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
-    raise NotImplementedError()
+    query = body
+    repo = MetadataRepo()
+    # TODO probably want some form of validation here
+    matching_ids = repo.sample_id_matches(query)
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, TaxonomyRepo, 'resources', taxonomy, 'resource',
+    )
+
+    matching_ids, error_code, error_response = _filter_matching_ids(
+        matching_ids, AlphaRepo, 'available_metrics', alpha_metric,
+        'metric', error_response=error_response, error_code=error_code,
+    )
+
+    if error_response:
+        return error_response, error_code
+
+    return jsonify(sample_ids=matching_ids), 200
 
 
 def _filter_matching_ids(matching_ids, repo, category, value, resource_type,

@@ -151,6 +151,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+
   '/diversity/alpha/metrics/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
