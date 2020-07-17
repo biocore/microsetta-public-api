@@ -60,7 +60,7 @@ def _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles, query,
         y=alt.Y("percentile", title='Percentile'),
     )
     chart = chart.mark_area(opacity=0.3) + chart.mark_line() + \
-            chart.mark_point()
+        chart.mark_point()
     if sample_id:
         # get_alpha_diversity returns a pd.Series, so subset it
         sample_diversity, = alpha_repo.get_alpha_diversity(sample_id,
