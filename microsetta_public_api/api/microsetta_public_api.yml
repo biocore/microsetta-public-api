@@ -36,6 +36,18 @@ paths:
             $ref: '#/components/responses/404NotFound'
 
   '/metadata/sample_ids':
+    parameters:
+      - in: query
+        name: taxonomy
+        description: Filter IDs to those present in the table associated with `taxonomy`
+        schema:
+          type: string
+          example: 'genus-level-taxonomy'
+      - in: query
+        name: alpha_metric
+        description: Filter IDs to those present in the data for `alpha_metric`
+        schema:
+          $ref: '#/components/schemas/alphaMetric'
     get:
       operationId: microsetta_public_api.api.metadata.filter_sample_ids
       tags:
@@ -53,18 +65,26 @@ paths:
           schema:
             type: string
             example: 'Normal'
-        - in: query
-          name: taxonomy
-          description: Filter IDs to those present in the table associated with `taxonomy`
-          schema:
-            type: string
-            example: 'genus-level-taxonomy'
-        - in: query
-          name: alpha_metric
-          description: Filter IDs to those present in the data for `alpha_metric`
-          schema:
-            $ref: '#/components/schemas/alphaMetric'
-
+      responses:
+        '200':
+          description: Successfully returned sample ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sampleIdList"
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.metadata.filter_sample_ids_query_builder
+      tags:
+        - Metadata
+      summary: Query samples associated with query
+      description: Query samples associated with query
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
       responses:
         '200':
           description: Successfully returned sample ids
@@ -75,12 +95,67 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
+    parameters:
+      - $ref: '#/components/parameters/alphaMetric'
+      - $ref: '#/components/parameters/percentiles'
+      - $ref: '#/components/parameters/sampleIdQuery'
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
+      tags:
+        - Plotting
+        - Alpha Diversity
+      summary: Get a Vega schema for alpha diversity CDF matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      parameters:
+        - in: query
+          name: age_cat
+          schema:
+            type: string
+            example: '30s'
+        - in: query
+          name: bmi_cat
+          schema:
+            type: string
+            example: 'Normal'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_json_query
+      tags:
+        - Plotting
+        - Alpha Diversity
+      summary: Get a Vega schema for alpha diversity cdf matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
   '/diversity/alpha/metrics/available':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha
       tags:
-        - Diversity
+        - Alpha Diversity
       summary: Get available alpha diversity metrics
       description: Get available alpha diversity metrics
       responses:
@@ -106,11 +181,11 @@ paths:
     get:
       operationId: microsetta_public_api.api.diversity.alpha.get_alpha
       tags:
-        - Diversity
+        - Alpha Diversity
       summary: Get single sample alpha diversity
       description: Get single sample alpha diversity
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/alphaMetric'
       responses:
         '200':
@@ -135,10 +210,9 @@ paths:
     post:
       operationId: microsetta_public_api.api.diversity.alpha.alpha_group
       tags:
-        - Diversity
+        - Alpha Diversity
       summary: Query alpha diversity for a group of samples
       description: Query alpha diversity for a group of samples
-
       parameters:
         - $ref: '#/components/parameters/alphaMetric'
         - in: query
@@ -159,26 +233,17 @@ paths:
           name: percentiles
           explode: false
           schema:
-            type: array
-            items:
-              type: number
-              minimum: 0
-              maximum: 100
-              nullable: true
-            default: null
-            nullable: true
+            $ref: '#/components/schemas/percentiles'
           required: false
           description: >
             Percentiles that should be returned. If not specified, then
             `10,20,30,40,50,60,70,80,90` will be used.
             Ignored if `summary_statistics=false`.
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfuly return alpha diversity information
@@ -256,12 +321,55 @@ paths:
                                 - 8.25
                                 - 9.01
                                 - 9.04
-
         '404':
           $ref: '#/components/responses/404NotFound'
         '400':
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
+
+  /diversity/beta/{beta_metric}/pcoa/{named_sample_set}/contains:
+    get:
+      operationId: microsetta_public_api.api.diversity.beta.pcoa_contains
+      tags:
+        - Beta Diversity
+      summary: Get whether the given `sample_id` is contained in the `named_sample_set`
+      description: Get whether the given `sample_id` is contained in the `named_sample_set`
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: a `boolean`, which indicates if `sample_id` is contained in `named_sample_set`
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a Vega schema for PCOA plot
+      description: Get a Vega schema for PCOA plot
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
   '/taxonomy/available':
     get:
@@ -298,13 +406,11 @@ paths:
       description: Get taxonomy information for a group of samples
       parameters:
         - $ref: '#/components/parameters/taxonomyResource'
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfuly return taxonomy information
@@ -312,7 +418,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonomyFeatures'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -324,9 +429,8 @@ paths:
       summary: Get taxonomy information for a sample
       description: Get taxonomy information for a sample
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/taxonomyResource'
-
       responses:
         '200':
           description: Successfuly return taxonomy information
@@ -334,7 +438,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonomyFeatures'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -347,13 +450,11 @@ paths:
       description: Get a DataTable of taxa, broken down by rank, for a list of samples
       parameters:
         - $ref: '#/components/parameters/taxonomyResource'
-
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/sampleIdList"
-
       responses:
         '200':
           description: Successfully return taxonomy table
@@ -361,7 +462,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sampleDataTable'
-
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -373,9 +473,8 @@ paths:
       summary: Get a DataTable of taxa, broken down by rank, for a given sample
       description: Get a DataTable of taxa, broken down by rank, for a given sample
       parameters:
-        - $ref: '#/components/parameters/sampleId'
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/taxonomyResource'
-
       responses:
         '200':
           description: Successfully return taxonomy table
@@ -383,7 +482,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/sampleDataTable'
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
+  '/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
+    get:
+      operationId: microsetta_public_api.api.emperor.plot_pcoa
+      tags:
+        - Plotting
+        - Beta Diversity
+        - Emperor
+      summary: Get an Emperor compatible PCoA schema
+      description: Get an Emperor compatible PCoA schema
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+      responses:
+        '200':
+          description: Successfully return Emperor Schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/emperorPCoA'
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -396,9 +516,30 @@ components:
       schema:
         $ref: '#/components/schemas/alphaMetric'
       required: true
-    sampleId:
+    betaMetric:
+      name: beta_metric
+      in: path
+      description: Plot the data for samples using this metric
+      schema:
+        $ref: '#/components/schemas/betaMetric'
+      required: true
+    namedSampleSet:
+      name: named_sample_set
+      in: path
+      description: The named sample set that should be plotted
+      schema:
+        $ref: '#/components/schemas/namedSampleSet'
+      required: true
+    sampleIdPath:
       name: sample_id
       in: path
+      description: Unique id specifying a sample associated with a source
+      schema:
+        $ref: '#/components/schemas/sampleId'
+      required: true
+    sampleIdQuery:
+      name: sample_id
+      in: query
       description: Unique id specifying a sample associated with a source
       schema:
         $ref: '#/components/schemas/sampleId'
@@ -411,11 +552,146 @@ components:
         type: string
         example: "greengenes"
       required: true
+    percentiles:
+      name: percentiles
+      in: query
+      explode: false
+      schema:
+        $ref: '#/components/schemas/percentiles'
+      required: false
 
   schemas:
     alphaMetric:
       type: string
       example: "faith_pd"
+    anyValue:
+      nullable: true
+    betaMetric:
+      type: string
+      example: "unifrac"
+    coordinates:
+      description: >
+        2D array of coordinates
+      type: array
+      items:
+        type: array
+        items:
+          type: number
+      example:
+        - [-0.1776, 0.6011, -0.2033, -0.3368]
+        - [0.2561, 0.4013, -0.32037, 0.09316]
+    emperorDecomposition:
+      type: object
+      properties:
+        coordinates:
+          $ref: '#/components/schemas/coordinates'
+        percents_explained:
+          $ref: '#/components/schemas/percentsExplained'
+        sample_ids:
+          $ref: '#/components/schemas/sampleIdArray'
+    emperorPCoA:
+      type: object
+      description: >
+        # TODO
+      properties:
+        decomposition:
+          $ref: '#/components/schemas/emperorDecomposition'
+        metadata:
+          $ref: '#/components/schemas/metadata'
+        metadata_headers:
+          $ref: '#/components/schemas/metadataHeaders'
+    metadata:
+      description: >
+        2d array of metadata values
+      type: array
+      items:
+        type: array
+        items:
+          $ref: '#/components/schemas/metadataValue'
+        example:
+          - ["fecal", 0.7, 9, "30s", "Normal"]
+          - ["sebum", 20.4, null, "40s", "Overweight"]
+    metadataHeaders:
+      description: >
+        List of metadata column names
+      type: array
+      items:
+        type: string
+      example:
+        - "body-habitat"
+        - "latitude"
+        - "days_post_surgery"
+        - "age_cat"
+        - "bmi_cat"
+    metadataQuery:
+      # TODO try to make this a little more informative (challenging due to recursive definition)
+      type: object
+      additionalProperties: true
+      description: >
+        A jQuery [QueryBuilder](https://querybuilder.js.org/)-formatted query.
+      example:
+        {
+          "condition": "AND",
+          "rules": [
+          {
+            "id": "age_years",
+            "field": "age_years",
+            "type": "double",
+            "input": "number",
+            "operator": "less",
+            "value": 10.25
+          },
+          {
+            "condition": "OR",
+            "rules": [
+            {
+              "id": "bmi_cat",
+              "field": "bmi_cat",
+              "type": "integer",
+              "input": "select",
+              "operator": "equal",
+              "value": 2
+            },
+            {
+              "id": "bmi_cat",
+              "field": "bmi_cat",
+              "type": "integer",
+              "input": "select",
+              "operator": "equal",
+              "value": 1
+            }
+            ]
+          }
+          ],
+          "valid": true
+        }
+    metadataValue:
+      $ref: '#/components/schemas/anyValue'
+    namedSampleSet:
+      type: string
+      example: 'body-site'
+    percentiles:
+      type: array
+      items:
+        type: number
+        minimum: 0
+        maximum: 100
+        nullable: true
+      default: null
+      nullable: true
+    percentsExplained:
+      description: >
+        Percent explained for axis labels
+      type: array
+      items:
+        type: number
+        minimum: 0
+        maximum: 100
+      example:
+        - 63.21
+        - 23.25
+        - 8.55
+        - 3.14
     relativeAbundance:
       type: number
       minimum: 0
@@ -423,6 +699,15 @@ components:
     sampleId:
       type: string
       example: "sample_15"
+    sampleIdArray:
+      description: >
+        List of sample identifiers
+      type: array
+      items:
+        $ref: '#/components/schemas/sampleId'
+      example:
+        - 'sample-1'
+        - 'sample-715'
     sampleIdList:
       type: object
       required:
