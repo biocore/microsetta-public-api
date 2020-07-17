@@ -1,5 +1,6 @@
-from collections import namedtuple
-from typing import Iterable, Dict
+from collections import namedtuple, OrderedDict
+from typing import Iterable, Dict, Optional, List
+from abc import abstractmethod
 
 import skbio
 import biom
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from microsetta_public_api.exceptions import DisjointError, UnknownID
+from microsetta_public_api.utils import DataTable
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',
@@ -89,7 +91,9 @@ class Taxonomy(ModelBase):
     """Represent the full taxonomy and facilitate table oriented retrieval"""
 
     def __init__(self, table: biom.Table, features: pd.DataFrame,
-                 variances: biom.Table = None):
+                 variances: biom.Table = None,
+                 formatter: Optional['Formatter'] = None
+                 ):
         """Establish the taxonomy data
 
         Parameters
@@ -130,6 +134,15 @@ class Taxonomy(ModelBase):
         self._features = self._features.loc[self._feature_order]
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
+
+        if formatter is None:
+            formatter: Formatter = GreengenesFormatter()
+        self._formatter = formatter
+
+        feature_taxons = self._features
+        self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
+                                      for i, lineage in
+                                      feature_taxons['Taxon'].items()}
 
     def _get_sample_ids(self) -> np.ndarray:
         return self._table.ids()
@@ -206,3 +219,60 @@ class Taxonomy(ModelBase):
                              feature_variances=list(feature_variances),
                              feature_ranks=None,
                              )
+
+    def presence_data_table(self, ids: Iterable[str]) -> DataTable:
+        table = self._table.filter(set(ids), inplace=False).remove_empty()
+        features = table.ids(axis='observation')
+
+        entries = list()
+        for vec, sample_id, _ in table.iter(dense=False):
+            for feature_idx, val in zip(vec.indices, vec.data):
+                entry = {
+                    'sampleId': sample_id,
+                    'relativeAbundance': val,
+                    **self._formatted_taxa_names[features[feature_idx]],
+                }
+                entries.append(entry)
+
+        sample_data = pd.DataFrame(
+            entries,
+            # this enforces the column order
+            columns=['sampleId'] + self._formatter.labels + [
+                'relativeAbundance'],
+            # need the .astype('object') in case a
+            # column is completely empty (filled with
+            # Nan, default dtype is numeric,
+            # which cannot be replaced with None.
+            # Need None because it is valid for JSON,
+            # but NaN is not.
+           ).astype('object')
+        sample_data[pd.isna(sample_data)] = None
+        return DataTable.from_dataframe(sample_data)
+
+
+class Formatter:
+
+    labels: List
+
+    @classmethod
+    @abstractmethod
+    def dict_format(cls, taxonomy_string):
+        raise NotImplementedError()
+
+
+class GreengenesFormatter(Formatter):
+    _map = OrderedDict(k__='Kingdom', p__='Phylum', c__='Class',
+                       o__='Order', f__='Family', g__='Genus', s__='Species')
+    labels = list(_map.values())
+
+    @classmethod
+    def dict_format(cls, taxonomy_string: str):
+        ranks = [rank_.strip() for rank_ in taxonomy_string.split(';')]
+        formatted = OrderedDict()
+
+        for rank in ranks:
+            name = rank[:3]
+            if name in cls._map:
+                formatted[cls._map[name]] = rank[3:]
+
+        return formatted
