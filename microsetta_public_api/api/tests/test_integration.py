@@ -48,6 +48,20 @@ class MetadataIntegrationTests(IntegrationTests):
         config.resources.update({'metadata': self.metadata_path})
         resources.update(config.resources)
 
+        self.sample_querybuilder = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "age_cat",
+                    "field": "age_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "30s"
+                },
+            ]
+        }
+
     def test_metadata_category_values_returns_string_array(self):
         exp = ['30s', '40s', '50s']
         response = self.client.get(
@@ -74,6 +88,83 @@ class MetadataIntegrationTests(IntegrationTests):
         exp_ids = ['sample-1', 'sample-4']
         response = self.client.get(
             "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_returns_simple_post(self):
+        exp_ids = ['sample-1', 'sample-4']
+        response = self.client.post(
+            "/api/metadata/sample_ids",
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s"
+                    },
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "normal"
+                    },
+                ]
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['sample_ids'], obs.keys())
+        self.assertCountEqual(obs['sample_ids'], exp_ids)
+
+    def test_metadata_sample_ids_returns_nested_post(self):
+        exp_ids = ['sample-1', 'sample-4', 'sample-5']
+        response = self.client.post(
+            "/api/metadata/sample_ids",
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s"
+                    },
+                    {
+                        "condition": "OR",
+                        "rules": [
+                            {
+                                "id": "bmi_cat",
+                                "field": "bmi_cat",
+                                "type": "string",
+                                "input": "select",
+                                "operator": "equal",
+                                "value": "normal"
+                            },
+                            {
+                                "id": "bmi_cat",
+                                "field": "bmi_cat",
+                                "type": "string",
+                                "input": "select",
+                                "operator": "equal",
+                                "value": "not"
+                            },
+                        ],
+                    },
+                ]
+            })
+        )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
