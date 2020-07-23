@@ -6,6 +6,7 @@ channels:
 dependencies:
   - python
   - flask
+  - flask-cors
   - scikit-bio
   - biom-format
   - pandas

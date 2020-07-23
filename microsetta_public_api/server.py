@@ -4,6 +4,7 @@ from microsetta_public_api import config
 from microsetta_public_api.resources import resources
 
 import connexion
+from flask_cors import CORS
 
 
 def build_app(resources_config_json=None):
@@ -22,6 +23,8 @@ def build_app(resources_config_json=None):
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
     app.add_api(app_file, validate_responses=True)
+
+    CORS(app.app)
 
     return app
 
