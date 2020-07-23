@@ -26,7 +26,7 @@ class MetadataCategoryTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp = ['20s', '30s', '40s', '50']
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -43,7 +43,7 @@ class MetadataCategoryTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp = [20, 30, 7.15, 8.25]
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -60,7 +60,7 @@ class MetadataCategoryTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp = ['20s', 30, 7.15, 8.25]
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -72,7 +72,7 @@ class MetadataCategoryTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp = []
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -85,7 +85,7 @@ class MetadataCategoryTests(FlaskTests):
             ), 404
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(404, response)
         self.mock_method.assert_called_with(category='age_cat')
 
@@ -113,7 +113,7 @@ class MetadataSampleIdsTests(FlaskTests):
         _, self.client = self.build_app_test_client()
         exp_ids = ['sample-1', 'sample-2']
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
+            "/results-api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -129,7 +129,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
+            "/results-api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -144,8 +144,8 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&gimme_cat"
-            "=something")
+            "/results-api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&"
+            "gimme_cat=something")
         self.assertStatusCode(404, response)
 
     def test_metadata_sample_ids_get_age_cat_succeeds(self):
@@ -159,7 +159,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s")
+            "/results-api/metadata/sample_ids?age_cat=30s")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -178,7 +178,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?bmi_cat=normal")
+            "/results-api/metadata/sample_ids?bmi_cat=normal")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -197,7 +197,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?taxonomy=ag-genus")
+            "/results-api/metadata/sample_ids?taxonomy=ag-genus")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -216,7 +216,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids?alpha_metric=faith_pd")
+            "/results-api/metadata/sample_ids?alpha_metric=faith_pd")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -235,7 +235,7 @@ class MetadataSampleIdsTests(FlaskTests):
 
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/sample_ids")
+            "/results-api/metadata/sample_ids")
         exp_ids = ['sample-1', 'sample-2']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -272,7 +272,7 @@ class MetadataSampleIdsTests(FlaskTests):
             }
 
         response = self.client.post(
-            "/api/metadata/sample_ids",
+            "/results-api/metadata/sample_ids",
             content_type='application/json',
             data=json.dumps(request_body)
         )
@@ -312,7 +312,8 @@ class MetadataSampleIdsTests(FlaskTests):
             }
 
         response = self.client.post(
-            "/api/metadata/sample_ids?taxonomy=gg&alpha_metric=faith-pd",
+            "/results-api/metadata/sample_ids?taxonomy=gg&"
+            "alpha_metric=faith-pd",
             content_type='application/json',
             data=json.dumps(request_body)
         )
@@ -348,7 +349,7 @@ class MetadataSampleIdsTests(FlaskTests):
             }
 
         response = self.client.post(
-            "/api/metadata/sample_ids",
+            "/results-api/metadata/sample_ids",
             content_type='application/json',
             data=json.dumps(request_body)
         )
@@ -383,7 +384,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
 
             exp_metrics = ['faith_pd', 'chao1']
             response = self.client.get(
-                '/api/diversity/alpha/metrics/available')
+                '/results-api/diversity/alpha/metrics/available')
 
             obs = json.loads(response.data)
             self.assertIn('alpha_metrics', obs)
@@ -394,7 +395,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
                 'alpha_metrics': []
             }), 200
             response = self.client.get(
-                '/api/diversity/alpha/metrics/available')
+                '/results-api/diversity/alpha/metrics/available')
 
             obs = json.loads(response.data)
             self.assertIn('alpha_metrics', obs)
@@ -412,7 +413,7 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
-                '/api/diversity/alpha/metrics/available')
+                '/results-api/diversity/alpha/metrics/available')
 
             self.assertEqual(response.status_code, 500)
             mock_resources.return_value = jsonify({
@@ -440,7 +441,8 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
 
             _, self.client = self.build_app_test_client()
             response = self.client.get(
-                '/api/diversity/alpha/single/observed_otus/sample-foo-bar')
+                '/results-api/diversity/alpha/single/observed_otus/'
+                'sample-foo-bar')
 
             obs = json.loads(response.data)
 
@@ -458,7 +460,8 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
             _, self.client = self.build_app_test_client()
 
             response = self.client.get(
-                '/api/diversity/alpha/single/observed_otus/sample-foo-bar')
+                '/results-api/diversity/alpha/single/observed_otus/'
+                'sample-foo-bar')
 
         self.assertRegex(response.data.decode(),
                          "Sample ID not found.")
@@ -490,7 +493,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus',
+            '/results-api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -512,7 +515,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus',
+            '/results-api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -533,7 +536,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus',
+            '/results-api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -548,7 +551,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         self.client.post(
-            '/api/diversity/alpha/group/observed_otus',
+            '/results-api/diversity/alpha/group/observed_otus',
             content_type='application/json',
             data=json.dumps(self.request_content)
         )
@@ -567,7 +570,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         _, self.client = self.build_app_test_client()
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -575,7 +578,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=1,2,45',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -583,7 +586,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=false&percentiles=1,2,45',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -591,7 +594,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -599,7 +602,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?percentiles=50',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -611,7 +614,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
                 error=400, text='at least one of summary_statistics'
                                 'and return_raw should be true'), 400
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true',
             content_type='application/json',
             data=json.dumps(self.request_content)
@@ -619,7 +622,7 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertEqual(response.status_code, 400)
 
     def _minimal_query(self):
-        minimal_query = '/api/diversity/alpha/group/observed_otus'
+        minimal_query = '/results-api/diversity/alpha/group/observed_otus'
         return self.client.post(minimal_query,
                                 content_type='application/json',
                                 data=json.dumps(self.request_content)
@@ -696,7 +699,7 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
+            '/results-api/diversity/beta/unifrac/pcoa/body-site/contains'
             '?sample_id=sample-12'
         )
 
@@ -715,7 +718,7 @@ class BetaDiversityTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/diversity/beta/unifrac/pcoa/body-site/contains'
+            '/results-api/diversity/beta/unifrac/pcoa/body-site/contains'
             '?sample_id=sample-12'
         )
 
@@ -734,7 +737,7 @@ class TaxonomyResourcesAPITests(FlaskTests):
         self.patcher = patch('microsetta_public_api.api.taxonomy'
                              '.resources')
         self.mock_method = self.patcher.start()
-        self.url = '/api/taxonomy/available'
+        self.url = '/results-api/taxonomy/available'
         _, self.client = self.build_app_test_client()
 
     def tearDown(self):
@@ -790,7 +793,7 @@ class TaxonomyGroupAPITests(FlaskTests):
                 }
             ), 200
 
-        response = self.client.post('/api/taxonomy/group/greengenes',
+        response = self.client.post('/results-api/taxonomy/group/greengenes',
                                     content_type='application/json',
                                     data=json.dumps(self.request_content))
         self.assertEqual(200, response.status_code)
@@ -820,7 +823,7 @@ class TaxonomySingleSampleAPITests(FlaskTests):
             ), 200
 
         response = self.client.get(
-            '/api/taxonomy/single/greengenes/sample-1',
+            '/results-api/taxonomy/single/greengenes/sample-1',
         )
         self.assertEqual(200, response.status_code)
 
@@ -890,7 +893,7 @@ class TaxonomyDataTableTests(FlaskTests):
             ), 200
 
         response = self.client.get(
-            '/api/taxonomy/present/single/greengenes/sample-1',
+            '/results-api/taxonomy/present/single/greengenes/sample-1',
         )
         self.assertEqual(200, response.status_code)
 
@@ -901,7 +904,7 @@ class TaxonomyDataTableTests(FlaskTests):
             ), 200
 
         response = self.client.post(
-            '/api/taxonomy/present/group/greengenes',
+            '/results-api/taxonomy/present/group/greengenes',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample1', 'sample2']})
         )
@@ -914,7 +917,7 @@ class TaxonomyDataTableTests(FlaskTests):
             ), 404
 
         response = self.client.post(
-            '/api/taxonomy/present/group/greengenes',
+            '/results-api/taxonomy/present/group/greengenes',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample1', 'sample2']})
         )
@@ -952,7 +955,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "/results-api/plotting/diversity/alpha/faith-pd/percentiles-plot"
             "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
             "&sample_id=10377.12"
         )
@@ -975,7 +978,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "/results-api/plotting/diversity/alpha/faith-pd/percentiles-plot"
             "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
             "&sample_id=10377.12"
         )
@@ -990,7 +993,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "/results-api/plotting/diversity/alpha/faith-pd/percentiles-plot"
             "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
             "&sample_id=10377.12"
         )
@@ -1022,7 +1025,7 @@ class PlottingTests(FlaskTests):
             }
 
         response = self.client.post(
-            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "/results-api/plotting/diversity/alpha/faith-pd/percentiles-plot"
             "?&percentiles=1,2,3,5&sample_id=10377.12",
             content_type='application/json',
             data=json.dumps(request_body)
@@ -1062,7 +1065,7 @@ class PlottingTests(FlaskTests):
             }
 
         response = self.client.post(
-            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "/results-api/plotting/diversity/alpha/faith-pd/percentiles-plot"
             "?&percentiles=1,2,3,5&sample_id=10377.12",
             content_type='application/json',
             data=json.dumps(request_body)
@@ -1083,7 +1086,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
+            "/results-api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
             "?sample_id=10377.12",
         )
         self.assertStatusCode(200, response)
@@ -1105,7 +1108,7 @@ class PlottingTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            "/api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
+            "/results-api/plotting/diversity/beta/unifrac/pcoa/body-site/vega"
             "?sample_id=10377.12",
         )
         self.assertStatusCode(404, response)
@@ -1154,7 +1157,8 @@ class EmperorTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
+            '/results-api/plotting/diversity/beta/unifrac/pcoa/body-habitat/'
+            'emperor'
         )
 
         self.assertStatusCode(200, response)
@@ -1174,7 +1178,8 @@ class EmperorTests(FlaskTests):
             _, self.client = self.build_app_test_client()
 
         response = self.client.get(
-            '/api/plotting/diversity/beta/unifrac/pcoa/body-habitat/emperor'
+            '/results-api/plotting/diversity/beta/unifrac/pcoa/body-habitat/'
+            'emperor'
         )
 
         self.assertStatusCode(404, response)
