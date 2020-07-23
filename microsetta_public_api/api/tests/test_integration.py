@@ -582,6 +582,211 @@ class AlphaIntegrationTests(IntegrationTests):
         self.assertEqual('observed_otus', obs['alpha_metric'])
 
 
+class PlottingIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.plotting_metadata_path = self.create_tempfile(suffix='.txt').name
+        self.plotting_metadata_table = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6'],
+                               name='#SampleID')
+        )
+
+        Metadata(self.plotting_metadata_table).save(
+            self.plotting_metadata_path)
+
+        config.resources.update({'metadata': self.plotting_metadata_path})
+
+        self.plotting_series1_filename = self.create_tempfile(
+            suffix='.qza').name
+        self.plotting_series2_filename = self.create_tempfile(
+            suffix='.qza').name
+
+        self.plotting_series_1 = pd.Series({
+            'sample-2': 7.24, 'sample-4': 8.25,
+            'sample-3': 6.4, },
+            name='observed_otus'
+        )
+
+        self.plotting_series_2 = pd.Series({
+            'sample-2': 9.01, 'sample-5': 9.04},
+            name='chao1'
+        )
+
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_1
+        )
+        imported_artifact.save(self.plotting_series1_filename)
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_2
+        )
+        imported_artifact.save(self.plotting_series2_filename)
+        config.resources.update({'alpha_resources': {
+            'observed_otus': self.plotting_series1_filename,
+            'chao1': self.plotting_series2_filename,
+        }})
+        resources.update(config.resources)
+
+    def test_percentiles_plot_with_filtering_422(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s'
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s&sample_id=sample-2'
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?bmi_cat=not'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample(self):
+        response = self.client.get(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?bmi_cat=not&sample_id=sample-2'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_422_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_post(self):
+        response = self.client.post(
+            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,

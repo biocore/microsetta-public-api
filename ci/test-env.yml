@@ -13,3 +13,4 @@ dependencies:
   - pyyaml
   - qiime2
   - q2-types
+  - altair

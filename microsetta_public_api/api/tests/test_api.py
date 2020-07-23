@@ -966,6 +966,21 @@ class PlottingTests(FlaskTests):
                                        sample_id='10377.12',
                                        )
 
+    def test_alpha_percentiles_plot_get_422(self):
+        method = 'microsetta_public_api.api.plotting.plot_alpha_filtered'
+        with self.app_context(), patch(method) as mock_method:
+            mock_method.return_value = jsonify(
+                text='Not enough sample IDs'
+            ), 422
+            _, self.client = self.build_app_test_client()
+
+        response = self.client.get(
+            "/api/plotting/diversity/alpha/faith-pd/percentiles-plot"
+            "?age_cat=30s&bmi_cat=Normal&percentiles=1,2,3,5"
+            "&sample_id=10377.12"
+        )
+        self.assertStatusCode(422, response)
+
     def test_alpha_percentiles_plot_get_404(self):
         method = 'microsetta_public_api.api.plotting.plot_alpha_filtered'
         with self.app_context(), patch(method) as mock_method:

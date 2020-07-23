@@ -6,6 +6,7 @@ import skbio
 import biom
 import numpy as np
 import pandas as pd
+import scipy.sparse as ss
 
 from microsetta_public_api.exceptions import DisjointError, UnknownID
 from microsetta_public_api.utils import DataTable
@@ -114,7 +115,9 @@ class Taxonomy(ModelBase):
         self._ranks = table.rankdata(inplace=False)
 
         if variances is None:
-            self._variances = biom.Table(np.zeros(self._table.shape),
+            empty = ss.csr_matrix((len(self._table.ids(axis='observation')),
+                                   len(self._table.ids())), dtype=float)
+            self._variances = biom.Table(empty,
                                          self._table.ids(axis='observation'),
                                          self._table.ids())
         else:
