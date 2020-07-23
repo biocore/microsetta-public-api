@@ -7,15 +7,13 @@ import connexion
 from flask_cors import CORS
 
 
-def build_app(resources_config_json=None):
+def build_app(resource_updates=None):
     app = connexion.FlaskApp(__name__)
 
     # default configuration for resources is provided in
     # microsetta.config.resources, this config can be updated by a json file
     # passed to `build_app`.
-    if resources_config_json is not None:
-        with open(resources_config_json) as fp:
-            resource_updates = json.load(fp)
+    if resource_updates is not None:
         config.resources.update(resource_updates)
 
         resources.update(config.resources)
@@ -32,13 +30,22 @@ def build_app(resources_config_json=None):
 if __name__ == "__main__":
     import sys
     config_fp = sys.argv[1] if len(sys.argv) > 1 else None
-    PORT = 8084
+
+    if config_fp is None:
+        resource_config = None
+        server_config = {}
+    else:
+        with open(config_fp) as fp:
+            server_config = json.load(fp)
+        resource_config = config['resources']
+
+    port = server_config.get('port', 8084)
     if config_fp:
-        app = build_app(resources_config_json=config_fp)
-        app.run(port=PORT, debug=True)
+        app = build_app(resources_config_json=resources)
+        app.run(port=port, debug=True)
     else:
         # import TestDatabase here to avoid circular import
         from microsetta_public_api.utils.testing import TestDatabase
         with TestDatabase():
             app = build_app()
-            app.run(port=PORT, debug=True)
+            app.run(port=port, debug=True)
