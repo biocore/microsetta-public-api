@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'connexion[swagger-ui]',
         'flask',
+        'flask-cors',
         'pyyaml',
         'pandas',
         'numpy',
