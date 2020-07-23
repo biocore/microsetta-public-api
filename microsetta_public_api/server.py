@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     port = server_config.get('port', 8084)
     if config_fp:
-        app = build_app(resources_config_json=resources)
+        app = build_app(resource_updates=resource_config)
         app.run(port=port, debug=True)
     else:
         # import TestDatabase here to avoid circular import
