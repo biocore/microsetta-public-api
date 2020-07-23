@@ -29,10 +29,4 @@ setup(
         'scikit-bio',
         'altair',
     ],
-    extras_require={
-        "dev": [
-            "pytest",
-            "flake8",
-        ]
-    },
 )
