@@ -65,7 +65,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_category_values_returns_string_array(self):
         exp = ['30s', '40s', '50s']
         response = self.client.get(
-            "/api/metadata/category/values/age_cat")
+            "/results-api/metadata/category/values/age_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -73,7 +73,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_category_values_returns_numeric_array(self):
         exp = [20, 30, 7.15, 8.25]
         response = self.client.get(
-            "/api/metadata/category/values/num_cat")
+            "/results-api/metadata/category/values/num_cat")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertListEqual(exp, obs)
@@ -81,13 +81,13 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_category_values_returns_404(self):
         _, self.client = self.build_app_test_client()
         response = self.client.get(
-            "/api/metadata/category/values/non-existing-cat")
+            "/results-api/metadata/category/values/non-existing-cat")
         self.assertStatusCode(404, response)
 
     def test_metadata_sample_ids_returns_simple(self):
         exp_ids = ['sample-1', 'sample-4']
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
+            "/results-api/metadata/sample_ids?age_cat=30s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -96,7 +96,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_sample_ids_returns_simple_post(self):
         exp_ids = ['sample-1', 'sample-4']
         response = self.client.post(
-            "/api/metadata/sample_ids",
+            "/results-api/metadata/sample_ids",
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -128,7 +128,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_sample_ids_returns_nested_post(self):
         exp_ids = ['sample-1', 'sample-4', 'sample-5']
         response = self.client.post(
-            "/api/metadata/sample_ids",
+            "/results-api/metadata/sample_ids",
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -172,7 +172,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_returns_empty(self):
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=20s&bmi_cat=normal")
+            "/results-api/metadata/sample_ids?age_cat=20s&bmi_cat=normal")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -183,7 +183,8 @@ class MetadataIntegrationTests(IntegrationTests):
         # num_cat is not configured to be able to be queried on, so this
         #  tests to make sure it is ignored
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&num_cat=30")
+            "/results-api/metadata/sample_ids?age_cat=30s&bmi_cat=normal&"
+            "num_cat=30")
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample_ids'], obs.keys())
@@ -191,7 +192,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_age_cat_only(self):
         response = self.client.get(
-            "/api/metadata/sample_ids?age_cat=30s")
+            "/results-api/metadata/sample_ids?age_cat=30s")
         exp_ids = ['sample-1', 'sample-4', 'sample-5']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -200,7 +201,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_bmi_only(self):
         response = self.client.get(
-            "/api/metadata/sample_ids?bmi_cat=normal")
+            "/results-api/metadata/sample_ids?bmi_cat=normal")
         exp_ids = ['sample-1', 'sample-4', 'sample-6']
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -209,7 +210,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_metadata_sample_ids_get_null_parameters_succeeds(self):
         response = self.client.get(
-            "/api/metadata/sample_ids")
+            "/results-api/metadata/sample_ids")
         exp_ids = ['sample-1', 'sample-2', 'sample-3', 'sample-4',
                    'sample-5', 'sample-6', 'sample-7']
         self.assertStatusCode(200, response)
@@ -220,14 +221,14 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_filter_on_metric_dne(self):
         response = self.client.get(
             # careful not to use a metric that exists in AlphaIntegrationTests
-            '/api/metadata/sample_ids?alpha_metric=bad-metric')
+            '/results-api/metadata/sample_ids?alpha_metric=bad-metric')
         self.assertEqual(response.status_code, 404)
 
     def test_metadata_filter_on_taxonomy_dne(self):
         response = self.client.get(
             # careful not to use a table that exists in
             #  TaxonomyIntegrationTests
-            '/api/metadata/sample_ids?alpha_metric=bad-table')
+            '/results-api/metadata/sample_ids?alpha_metric=bad-table')
         self.assertEqual(response.status_code, 404)
 
     def test_metadata_filter_on_metric_and_taxonomy_dne(self):
@@ -235,8 +236,8 @@ class MetadataIntegrationTests(IntegrationTests):
             # careful not to use a metric that exists in AlphaIntegrationTests
             # careful not to use a table that exists in
             #  TaxonomyIntegrationTests
-            '/api/metadata/sample_ids?alpha_metric=bad-metric&taxonomy=bad'
-            '-table')
+            '/results-api/metadata/sample_ids?alpha_metric=bad-metric&'
+            'taxonomy=bad-table')
         self.assertEqual(response.status_code, 404)
 
 
@@ -353,7 +354,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
 
     def test_resources(self):
         response = self.client.get(
-            '/api/taxonomy/available')
+            '/results-api/taxonomy/available')
 
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -363,7 +364,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                               obs['resources'])
 
     def test_summarize_group(self):
-        response = self.client.post('/api/taxonomy/group/table2',
+        response = self.client.post('/results-api/taxonomy/group/table2',
                                     content_type='application/json',
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))
@@ -387,7 +388,8 @@ class TaxonomyIntegrationTests(IntegrationTests):
                         )
 
     def test_summarize_group_cached_model(self):
-        response = self.client.post('/api/taxonomy/group/table-cached-model',
+        response = self.client.post('/results-api/taxonomy/group/'
+                                    'table-cached-model',
                                     content_type='application/json',
                                     data=json.dumps({'sample_ids': [
                                         'sample-1']}))
@@ -412,7 +414,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
 
     def test_summarize_single_sample(self):
         response = self.client.get(
-            '/api/taxonomy/single/table2/sample-1',
+            '/results-api/taxonomy/single/table2/sample-1',
         )
 
         self.assertEqual(response.status_code, 200)
@@ -433,7 +435,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
                         )
 
     def test_group_data_table(self):
-        response = self.client.post('/api/taxonomy/present/group/'
+        response = self.client.post('/results-api/taxonomy/present/group/'
                                     'table2-greengenes',
                                     content_type='application/json',
                                     data=json.dumps({'sample_ids': [
@@ -512,7 +514,7 @@ class TaxonomyIntegrationTests(IntegrationTests):
 
     def test_single_sample_data_table(self):
         response = self.client.get(
-            '/api/taxonomy/present/single/table2/sample-1'
+            '/results-api/taxonomy/present/single/table2/sample-1'
         )
 
         self.assertEqual(response.status_code, 200)
@@ -551,7 +553,8 @@ class AlphaIntegrationTests(IntegrationTests):
         resources.update(config.resources)
 
     def test_resources_available(self):
-        response = self.client.get('/api/diversity/alpha/metrics/available')
+        response = self.client.get('/results-api/diversity/alpha/metrics/'
+                                   'available')
 
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -560,7 +563,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_group_summary(self):
         response = self.client.post(
-            '/api/diversity/alpha/group/observed_otus'
+            '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100&return_raw=true',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample-foo-bar',
@@ -634,47 +637,50 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_with_filtering_422(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/chao1/percentiles-plot'
             '?age_cat=30s'
         )
         self.assertStatusCode(422, response)
 
     def test_percentiles_plot_with_filtering_and_sample_422(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/chao1/percentiles-plot'
             '?age_cat=30s&sample_id=sample-2'
         )
         self.assertStatusCode(422, response)
 
     def test_percentiles_plot_404(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/dne-metric/percentiles-plot'
         )
         self.assertStatusCode(404, response)
 
     def test_percentiles_plot(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
         )
         self.assertStatusCode(200, response)
 
     def test_percentiles_plot_with_filtering(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
             '?bmi_cat=not'
         )
         self.assertStatusCode(200, response)
 
     def test_percentiles_plot_with_filtering_and_sample(self):
         response = self.client.get(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
             '?bmi_cat=not&sample_id=sample-2'
         )
         self.assertStatusCode(200, response)
 
     def test_percentiles_plot_with_filtering_422_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/chao1/percentiles-plot',
+            '/results-api/plotting/diversity/alpha/chao1/percentiles-plot',
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -694,7 +700,7 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_with_filtering_and_sample_422_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/chao1/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/chao1/percentiles-plot'
             '?sample_id=sample-2',
             content_type='application/json',
             data=json.dumps({
@@ -715,7 +721,8 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_404_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/dne-metric/percentiles-plot',
+            '/results-api/plotting/diversity/alpha/dne-metric/'
+            'percentiles-plot',
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -735,7 +742,8 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot',
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -747,7 +755,8 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_with_filtering_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot',
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot',
             content_type='application/json',
             data=json.dumps({
                 "condition": "AND",
@@ -767,7 +776,8 @@ class PlottingIntegrationTests(IntegrationTests):
 
     def test_percentiles_plot_with_filtering_and_sample_post(self):
         response = self.client.post(
-            '/api/plotting/diversity/alpha/observed_otus/percentiles-plot'
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
             '?sample_id=sample-2',
             content_type='application/json',
             data=json.dumps({
@@ -794,7 +804,8 @@ class AllIntegrationTest(
         ):
 
     def test_metadata_filter_on_taxonomy(self):
-        response = self.client.get('/api/metadata/sample_ids?taxonomy=table2')
+        response = self.client.get('/results-api/metadata/sample_ids?'
+                                   'taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-1', 'sample-2', 'sample-3'],
@@ -802,7 +813,7 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_taxonomy_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample_ids?taxonomy=table2&age_cat=50s')
+            '/results-api/metadata/sample_ids?taxonomy=table2&age_cat=50s')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-3'],
@@ -810,7 +821,8 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=50s')
+            '/results-api/metadata/sample_ids?alpha_metric=observed_otus&'
+            'age_cat=50s')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertCountEqual(['sample-3'],
@@ -818,7 +830,8 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat(self):
         response = self.client.get(
-            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=50s'
+            '/results-api/metadata/sample_ids?alpha_metric=observed_otus&'
+            'age_cat=50s'
             '&taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -827,7 +840,8 @@ class AllIntegrationTest(
 
     def test_metadata_filter_on_alpha_and_and_taxonomy_and_age_cat_empty(self):
         response = self.client.get(
-            '/api/metadata/sample_ids?alpha_metric=observed_otus&age_cat=30s'
+            '/results-api/metadata/sample_ids?alpha_metric=observed_otus&'
+            'age_cat=30s'
             '&taxonomy=table2')
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
