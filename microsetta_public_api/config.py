@@ -1,5 +1,22 @@
 import os
+import json
 from microsetta_public_api.exceptions import ConfigurationError
+
+# NOTE: importlib replaces setuptools' pkg_resources as of Python 3.7
+# See: https://stackoverflow.com/questions/6028000/how-to-read-a-static-file-from-inside-a-python-package # noqa
+
+PACKAGE_NAME = __name__.split('.')[0]
+CONFIG_FILE = os.getenv("MPUBAPI_CFG", "server_config.json")
+
+try:
+    import importlib.resources as pkg_resources
+    with pkg_resources.open_text(PACKAGE_NAME, CONFIG_FILE) as fp:
+        SERVER_CONFIG = json.load(fp)
+
+except ImportError:
+    import pkg_resources
+    content = pkg_resources.resource_string(PACKAGE_NAME, CONFIG_FILE)
+    SERVER_CONFIG = json.loads(content)
 
 
 class ResourcesConfig(dict):
