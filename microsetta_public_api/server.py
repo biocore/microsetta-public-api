@@ -37,7 +37,7 @@ if __name__ == "__main__":
     else:
         with open(config_fp) as fp:
             server_config = json.load(fp)
-        resource_config = config['resources']
+        resource_config = server_config.get('resources', None)
 
     port = server_config.get('port', 8084)
     if config_fp:
