@@ -678,6 +678,14 @@ class PlottingIntegrationTests(IntegrationTests):
         )
         self.assertStatusCode(200, response)
 
+    def test_percentiles_plot_with_filtering_and_sample_dne(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+            '?bmi_cat=not&sample_id=sample-does-not-exist'
+        )
+        self.assertStatusCode(404, response)
+
     def test_percentiles_plot_with_filtering_422_post(self):
         response = self.client.post(
             '/results-api/plotting/diversity/alpha/chao1/percentiles-plot',

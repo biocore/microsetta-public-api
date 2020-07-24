@@ -1,6 +1,6 @@
 {
     "debug": true,
     "port": 8084,
-    "use_test_database": true,
+    "use_test_database": false,
     "resources": {}
 }
