@@ -29,4 +29,9 @@ setup(
         'scikit-bio',
         'altair',
     ],
+    package_data={'microsetta_public_api':
+                  [
+                     'api/microsetta_public_api.yaml',
+                     'server_config.json'
+                  ]},
 )
