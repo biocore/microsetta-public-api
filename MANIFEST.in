@@ -1,2 +1,4 @@
 include versioneer.py
 include microsetta_public_api/_version.py
+
+graft microsetta_public_api
