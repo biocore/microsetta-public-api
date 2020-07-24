@@ -14,6 +14,7 @@ setup(
     name="microsetta-public-api",
     packages=find_packages(),
     version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     url="https://github.com/biocore/microsetta-public-api",
     description="A RESTful API to support The Microsetta Initiative",
     license='BSD-3-Clause',
@@ -28,10 +29,4 @@ setup(
         'scikit-bio',
         'altair',
     ],
-    extras_require={
-        "dev": [
-            "pytest",
-            "flake8",
-        ]
-    },
 )
