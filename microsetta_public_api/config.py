@@ -6,7 +6,7 @@ from microsetta_public_api.exceptions import ConfigurationError
 # See: https://stackoverflow.com/questions/6028000/how-to-read-a-static-file-from-inside-a-python-package # noqa
 
 PACKAGE_NAME = __name__.split('.')[0]
-CONFIG_FILE = "server_config.json"
+CONFIG_FILE = os.getenv("MPUBAPI_CFG", "server_config.json")
 
 try:
     import importlib.resources as pkg_resources
