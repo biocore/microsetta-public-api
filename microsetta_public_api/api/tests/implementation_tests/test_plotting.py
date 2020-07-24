@@ -31,10 +31,12 @@ class AlphaPlottingTestCase(MockedJsonifyTestCase):
 
     def test_simple_plot_with_vertline_for_sample_id(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_group, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
                 patch('microsetta_public_api.api.plotting._validate_query'
                       ) as invalid_query, \
                 patch('microsetta_public_api.api.plotting._filter_matching_ids'
                       ) as filter_matching_ids:
+            mock_exists.return_value = [True]
             invalid_query.return_value = False
             mock_ids = ['a', 'b', 'c', 'd']
             filter_matching_ids.return_value = mock_ids, None, None
