@@ -1,0 +1,4 @@
+connexion[swagger-ui]
+pytest
+pytest-cov
+flake8
