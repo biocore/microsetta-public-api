@@ -95,6 +95,10 @@ def _filter_ids(repo, alpha_metric, query, sample_id):
         matching_ids, AlphaRepo, 'available_metrics', alpha_metric, 'metric',
     )
     if sample_id:
+        alpha_repo = AlphaRepo()
+        if not all(alpha_repo.exists([sample_id], alpha_metric)):
+            return 404, jsonify(error=404, text="Sample ID not found."), \
+                   []
         _, error_code, error_response = _filter_matching_ids(
             [sample_id], AlphaRepo, 'available_metrics', alpha_metric,
             'metric', error_code=error_code, error_response=error_response,
