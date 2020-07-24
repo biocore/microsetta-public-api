@@ -1,4 +1,3 @@
-import json
 from pkg_resources import resource_filename
 from microsetta_public_api.config import (SERVER_CONFIG,
                                           resources as config_resources)
