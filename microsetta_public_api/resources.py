@@ -245,8 +245,13 @@ class ResourceManager(dict):
         ...         },
         ...     },
         ...     pcoa={
-        ...         'unifrac': '/a/pcoa/path1.txt',
-        ...         'jaccard': '/another/pcoa/path2.txt',
+        ...         'fecal': {
+        ...             'unifrac': '/a/pcoa/path1.qza',
+        ...             'jaccard': '/another/pcoa/path2.qza',
+        ...         },
+        ...         'all_samples': {
+        ...             'unifrac': '/a/path/to/all_samples/pcoa.qza',
+        ...         }
         ...     },
         ...     metadata='/path/to/some/metadata.txt',
         ...     some_other_resource='here is a string resource',
