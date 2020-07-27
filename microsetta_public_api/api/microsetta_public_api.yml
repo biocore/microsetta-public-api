@@ -442,6 +442,47 @@ paths:
                       - "greengenes"
                       - "silva"
 
+  '/taxonomy/exists/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/taxonomyResource'
+    summary: Determine whether the given sample is contained in the taxonomy resource
+    description: Determine whether the given sample is contained in the taxonomy resource
+    get:
+      operationId: microsetta_public_api.api.taxonomy.exists_single
+      tags:
+        - Taxonomy
+      parameters:
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Indicates whether the sample is in the taxonomy resource
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.taxonomy.exists_group
+      tags:
+        - Taxonomy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdArray"
+      responses:
+        '200':
+          description: Indicates whether each sample is in the taxonomy resource, in the same order as the input list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/taxonomy/group/{resource}':
     post:
       operationId: microsetta_public_api.api.taxonomy.summarize_group
