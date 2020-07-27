@@ -467,6 +467,90 @@ class AlphaDiversityTests(AlphaDiversityTestCase):
                          "Sample ID not found.")
         self.assertEqual(response.status_code, 404)
 
+    def test_alpha_diversity_exists_single(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            exp = True
+            mock_output = jsonify(exp), 200
+            mock_method.return_value = mock_output
+
+            _, self.client = self.build_app_test_client()
+            response = self.client.get(
+                '/results-api/diversity/alpha/exists/observed_otus?'
+                'sample_id=sample-foo-bar')
+
+            obs = json.loads(response.data)
+
+            self.assertEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
+            mock_method.assert_called_with(
+                alpha_metric='observed_otus',
+                sample_id='sample-foo-bar',
+            )
+
+    def test_alpha_diversity_exists_single_404(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            mock_method.return_value = jsonify(error=404, text="Metric "
+                                                               "not found."), \
+                                       404
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.get(
+                '/results-api/diversity/alpha/exists/observed_otus?'
+                'sample_id=sample-foo-bar')
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_alpha_diversity_exists_group(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.exists_group'
+                   ) as mock_method, self.app_context():
+
+            exp = [True, False, True, True, False]
+            mock_output = jsonify(exp), 200
+            mock_method.return_value = mock_output
+
+            samples = ['s1', 's2', 's3', 's4', 's5']
+
+            _, self.client = self.build_app_test_client()
+            response = self.client.post(
+                '/results-api/diversity/alpha/exists/observed_otus?',
+                data=json.dumps(samples),
+                content_type='application/json',
+            )
+
+            obs = json.loads(response.data)
+
+            self.assertEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
+            mock_method.assert_called_with(
+                alpha_metric='observed_otus',
+                body=samples,
+            )
+
+    def test_alpha_diversity_exists_group_404(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            mock_method.return_value = jsonify(error=404, text="Metric "
+                                                               "not found."), \
+                                       404
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.post(
+                '/results-api/diversity/alpha/exists/observed_otus',
+                data=json.dumps(['s1', 's2']),
+                content_type='application/json',
+            )
+
+        self.assertEqual(response.status_code, 404)
+
 
 class AlphaDiversityGroupTests(AlphaDiversityTestCase):
 
@@ -763,6 +847,90 @@ class TaxonomyResourcesAPITests(FlaskTests):
                 {'resources': 'greengenes'}), 200
         response = self.client.get(self.url)
         self.assertEqual(500, response.status_code)
+
+    def test_taxonomy_exists_single(self):
+        with patch('microsetta_public_api.api.taxonomy'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            exp = True
+            mock_output = jsonify(exp), 200
+            mock_method.return_value = mock_output
+
+            _, self.client = self.build_app_test_client()
+            response = self.client.get(
+                '/results-api/taxonomy/exists/otus?'
+                'sample_id=sample-foo-bar')
+
+            obs = json.loads(response.data)
+
+            self.assertEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
+            mock_method.assert_called_with(
+                resource='otus',
+                sample_id='sample-foo-bar',
+            )
+
+    def test_taxonomy_exists_single_404(self):
+        with patch('microsetta_public_api.api.taxonomy'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            mock_method.return_value = jsonify(error=404, text="Resource "
+                                                               "not found."), \
+                                       404
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.get(
+                '/results-api/taxonomy/exists/otus?'
+                'sample_id=sample-foo-bar')
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_taxonomy_exists_group(self):
+        with patch('microsetta_public_api.api.taxonomy'
+                   '.exists_group'
+                   ) as mock_method, self.app_context():
+
+            exp = [True, False, True, True, False]
+            mock_output = jsonify(exp), 200
+            mock_method.return_value = mock_output
+
+            samples = ['s1', 's2', 's3', 's4', 's5']
+
+            _, self.client = self.build_app_test_client()
+            response = self.client.post(
+                '/results-api/taxonomy/exists/otus?',
+                data=json.dumps(samples),
+                content_type='application/json',
+            )
+
+            obs = json.loads(response.data)
+
+            self.assertEqual(exp, obs)
+            self.assertEqual(response.status_code, 200)
+            mock_method.assert_called_with(
+                resource='otus',
+                body=samples,
+            )
+
+    def test_taxonomy_exists_group_404(self):
+        with patch('microsetta_public_api.api.diversity.alpha'
+                   '.exists_single'
+                   ) as mock_method, self.app_context():
+
+            mock_method.return_value = jsonify(error=404, text="Res "
+                                                               "not found."), \
+                                       404
+            _, self.client = self.build_app_test_client()
+
+            response = self.client.post(
+                '/results-api/taxonomy/exists/otus',
+                data=json.dumps(['s1', 's2']),
+                content_type='application/json',
+            )
+
+        self.assertEqual(response.status_code, 404)
 
 
 class TaxonomyGroupAPITests(FlaskTests):

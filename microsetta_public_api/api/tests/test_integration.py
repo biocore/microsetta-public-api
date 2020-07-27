@@ -363,6 +363,47 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                'table2-greengenes'],
                               obs['resources'])
 
+    def test_exists_single(self):
+        response = self.client.get('/results-api/taxonomy/exists/'
+                                   'table2?sample_id=sample-2')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertTrue(obs)
+
+        response = self.client.get('/results-api/taxonomy/exists/'
+                                   'table2?sample_id=sample-dne')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertFalse(obs)
+
+    def test_exists_single_404(self):
+        response = self.client.get('/results-api/taxonomy/exists/'
+                                   'shannon?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(404, response)
+
+    def test_exists_group(self):
+        response = self.client.post(
+            '/results-api/taxonomy/exists/table2',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 'sample-2']),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(obs, [False, False, True])
+
+    def test_exists_group_404(self):
+        response = self.client.post(
+            '/results-api/diversity/alpha/exists/shannon',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(404, response)
+
     def test_summarize_group(self):
         response = self.client.post('/results-api/taxonomy/group/table2',
                                     content_type='application/json',
@@ -560,6 +601,47 @@ class AlphaIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertIn('alpha_metrics', obs)
         self.assertCountEqual(['observed_otus', 'chao1'], obs['alpha_metrics'])
+
+    def test_exists_single(self):
+        response = self.client.get('/results-api/diversity/alpha/exists/'
+                                   'chao1?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertTrue(obs)
+
+        response = self.client.get('/results-api/diversity/alpha/exists/'
+                                   'chao1?sample_id=sample-dne')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertFalse(obs)
+
+    def test_exists_single_404(self):
+        response = self.client.get('/results-api/diversity/alpha/exists/'
+                                   'shannon?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(404, response)
+
+    def test_exists_group(self):
+        response = self.client.post(
+            '/results-api/diversity/alpha/exists/chao1',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
+            content_type='application/json',
+            )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(obs, [True, False, False])
+
+    def test_exists_group_404(self):
+        response = self.client.post(
+            '/results-api/diversity/alpha/exists/shannon',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(404, response)
 
     def test_group_summary(self):
         response = self.client.post(
