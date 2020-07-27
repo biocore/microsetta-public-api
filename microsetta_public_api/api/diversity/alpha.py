@@ -83,3 +83,11 @@ def available_metrics_alpha():
     }
 
     return jsonify(ret_val), 200
+
+
+def exists_single(alpha_metric, sample_id):
+    raise NotImplementedError()
+
+
+def exists_group(body, alpha_metric):
+    raise NotImplementedError()
