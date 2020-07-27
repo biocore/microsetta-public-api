@@ -109,14 +109,23 @@ class TestResourceManagerUpdatePCoA(TempfileTestCase):
     def test_update_pcoa_correct(self):
         self.resources.update({
             'pcoa': {
-                'pcoa1': self.pcoa_path1,
-                'pcoa2': self.pcoa_path2,
+                'sample_set1':
+                    {
+                        'pcoa1': self.pcoa_path1,
+                        'pcoa2': self.pcoa_path2,
+                    },
+                'sample_set2':
+                    {
+                        'pcoa1': self.pcoa_path1,
+                    },
             }
         })
-        pcoa1 = self.resources['pcoa']['pcoa1']
+        pcoa1 = self.resources['pcoa']['sample_set1']['pcoa1']
         assert_array_equal(pcoa1.samples, self.test_df1)
-        pcoa2 = self.resources['pcoa']['pcoa2']
+        pcoa2 = self.resources['pcoa']['sample_set1']['pcoa2']
         assert_array_equal(pcoa2.samples, self.test_df2)
+        pcoa3 = self.resources['pcoa']['sample_set2']['pcoa1']
+        assert_array_equal(pcoa3.samples, self.test_df1)
 
 
 class TestResourceManagerUpdateAlpha(TempfileTestCase):

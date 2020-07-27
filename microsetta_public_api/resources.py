@@ -33,6 +33,13 @@ def _dict_of_paths_to_pcoa(dict_of_qza_paths, resource_name):
     return new_resource
 
 
+def _dict_of_dict_of_paths_to_pcoa(dict_of_dict_of_qza_paths, resource_name):
+    new_resource = dict()
+    for key, value in dict_of_dict_of_qza_paths.items():
+        new_resource[key] = _dict_of_paths_to_pcoa(value, resource_name)
+    return new_resource
+
+
 def _transform_dict_of_table(dict_, resource_name):
     if not isinstance(dict_, dict):
         raise TypeError(f"Expected field '{resource_name}' to contain a "
@@ -194,7 +201,7 @@ class ResourceManager(dict):
     transformers = {
         'alpha_resources': _dict_of_paths_to_alpha_data,
         'table_resources': _transform_dict_of_table,
-        'pcoa': _dict_of_paths_to_pcoa,
+        'pcoa': _dict_of_dict_of_paths_to_pcoa,
         'metadata': _load_q2_metadata,
     }
 
