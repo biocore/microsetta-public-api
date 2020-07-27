@@ -473,7 +473,7 @@ paths:
               $ref: "#/components/schemas/sampleIdArray"
       responses:
         '200':
-          description: Indicates whether each sample is in the taxonomy resource, in the same order as the input list
+          description: Indicates whether each sample is in the taxonomy resource. Order of the output array corresponds to the order of the input array.
           content:
             application/json:
               schema:
