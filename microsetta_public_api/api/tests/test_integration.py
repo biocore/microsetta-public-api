@@ -5,6 +5,7 @@ import biom
 from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
+from skbio.stats.ordination import OrdinationResults
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
@@ -805,10 +806,139 @@ class PlottingIntegrationTests(IntegrationTests):
         self.assertStatusCode(200, response)
 
 
+class PCoAIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.metadata_path_pc = self.create_tempfile(suffix='.txt').name
+        self.metadata_table_pc = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not',
+                            'normal', 'overweight'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15, np.nan],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6',
+                                'sample-7',
+                                ],
+                               name='#SampleID')
+        )
+
+        Metadata(self.metadata_table_pc).save(self.metadata_path_pc)
+
+        axis_labels = ['PC1', 'PC2', 'PC3']
+        self.pcoa_fh1 = self.create_tempfile(suffix='.qza')
+        self.pcoa_fh2 = self.create_tempfile(suffix='.qza')
+        self.pcoa_path1 = self.pcoa_fh1.name
+        self.pcoa_path2 = self.pcoa_fh2.name
+        self.test_pcoa_df1 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            'sample-2': [0.9, 0.2, 7],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df1.index.name = 'Sample ID'
+        self.test_pcoa_df2 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            's2': [0.9, 0.2, 7],
+            'sample-3': [0.2, -0.3, 0],
+            'sample-4': [0.111, -4, 0.2],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df2.index.name = 'Sample ID'
+
+        self.pcoa1 = OrdinationResults('pcoa1', 'pcoa1',
+                                       eigvals=pd.Series([7, 2, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df1,
+                                       proportion_explained=pd.Series(
+                                           [0.7, 0.2, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        self.pcoa2 = OrdinationResults('pcoa2', 'pcoa2',
+                                       eigvals=pd.Series([6, 3, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df2,
+                                       proportion_explained=pd.Series(
+                                           [0.6, 0.3, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa1,
+        )
+        imported_artifact.save(self.pcoa_path1)
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa2,
+        )
+        imported_artifact.save(self.pcoa_path2)
+
+        config.resources.update({
+            'metadata': self.metadata_path_pc,
+            'pcoa': {
+                'sample_set_name': {
+                    'pcoa1': self.pcoa_path1,
+                    'pcoa2': self.pcoa_path2,
+                 }
+            }
+        })
+        resources.update(config.resources)
+
+    def test_pcoa(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa1/pcoa/sample_set_name'
+            '/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+
+        decomp = obs['decomposition']
+        np.testing.assert_array_equal(decomp["coordinates"],
+                                      self.pcoa1.samples.values
+                                      )
+        np.testing.assert_array_equal(decomp["percents_explained"],
+                                      100
+                                      * self.pcoa1.proportion_explained.values
+                                      )
+        np.testing.assert_array_equal(decomp["sample_ids"],
+                                      ['sample-1', 'sample-2']
+                                      )
+
+        self.assertListEqual(obs['metadata'],
+                             [['30s', 'normal'], ['40s', 'not']]
+                             )
+        self.assertListEqual(obs['metadata_headers'],
+                             ['age_cat', 'bmi_cat']
+                             )
+
+    def test_pcoa_pcoa_404(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa_dne/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_pcoa_metadata_404(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa1/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,dne_cat'
+        )
+        self.assertStatusCode(404, response)
+        obs = json.loads(response.data)
+        self.assertIn('dne_cat', obs['missing_categories'])
+
+
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
         MetadataIntegrationTests,
+        PCoAIntegrationTests,
         ):
 
     def test_metadata_filter_on_taxonomy(self):
