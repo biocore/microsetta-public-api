@@ -3,12 +3,14 @@ import pandas as pd
 import biom
 from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
+from skbio.stats.ordination import OrdinationResults
 from qiime2.core.type.grammar import TypeExp
 from qiime2 import Artifact, Metadata
 from qiime2.metadata.io import MetadataFileError
 from q2_types.sample_data import AlphaDiversity, SampleData
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
+from q2_types.ordination import PCoAResults
 
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
@@ -19,6 +21,15 @@ def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     new_resource = _replace_paths_with_qza(dict_of_qza_paths,
                                            SampleData[AlphaDiversity],
                                            view_type=pd.Series)
+    return new_resource
+
+
+def _dict_of_paths_to_pcoa(dict_of_qza_paths, resource_name):
+    _validate_dict_of_paths(dict_of_qza_paths,
+                            resource_name)
+    new_resource = _replace_paths_with_qza(dict_of_qza_paths,
+                                           PCoAResults,
+                                           view_type=OrdinationResults)
     return new_resource
 
 
@@ -183,6 +194,7 @@ class ResourceManager(dict):
     transformers = {
         'alpha_resources': _dict_of_paths_to_alpha_data,
         'table_resources': _transform_dict_of_table,
+        'pcoa': _dict_of_paths_to_pcoa,
         'metadata': _load_q2_metadata,
     }
 
@@ -224,6 +236,10 @@ class ResourceManager(dict):
         ...             'variances': '/a/variance/feature-table.qza',
         ...             'q2-type': FeatureTable[Frequency],
         ...         },
+        ...     },
+        ...     pcoa={
+        ...         'unifrac': '/a/pcoa/path1.txt',
+        ...         'jaccard': '/another/pcoa/path2.txt',
         ...     },
         ...     metadata='/path/to/some/metadata.txt',
         ...     some_other_resource='here is a string resource',
