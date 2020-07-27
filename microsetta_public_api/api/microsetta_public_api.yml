@@ -181,6 +181,47 @@ paths:
                       - "observed_otus"
                       - "chao1"
 
+  '/diversity/alpha/exists/{alpha_metric}':
+    parameters:
+      - $ref: '#/components/parameters/alphaMetric'
+    summary: Determine whether the given sample is contained in the alpha resource
+    description: Determine whether the given sample is contained in the alpha resource
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.exists_single
+      tags:
+        - Alpha Diversity
+      parameters:
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Indicates whether the sample is in the alpha resource
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.diversity.alpha.exists_group
+      tags:
+        - Alpha Diversity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdArray"
+      responses:
+        '200':
+          description: Indicates whether each sample is in the alpha resource, in the same order as the input list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/diversity/alpha/single/{alpha_metric}/{sample_id}':
     get:
       operationId: microsetta_public_api.api.diversity.alpha.get_alpha
