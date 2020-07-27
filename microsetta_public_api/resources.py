@@ -4,8 +4,7 @@ import biom
 from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
 from qiime2.core.type.grammar import TypeExp
-from qiime2 import Artifact, Metadata
-from qiime2.metadata.io import MetadataFileError
+from qiime2 import Artifact
 from q2_types.sample_data import AlphaDiversity, SampleData
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
@@ -168,14 +167,8 @@ def _replace_paths_with_qza(dict_of_qza_paths, semantic_type, view_type=None):
 
 
 def _load_q2_metadata(metadata_path, name):
-    try:
-        new_resource = Metadata.load(metadata_path)
-    except TypeError:
-        # if metadata_path is some type that does not have '+' method with
-        #  str, e.g., dict then q2 metadata will get a type error. Except this
-        #  error and give a MetadataFileError, which is more informative
-        raise MetadataFileError(str(metadata_path))
-    return new_resource.to_dataframe()
+    df = pd.read_csv(metadata_path, sep='\t', dtype=str)
+    return df.set_index('#SampleID')
 
 
 class ResourceManager(dict):
