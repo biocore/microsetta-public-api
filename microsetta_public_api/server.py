@@ -31,6 +31,7 @@ def run(app):
     app.run(
         port=SERVER_CONFIG['port'],
         debug=SERVER_CONFIG['debug'],
+        use_reloader=SERVER_CONFIG.get('use_reloader', True)
     )
 
 
