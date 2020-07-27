@@ -76,3 +76,24 @@ def _present_microbes_taxonomy_table(sample_ids, resource):
     taxonomy_table = taxonomy_.presence_data_table(sample_ids)
     response = jsonify(taxonomy_table.to_dict())
     return response, 200
+
+
+def exists_single(resource, sample_id):
+    return _exists(resource, sample_id)
+
+
+def exists_group(body, resource):
+    return _exists(resource, body)
+
+
+def _exists(resource, samples):
+    taxonomy_repo = TaxonomyRepo()
+    available_resources = taxonomy_repo.resources()
+
+    type_ = 'resource'
+    missing_resource = validate_resource(available_resources, resource,
+                                         type_)
+    if missing_resource:
+        return missing_resource
+
+    return jsonify(taxonomy_repo.exists(samples, resource)), 200
