@@ -48,6 +48,3 @@ class PCoARepoTestCase(TestCase):
 
         obs = repo.has_pcoa('dne_sample_set', 'unifrac')
         self.assertFalse(obs)
-
-
-
