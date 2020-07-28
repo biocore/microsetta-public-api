@@ -146,8 +146,6 @@ class TestDatabase:
     def __init__(self, n_samples=2000, seed=None):
         np.random.seed(seed)
         sample_set = [f'sample-{i + 1:04d}' for i in range(n_samples)]
-        sample_set.append('10317.000001890')
-        n_samples = len(sample_set)
         age_categories = np.array(['30s', '40s', '50s'])
         bmi_categories = np.array(['Normal', 'Overweight', 'Underweight'])
 
