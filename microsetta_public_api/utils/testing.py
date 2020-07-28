@@ -146,8 +146,6 @@ class TestDatabase:
     def __init__(self, n_samples=2000, seed=None):
         np.random.seed(seed)
         sample_set = [f'sample-{i + 1:04d}' for i in range(n_samples)]
-        sample_set.append('10317.000001890')
-        n_samples = len(sample_set)
         age_categories = np.array(['30s', '40s', '50s'])
         bmi_categories = np.array(['Normal', 'Overweight', 'Underweight'])
 
@@ -185,30 +183,31 @@ class TestDatabase:
         return new_tempfile
 
     def __enter__(self):
-        self.start()
-
-    def start(self):
-        self.metadata_file = self.create_tempfile(suffix='.txt')
-        metadata_path = self.metadata_file.name
+        metadata_file = self.create_tempfile(suffix='.txt')
+        metadata_path = metadata_file.name
         Metadata(self.metadata_table).save(metadata_path)
-        self.faith_pd_file = self.create_tempfile(suffix='.qza')
-        faith_pd_path = self.faith_pd_file.name
+
+        faith_pd_file = self.create_tempfile(suffix='.qza')
+        faith_pd_path = faith_pd_file.name
         faith_pd_artifact = Artifact.import_data(
             "SampleData[AlphaDiversity]", self.faith_pd_data,
         )
         faith_pd_artifact.save(faith_pd_path)
-        self.taxonomy_file = self.create_tempfile(suffix='.qza')
-        taxonomy_path = self.taxonomy_file.name
+
+        taxonomy_file = self.create_tempfile(suffix='.qza')
+        taxonomy_path = taxonomy_file.name
         imported_artifact = Artifact.import_data(
             "FeatureData[Taxonomy]", self.taxonomy_greengenes_df
         )
         imported_artifact.save(taxonomy_path)
-        self.table_file = self.create_tempfile(suffix='.qza')
-        table_path = self.table_file.name
+
+        table_file = self.create_tempfile(suffix='.qza')
+        table_path = table_file.name
         imported_artifact = Artifact.import_data(
             "FeatureTable[Frequency]", self.table
         )
         imported_artifact.save(table_path)
+
         config.resources.update({'metadata': metadata_path,
                                  'alpha_resources': {
                                      'faith-pd': faith_pd_path,
@@ -224,9 +223,6 @@ class TestDatabase:
         resources.update(config.resources)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.stop()
-
-    def stop(self):
         for file_ in self._tempfiles:
             file_.close()
         config.resources.clear()
