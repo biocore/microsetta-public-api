@@ -1326,7 +1326,7 @@ class EmperorTests(FlaskTests):
 
         response = self.client.get(
             '/results-api/plotting/diversity/beta/unifrac/pcoa/body-habitat/'
-            'emperor'
+            'emperor?metadata_categories=age_cat,bmi_cat,body-habitat'
         )
 
         self.assertStatusCode(200, response)
@@ -1335,6 +1335,7 @@ class EmperorTests(FlaskTests):
         mock_method.assert_called_with(
             beta_metric='unifrac',
             named_sample_set='body-habitat',
+            metadata_categories=['age_cat', 'bmi_cat', 'body-habitat']
         )
 
     def test_emperor_plot_404(self):

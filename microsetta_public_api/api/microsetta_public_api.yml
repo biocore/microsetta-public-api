@@ -583,6 +583,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/betaMetric'
         - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/metadataCategories'
       responses:
         '200':
           description: Successfully return Emperor Schema
@@ -605,14 +606,20 @@ components:
     betaMetric:
       name: beta_metric
       in: path
-      description: Plot the data for samples using this metric
+      description: A beta diversity metric
       schema:
         $ref: '#/components/schemas/betaMetric'
       required: true
+    metadataCategories:
+      name: metadata_categories
+      in: query
+      description: An array of metadata categories
+      schema:
+        $ref: '#/components/schemas/metadataHeaders'
     namedSampleSet:
       name: named_sample_set
       in: path
-      description: The named sample set that should be plotted
+      description: A named collection of samples
       schema:
         $ref: '#/components/schemas/namedSampleSet'
       required: true

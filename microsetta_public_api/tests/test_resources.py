@@ -2,7 +2,9 @@ import pandas as pd
 import numpy as np
 import biom
 from biom.util import biom_open
+from skbio.stats.ordination import OrdinationResults
 from pandas.testing import assert_series_equal, assert_frame_equal
+from numpy.testing import assert_array_equal
 from qiime2 import Artifact, Metadata
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.feature_table import FeatureTable, Frequency
@@ -44,6 +46,86 @@ class TestResourceManagerUpdateMetadata(TempfileTestCase):
         with self.assertRaisesRegex(MetadataFileError, r'\{(.*)\}'):
             self.resources.update({'metadata': {'put': 'some',
                                                 'other': 'type'}})
+
+
+class TestResourceManagerUpdatePCoA(TempfileTestCase):
+
+    def setUp(self):
+        super().setUp()
+        axis_labels = ['PC1', 'PC2', 'PC3']
+        self.resources = ResourceManager()
+        self.fh1 = self.create_tempfile(suffix='.qza')
+        self.fh2 = self.create_tempfile(suffix='.qza')
+        self.pcoa_path1 = self.fh1.name
+        self.pcoa_path2 = self.fh2.name
+        self.test_df1 = pd.DataFrame.from_dict({
+                's1': [0.1, 0.2, 7],
+                's2': [0.9, 0.2, 7],
+            },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_df1.index.name = 'Sample ID'
+        self.test_df2 = pd.DataFrame.from_dict({
+                's1': [0.1, 0.2, 7],
+                's2': [0.9, 0.2, 7],
+                's3': [0.2, -0.3, 0],
+                's4': [0.111, -4, 0.2],
+            },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_df2.index.name = 'Sample ID'
+
+        self.pcoa1 = OrdinationResults('pcoa1', 'pcoa1',
+                                       eigvals=pd.Series([7, 2, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_df1,
+                                       proportion_explained=pd.Series(
+                                           [0.7, 0.2, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        self.pcoa2 = OrdinationResults('pcoa2', 'pcoa2',
+                                       eigvals=pd.Series([6, 3, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_df2,
+                                       proportion_explained=pd.Series(
+                                           [0.6, 0.3, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa1,
+        )
+        imported_artifact.save(self.pcoa_path1)
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa2,
+        )
+        imported_artifact.save(self.pcoa_path2)
+
+    def test_update_pcoa_correct(self):
+        self.resources.update({
+            'pcoa': {
+                'sample_set1':
+                    {
+                        'pcoa1': self.pcoa_path1,
+                        'pcoa2': self.pcoa_path2,
+                    },
+                'sample_set2':
+                    {
+                        'pcoa1': self.pcoa_path1,
+                    },
+            }
+        })
+        pcoa1 = self.resources['pcoa']['sample_set1']['pcoa1']
+        assert_array_equal(pcoa1.samples, self.test_df1)
+        pcoa2 = self.resources['pcoa']['sample_set1']['pcoa2']
+        assert_array_equal(pcoa2.samples, self.test_df2)
+        pcoa3 = self.resources['pcoa']['sample_set2']['pcoa1']
+        assert_array_equal(pcoa3.samples, self.test_df1)
 
 
 class TestResourceManagerUpdateAlpha(TempfileTestCase):

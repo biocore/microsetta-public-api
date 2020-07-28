@@ -41,6 +41,10 @@ class MetadataRepo:
     def categories(self):
         return list(self._metadata.columns)
 
+    @property
+    def samples(self):
+        return list(self._metadata.index)
+
     def category_values(self, category, exclude_na=True):
         """
         Parameters
@@ -69,6 +73,28 @@ class MetadataRepo:
         if exclude_na:
             category_values = category_values[~pd.isnull(category_values)]
         return list(category_values)
+
+    def has_category(self, category):
+        if isinstance(category, str):
+            return category in self._metadata.columns
+        else:
+            cols = set(self._metadata.columns)
+            return [cat in cols for cat in category]
+
+    def has_sample_id(self, sample_id):
+        if isinstance(sample_id, str):
+            return sample_id in self._metadata.index
+        else:
+            index = set(self._metadata.index)
+            return [id_ in index for id_ in sample_id]
+
+    def get_metadata(self, categories, sample_ids=None):
+        md = self._metadata[categories]
+        if sample_ids is not None:
+            md = md.reindex(sample_ids, fill_value=None)
+        md = md.astype('object')
+        md[pd.isna(md)] = None
+        return md
 
     def sample_id_matches(self, query):
         """

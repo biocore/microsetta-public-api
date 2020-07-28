@@ -73,6 +73,15 @@ that gives a path to a QIIME2 formatted metadata file.
       "cache-model": true
     }
   },
+  "pcoa": {
+      "fecal": {
+          "unifrac": "/a/pcoa/path1.qza",
+          "jaccard": "/another/pcoa/path2.qza"
+      },
+      "all_samples": {
+          "unifrac": "/a/path/to/all_samples/pcoa.qza"
+      }
+  },
   "metadata": "/path/to/some/metadata.txt"
 }
 ```
