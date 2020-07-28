@@ -2,9 +2,15 @@ from pkg_resources import resource_filename
 from microsetta_public_api.config import (SERVER_CONFIG,
                                           resources as config_resources)
 from microsetta_public_api.resources import resources
+from microsetta_public_api.exceptions import UnknownMetric
+from flask import jsonify
 
 import connexion
 from flask_cors import CORS
+
+
+def handle_404(e):
+    return jsonify(text=str(e), code=404), 404
 
 
 def build_app():
@@ -21,6 +27,8 @@ def build_app():
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
     app.add_api(app_file, validate_responses=True)
+
+    app.app.register_error_handler(UnknownMetric, handle_404)
 
     CORS(app.app)
 
@@ -39,9 +47,11 @@ if __name__ == "__main__":
     if use_test_database:
         # import TestDatabase here to avoid circular import
         from microsetta_public_api.utils.testing import TestDatabase
-        with TestDatabase():
-            app = build_app()
-            run(app)
+        tdb = TestDatabase()
+        tdb.start()
+        app = build_app()
+        run(app)
+        tdb.stop()
     else:
         app = build_app()
         run(app)
