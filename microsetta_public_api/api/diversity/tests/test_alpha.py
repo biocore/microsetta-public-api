@@ -1,7 +1,8 @@
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from unittest.mock import patch, PropertyMock
 from microsetta_public_api.api.diversity.alpha import (
-    available_metrics_alpha, get_alpha, alpha_group
+    available_metrics_alpha, get_alpha, alpha_group, exists_single,
+    exists_group,
 )
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 import numpy.testing as npt
@@ -41,6 +42,69 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             obs = json.loads(response)
             self.assertIn('alpha_metrics', obs)
             self.assertListEqual(exp_metrics, obs['alpha_metrics'])
+
+    def test_alpha_diveristy_exists_single(self):
+
+        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
+                   '.resources', new_callable=PropertyMock
+                   ) as mock_resources, \
+                patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_resources.return_value = {
+                'faith_pd': '/some/path', 'chao1': '/some/other/path',
+            }
+            mock_exists.return_value = True
+
+            response, code = exists_single(alpha_metric='faith_pd',
+                                           sample_id='sample_1')
+            obs = json.loads(response)
+        self.assertTrue(obs)
+        self.assertEqual(200, code)
+
+    def test_alpha_diveristy_exists_single_404(self):
+
+        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
+                   '.resources', new_callable=PropertyMock
+                   ) as mock_resources, \
+                patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_resources.return_value = {
+                'faith_pd': '/some/path', 'chao1': '/some/other/path',
+            }
+            mock_exists.side_effect = [True]
+
+            response, code = exists_single(alpha_metric='other-metric',
+                                           sample_id='sample_1')
+        self.assertEqual(404, code)
+
+    def test_alpha_diveristy_exists_group(self):
+
+        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
+                   '.resources', new_callable=PropertyMock
+                   ) as mock_resources, \
+                patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_resources.return_value = {
+                'faith_pd': '/some/path', 'chao1': '/some/other/path',
+            }
+            mock_exists.return_value = [True, False, True]
+
+            response, code = exists_group(alpha_metric='faith_pd',
+                                          body=['s1', 's2', 's3'])
+            obs = json.loads(response)
+        self.assertListEqual(obs, [True, False, True])
+        self.assertEqual(200, code)
+
+    def test_alpha_diveristy_exists_group_404(self):
+        with patch('microsetta_public_api.repo._alpha_repo.AlphaRepo'
+                   '.resources', new_callable=PropertyMock
+                   ) as mock_resources, \
+                patch.object(AlphaRepo, 'exists') as mock_exists:
+            mock_resources.return_value = {
+                'faith_pd': '/some/path', 'chao1': '/some/other/path',
+            }
+            mock_exists.side_effect = [True, False, True]
+
+            response, code = exists_group(alpha_metric='other-metric',
+                                          body=['s1', 's2', 's3'])
+        self.assertEqual(404, code)
 
     def test_alpha_diversity_single_sample(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \

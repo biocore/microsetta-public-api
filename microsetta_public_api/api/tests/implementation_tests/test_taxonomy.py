@@ -11,6 +11,7 @@ from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.taxonomy import (
     resources, summarize_group, _summarize_group, single_sample,
     group_taxa_present, single_sample_taxa_present,
+    exists_single, exists_group,
 )
 
 
@@ -60,6 +61,58 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
         self.assertEqual(code, 200)
         self.assertIn('resources', obs)
         self.assertCountEqual(exp_res, obs['resources'])
+
+    def test_taxonomy_exists_single(self):
+        with patch.object(TaxonomyRepo, 'resources') as mock_resources, \
+                patch.object(TaxonomyRepo, 'exists') as mock_exists:
+            mock_resources.return_value = [
+                'table2', 'othertab',
+            ]
+            mock_exists.return_value = True
+
+            response, code = exists_single(resource='table2',
+                                           sample_id='sample_1')
+            obs = json.loads(response)
+        self.assertTrue(obs)
+        self.assertEqual(200, code)
+
+    def test_taxonomy_exists_single_404(self):
+        with patch.object(TaxonomyRepo, 'resources') as mock_resources, \
+                patch.object(TaxonomyRepo, 'exists') as mock_exists:
+            mock_resources.return_value = [
+                'table2', 'othertab',
+            ]
+            mock_exists.side_effect = [True]
+
+            response, code = exists_single(resource='other-tab',
+                                           sample_id='sample_1')
+        self.assertEqual(404, code)
+
+    def test_taxonomy_exists_group(self):
+        with patch.object(TaxonomyRepo, 'resources') as mock_resources, \
+                patch.object(TaxonomyRepo, 'exists') as mock_exists:
+            mock_resources.return_value = [
+                'table2', 'othertab',
+            ]
+            mock_exists.return_value = [True, False, True]
+
+            response, code = exists_group(resource='table2',
+                                          body=['s1', 's2', 's3'])
+            obs = json.loads(response)
+        self.assertListEqual(obs, [True, False, True])
+        self.assertEqual(200, code)
+
+    def test_taxonomy_exists_group_404(self):
+        with patch.object(TaxonomyRepo, 'resources') as mock_resources, \
+                patch.object(TaxonomyRepo, 'exists') as mock_exists:
+            mock_resources.return_value = [
+                'table2', 'othertab',
+            ]
+            mock_exists.side_effect = [True, False, True]
+
+            response, code = exists_group(resource='other-tab',
+                                          body=['s1', 's2', 's3'])
+        self.assertEqual(404, code)
 
     def test_taxonomy_unknown_resource(self):
         with patch.object(TaxonomyRepo, 'resources') as mock_resources:

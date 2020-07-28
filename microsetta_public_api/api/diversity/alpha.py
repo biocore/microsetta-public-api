@@ -109,3 +109,24 @@ def available_metrics_alpha():
     }
 
     return jsonify(ret_val), 200
+
+
+def exists_single(alpha_metric, sample_id):
+    return _exists(alpha_metric, sample_id)
+
+
+def exists_group(body, alpha_metric):
+    return _exists(alpha_metric, body)
+
+
+def _exists(alpha_metric, samples):
+    alpha_repo = AlphaRepo()
+    # figure out if the user asked for a metric we have data on
+    available_metrics = alpha_repo.available_metrics()
+    type_ = 'metric'
+    missing_metric = validate_resource(available_metrics, alpha_metric,
+                                       type_)
+    if missing_metric:
+        return missing_metric
+
+    return jsonify(alpha_repo.exists(samples, alpha_metric)), 200
