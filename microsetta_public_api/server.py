@@ -47,8 +47,10 @@ if __name__ == "__main__":
     if use_test_database:
         # import TestDatabase here to avoid circular import
         from microsetta_public_api.utils.testing import TestDatabase
+        import atexit
         tdb = TestDatabase()
         tdb.start()
+        atexit.register(tdb.stop)
         app = build_app()
         run(app)
         tdb.stop()
