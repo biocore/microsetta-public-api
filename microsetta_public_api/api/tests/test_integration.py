@@ -635,7 +635,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_single_404(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
-                                   'shannon?sample_id=sample-foo-bar')
+                                   'dne-metric?sample_id=sample-foo-bar')
 
         self.assertStatusCode(404, response)
 
@@ -652,7 +652,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_group_404(self):
         response = self.client.post(
-            '/results-api/diversity/alpha/exists/shannon',
+            '/results-api/diversity/alpha/exists/dne-metric',
             data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
             content_type='application/json',
         )
