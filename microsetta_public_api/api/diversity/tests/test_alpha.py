@@ -3,6 +3,7 @@ from unittest.mock import patch, PropertyMock
 from microsetta_public_api.api.diversity.alpha import (
     available_metrics_alpha, get_alpha, alpha_group
 )
+from microsetta_public_api.repo._metadata_repo import MetadataRepo
 import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
@@ -114,6 +115,107 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
 
         self.assertDictEqual(exp, obs)
         self.assertEqual(code, 200)
+
+    def test_alpha_diversity_group_return_raw_only_metadata_query_OR(self):
+        post_body = {
+            'sample_ids': [
+                'sample-foo-bar',
+                'sample-baz-bat',
+            ],
+            'metadata_query': {
+                'some query': 'value'
+            },
+            'condition': "OR",
+        }
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo,
+                             'available_metrics') as mock_metrics, \
+                patch.object(MetadataRepo,
+                             'sample_id_matches') as mock_matches:
+            mock_metrics.return_value = ['observed_otus']
+            # first two values are used on checking requested ids, the other
+            # two are used for checking ids that match metadata query
+            mock_exists.side_effect = [True, True, True, False]
+            mock_method.return_value = pd.Series({
+                'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
+                name='observed_otus'
+            )
+            mock_matches.return_value = ['sample-3', 'sample-4']
+            metric = 'observed_otus'
+            response, code = alpha_group(post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=True)
+        self.assertEqual(code, 200)
+        args, kwargs = mock_method.call_args
+        self.assertCountEqual(args[0], ['sample-foo-bar', 'sample-baz-bat',
+                                        'sample-3'])
+
+    def test_alpha_diversity_group_return_raw_only_metadata_query_AND(self):
+        post_body = {
+            'sample_ids': [
+                'sample-foo-bar',
+                'sample-baz-bat',
+            ],
+            'metadata_query': {
+                'some query': 'value'
+            },
+            'condition': "AND",
+        }
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo,
+                             'available_metrics') as mock_metrics, \
+                patch.object(MetadataRepo,
+                             'sample_id_matches') as mock_matches:
+            mock_metrics.return_value = ['observed_otus']
+            # first two values are used on checking requested ids, the other
+            # two are used for checking ids that match metadata query
+            mock_exists.side_effect = [True, True, True, True]
+            mock_method.return_value = pd.Series({
+                'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
+                name='observed_otus'
+            )
+            mock_matches.return_value = ['sample-foo-bar', 'sample-4']
+            metric = 'observed_otus'
+            response, code = alpha_group(post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=True)
+        self.assertEqual(code, 200)
+        args, kwargs = mock_method.call_args
+        self.assertCountEqual(args[0], ['sample-foo-bar'])
+
+    def test_alpha_diversity_group_return_raw_only_metadata_query_only(self):
+        post_body = {
+            'metadata_query': {
+                'some query': 'value'
+            },
+        }
+        with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
+                patch.object(AlphaRepo, 'exists') as mock_exists, \
+                patch.object(AlphaRepo,
+                             'available_metrics') as mock_metrics, \
+                patch.object(MetadataRepo,
+                             'sample_id_matches') as mock_matches:
+            mock_metrics.return_value = ['observed_otus']
+            # first two values are used on checking requested ids, the other
+            # two are used for checking ids that match metadata query
+            mock_exists.side_effect = [True, True, True, True]
+            mock_method.return_value = pd.Series({
+                'sample-foo-bar': 8.25, 'sample-baz-bat': 9.01},
+                name='observed_otus'
+            )
+            mock_matches.return_value = ['sample-foo-bar', 'sample-4']
+            metric = 'observed_otus'
+            response, code = alpha_group(post_body,
+                                         alpha_metric=metric,
+                                         summary_statistics=False,
+                                         return_raw=True)
+        self.assertEqual(code, 200)
+        args, kwargs = mock_method.call_args
+        self.assertCountEqual(args[0], ['sample-foo-bar', 'sample-4'])
 
     def test_alpha_diversity_group_return_summary_and_raw(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \

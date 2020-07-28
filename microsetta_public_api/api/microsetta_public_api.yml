@@ -247,7 +247,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/sampleIdList"
+              type: object
+              properties:
+                sample_ids:
+                  $ref: "#/components/schemas/sampleIdArray"
+                metadata_query:
+                  $ref: "#/components/schemas/metadataQuery"
+                condition:
+                  type: string
+                  enum:
+                    - "AND"
+                    - "OR"
+                  description: >
+                    If `"AND"`, a group summary will be provided for those ID's matching both
+                    `sample_ids` and `metadata_query`.
+                    If `"OR"`, the summary will be provided for ID's matching either `sample_ids` or `metadata_query`.
       responses:
         '200':
           description: Successfuly return alpha diversity information
