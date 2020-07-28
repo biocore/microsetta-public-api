@@ -33,14 +33,6 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
             error=400, text='Either `summary_statistics`, `return_raw`, '
                             'or both are required to be true.'
             ), 400
-    if ('sample_ids' in body and 'metadata_query' in body) and \
-            'condition' not in body:
-        # give a bad request error here, because we need to know how to
-        #  resolve the sample IDs
-        return jsonify(
-            error=400, text='`condition` must be specified if both '
-                            '`sample_ids` and `metadata_query` are specified.'
-        )
 
     sample_ids = []
     alpha_repo = AlphaRepo()

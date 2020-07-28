@@ -257,7 +257,12 @@ paths:
       tags:
         - Alpha Diversity
       summary: Query alpha diversity for a group of samples
-      description: Query alpha diversity for a group of samples
+      description: >
+        Query alpha diversity for a group of samples.
+        If `condition="AND"`, a group summary will be provided for those ID's matching both
+        `sample_ids` and `metadata_query`.
+        If `condition="OR"`, the summary will be provided for ID's matching either `sample_ids` or `metadata_query`.
+        '`condition` must be specified if both '`sample_ids` and `metadata_query` are specified.'
       parameters:
         - $ref: '#/components/parameters/alphaMetric'
         - in: query
@@ -288,21 +293,26 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                sample_ids:
-                  $ref: "#/components/schemas/sampleIdArray"
-                metadata_query:
-                  $ref: "#/components/schemas/metadataQuery"
-                condition:
-                  type: string
-                  enum:
-                    - "AND"
-                    - "OR"
-                  description: >
-                    If `"AND"`, a group summary will be provided for those ID's matching both
-                    `sample_ids` and `metadata_query`.
-                    If `"OR"`, the summary will be provided for ID's matching either `sample_ids` or `metadata_query`.
+              allOf:
+                - type: object
+                  properties:
+                    sample_ids:
+                      $ref: "#/components/schemas/sampleIdArray"
+                    metadata_query:
+                      $ref: "#/components/schemas/metadataQuery"
+                    condition:
+                      $ref: "#/components/schemas/ANDOR"
+              not:
+                type: object
+                additionalProperties: false
+                required:
+                  - sample_ids
+                  - metadata_query
+                properties:
+                  sample_ids:
+                    $ref: "#/components/schemas/sampleIdArray"
+                  metadata_query:
+                    $ref: "#/components/schemas/metadataQuery"
       responses:
         '200':
           description: Successfuly return alpha diversity information
@@ -673,6 +683,11 @@ components:
       example: "faith_pd"
     anyValue:
       nullable: true
+    ANDOR:
+      type: string
+      enum:
+        - "AND"
+        - "OR"
     betaMetric:
       type: string
       example: "unifrac"

@@ -1039,3 +1039,28 @@ class AllIntegrationTest(
         obs = json.loads(response.data)
         self.assertCountEqual(obs['alpha_diversity'].keys(),
                               ['sample-2', 'sample-3'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_400(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-1'],
+            })
+        )
+        self.assertStatusCode(400, response)
