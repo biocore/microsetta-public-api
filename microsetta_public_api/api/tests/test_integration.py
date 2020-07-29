@@ -568,6 +568,7 @@ class AlphaIntegrationTests(IntegrationTests):
         super().setUp()
         self.series1_filename = self.create_tempfile(suffix='.qza').name
         self.series2_filename = self.create_tempfile(suffix='.qza').name
+        self.series3_filename = self.create_tempfile(suffix='.qza').name
 
         self.series_1 = pd.Series({
             'sample-foo-bar': 7.24, 'sample-baz-qux': 8.25,
@@ -580,6 +581,15 @@ class AlphaIntegrationTests(IntegrationTests):
             name='chao1'
         )
 
+        self.series_3 = pd.Series({
+            'sample-1': 9.01, 'sample-2': 9.04,
+            'sample-3': 9.31, 'sample-4': 9.33,
+            'sample-5': 9.09, 'sample-6': 9.02,
+            'sample-unique-name': 7.24,
+        },
+            name='shannon'
+        )
+
         imported_artifact = Artifact.import_data(
             "SampleData[AlphaDiversity]", self.series_1
         )
@@ -588,9 +598,14 @@ class AlphaIntegrationTests(IntegrationTests):
             "SampleData[AlphaDiversity]", self.series_2
         )
         imported_artifact.save(self.series2_filename)
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.series_3
+        )
+        imported_artifact.save(self.series3_filename)
         config.resources.update({'alpha_resources': {
             'observed_otus': self.series1_filename,
             'chao1': self.series2_filename,
+            'shannon': self.series3_filename,
         }})
         resources.update(config.resources)
 
@@ -601,7 +616,8 @@ class AlphaIntegrationTests(IntegrationTests):
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertIn('alpha_metrics', obs)
-        self.assertCountEqual(['observed_otus', 'chao1'], obs['alpha_metrics'])
+        self.assertCountEqual(['observed_otus', 'chao1', 'shannon'],
+                              obs['alpha_metrics'])
 
     def test_exists_single(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
@@ -620,7 +636,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_single_404(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
-                                   'shannon?sample_id=sample-foo-bar')
+                                   'dne-metric?sample_id=sample-foo-bar')
 
         self.assertStatusCode(404, response)
 
@@ -637,7 +653,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_group_404(self):
         response = self.client.post(
-            '/results-api/diversity/alpha/exists/shannon',
+            '/results-api/diversity/alpha/exists/dne-metric',
             data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
             content_type='application/json',
         )
@@ -1067,3 +1083,114 @@ class AllIntegrationTest(
         obs = json.loads(response.data)
         self.assertCountEqual([],
                               obs['sample_ids'])
+
+    def test_alpha_group_metadata_integration(self):
+        # TODO change this to alpha query
+        generic_metadata_query = {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "id": "bmi_cat",
+                            "field": "bmi_cat",
+                            "type": "string",
+                            "input": "select",
+                            "operator": "equal",
+                            "value": "not",
+                        },
+                    ],
+                }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-2', 'sample-3', 'sample-5'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_OR(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-1'],
+                "condition": "OR",
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-1', 'sample-2', 'sample-3', 'sample-5'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_AND(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-2', 'sample-3', 'sample-unique-name'],
+                "condition": "AND",
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-2', 'sample-3'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_400(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-1'],
+            })
+        )
+        self.assertStatusCode(400, response)

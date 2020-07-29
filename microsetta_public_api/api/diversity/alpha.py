@@ -1,5 +1,6 @@
 from microsetta_public_api.models._alpha import Alpha
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
+from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.utils._utils import validate_resource, \
     check_missing_ids
@@ -33,11 +34,9 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
                             'or both are required to be true.'
             ), 400
 
-    sample_ids = body['sample_ids']
-
+    sample_ids = []
     alpha_repo = AlphaRepo()
-
-    # figure out if the user asked for a metric we have data on
+    # do the common checks
     available_metrics = alpha_repo.available_metrics()
     type_ = 'metric'
     missing_metric = validate_resource(available_metrics, alpha_metric,
@@ -45,13 +44,32 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
     if missing_metric:
         return missing_metric
 
-    # make sure all of the data the samples the user asked for have values
-    # for the given metric
-    missing_ids = [id_ for id_ in sample_ids if
-                   not alpha_repo.exists(id_, alpha_metric)]
-    missing_ids_msg = check_missing_ids(missing_ids, alpha_metric, type_)
-    if missing_ids_msg:
-        return missing_ids_msg
+    if 'sample_ids' in body:
+        sample_ids = body['sample_ids']
+
+        # figure out if the user asked for a metric we have data on
+        # make sure all of the data the samples the user asked for have values
+        # for the given metric
+        missing_ids = [id_ for id_ in sample_ids if
+                       not alpha_repo.exists(id_, alpha_metric)]
+        missing_ids_msg = check_missing_ids(missing_ids, alpha_metric, type_)
+        if missing_ids_msg:
+            return missing_ids_msg
+
+    # find sample IDs matching the metadata query
+    if 'metadata_query' in body:
+        query = body['metadata_query']
+        metadata_repo = MetadataRepo()
+        matching_ids = metadata_repo.sample_id_matches(query)
+        matching_ids = [id_ for id_ in matching_ids if
+                        alpha_repo.exists(id_, alpha_metric)
+                        ]
+        if 'sample_ids' not in body:
+            sample_ids = matching_ids
+        elif body['condition'] == 'OR':
+            sample_ids = list(set(sample_ids) | set(matching_ids))
+        elif body['condition'] == 'AND':
+            sample_ids = list(set(sample_ids) & set(matching_ids))
 
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
