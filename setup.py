@@ -31,7 +31,7 @@ setup(
     ],
     package_data={'microsetta_public_api':
                   [
-                     'api/microsetta_public_api.yaml',
+                     'api/microsetta_public_api.yml',
                      'server_config.json'
                   ]},
 )
