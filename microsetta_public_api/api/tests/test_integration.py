@@ -941,7 +941,7 @@ class PCoAIntegrationTests(IntegrationTests):
             'sample-1': [0.1, 0.2, 7],
             's2': [0.9, 0.2, 7],
             'sample-3': [0.2, -0.3, 0],
-            'sample-4': [0.111, -4, 0.2],
+            'sample-7': [0.111, -4, 0.2],
         },
             orient='index',
             columns=axis_labels,
@@ -1015,12 +1015,49 @@ class PCoAIntegrationTests(IntegrationTests):
                              ['age_cat', 'bmi_cat']
                              )
 
+    def test_pcoa_with_nan(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa2/pcoa/sample_set_name'
+            '/emperor?metadata_categories=age_cat,num_cat&fillna=fish'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+
+        decomp = obs['decomposition']
+        np.testing.assert_array_equal(decomp["coordinates"],
+                                      self.pcoa2.samples.values
+                                      )
+        np.testing.assert_array_equal(decomp["percents_explained"],
+                                      100
+                                      * self.pcoa2.proportion_explained.values
+                                      )
+        np.testing.assert_array_equal(decomp["sample_ids"],
+                                      ['sample-1', 's2', 'sample-3',
+                                       'sample-7',
+                                       ]
+                                      )
+        self.assertListEqual(obs['metadata'],
+                             [['30s', 20], ['fish', 'fish'],
+                              ['50s', 7.15], ['50s', 'fish'],
+                              ]
+                             )
+        self.assertListEqual(obs['metadata_headers'],
+                             ['age_cat', 'num_cat']
+                             )
+
     def test_pcoa_pcoa_404(self):
         response = self.client.get(
             '/results-api/plotting/diversity/beta/pcoa_dne/pcoa'
             '/sample_set_name/emperor?metadata_categories=age_cat,bmi_cat'
         )
         self.assertStatusCode(404, response)
+
+    def test_pcoa_400(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa_dne/pcoa'
+            '/sample_set_name/emperor'
+        )
+        self.assertStatusCode(400, response)
 
     def test_pcoa_metadata_404(self):
         response = self.client.get(
