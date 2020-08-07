@@ -3,7 +3,8 @@ from microsetta_public_api.repo._pcoa_repo import PCoARepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 
 
-def plot_pcoa(beta_metric, named_sample_set, metadata_categories):
+def plot_pcoa(beta_metric, named_sample_set, metadata_categories,
+              fillna='nan'):
     pcoa_repo = PCoARepo()
     metadata_repo = MetadataRepo()
 
@@ -29,7 +30,9 @@ def plot_pcoa(beta_metric, named_sample_set, metadata_categories):
 
     # metadata for samples not in the repo will be filled in as None
     metadata = metadata_repo.get_metadata(metadata_categories,
-                                          sample_ids=samples)
+                                          sample_ids=samples,
+                                          fillna=fillna,
+                                          )
 
     response = dict()
     response['decomposition'] = {

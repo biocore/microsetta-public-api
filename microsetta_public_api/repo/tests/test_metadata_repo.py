@@ -108,13 +108,15 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         self.assertDictEqual(obs.to_dict(), exp)
 
         obs = self.repo.get_metadata(['num_cat', 'other'],
-                                     sample_ids=['a', 'one'])
+                                     sample_ids=['a', 'one'],
+                                     fillna='nan',
+                                     )
         exp = {
             'num_cat': {
-                'a': 7.24, 'one': None,
+                'a': 7.24, 'one': 'nan',
             },
             'other': {
-                'a': 1.0, 'one': None,
+                'a': 1.0, 'one': 'nan',
             },
         }
         self.assertDictEqual(obs.to_dict(), exp)
