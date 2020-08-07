@@ -183,31 +183,30 @@ class TestDatabase:
         return new_tempfile
 
     def __enter__(self):
-        metadata_file = self.create_tempfile(suffix='.txt')
-        metadata_path = metadata_file.name
-        Metadata(self.metadata_table).save(metadata_path)
+        self.start()
 
-        faith_pd_file = self.create_tempfile(suffix='.qza')
-        faith_pd_path = faith_pd_file.name
+    def start(self):
+        self.metadata_file = self.create_tempfile(suffix='.txt')
+        metadata_path = self.metadata_file.name
+        Metadata(self.metadata_table).save(metadata_path)
+        self.faith_pd_file = self.create_tempfile(suffix='.qza')
+        faith_pd_path = self.faith_pd_file.name
         faith_pd_artifact = Artifact.import_data(
             "SampleData[AlphaDiversity]", self.faith_pd_data,
         )
         faith_pd_artifact.save(faith_pd_path)
-
-        taxonomy_file = self.create_tempfile(suffix='.qza')
-        taxonomy_path = taxonomy_file.name
+        self.taxonomy_file = self.create_tempfile(suffix='.qza')
+        taxonomy_path = self.taxonomy_file.name
         imported_artifact = Artifact.import_data(
             "FeatureData[Taxonomy]", self.taxonomy_greengenes_df
         )
         imported_artifact.save(taxonomy_path)
-
-        table_file = self.create_tempfile(suffix='.qza')
-        table_path = table_file.name
+        self.table_file = self.create_tempfile(suffix='.qza')
+        table_path = self.table_file.name
         imported_artifact = Artifact.import_data(
             "FeatureTable[Frequency]", self.table
         )
         imported_artifact.save(table_path)
-
         config.resources.update({'metadata': metadata_path,
                                  'alpha_resources': {
                                      'faith-pd': faith_pd_path,
@@ -223,6 +222,9 @@ class TestDatabase:
         resources.update(config.resources)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.stop()
+
+    def stop(self):
         for file_ in self._tempfiles:
             file_.close()
         config.resources.clear()
