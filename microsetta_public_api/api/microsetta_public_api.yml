@@ -608,6 +608,7 @@ paths:
         - $ref: '#/components/parameters/betaMetric'
         - $ref: '#/components/parameters/namedSampleSet'
         - $ref: '#/components/parameters/metadataCategories'
+        - $ref: '#/components/parameters/fillna'
       responses:
         '200':
           description: Successfully return Emperor Schema
@@ -634,12 +635,19 @@ components:
       schema:
         $ref: '#/components/schemas/betaMetric'
       required: true
+    fillna:
+      name: fillna
+      in: query
+      description: Value to populate NaN values with
+      schema:
+        type: string
     metadataCategories:
       name: metadata_categories
       in: query
       description: An array of metadata categories
       schema:
         $ref: '#/components/schemas/metadataHeaders'
+      required: true
     namedSampleSet:
       name: named_sample_set
       in: path

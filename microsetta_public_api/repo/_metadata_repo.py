@@ -88,12 +88,12 @@ class MetadataRepo:
             index = set(self._metadata.index)
             return [id_ in index for id_ in sample_id]
 
-    def get_metadata(self, categories, sample_ids=None):
+    def get_metadata(self, categories, sample_ids=None, fillna=None):
         md = self._metadata[categories]
         if sample_ids is not None:
             md = md.reindex(sample_ids, fill_value=None)
         md = md.astype('object')
-        md[pd.isna(md)] = None
+        md[pd.isna(md)] = fillna
         return md
 
     def sample_id_matches(self, query):
