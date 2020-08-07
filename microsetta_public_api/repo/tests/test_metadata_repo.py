@@ -56,6 +56,69 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         obs = self.repo.category_values('num_cat')
         self.assertCountEqual(exp, obs)
 
+    def test_samples(self):
+        obs = self.repo.samples
+        exp = self.test_metadata.index
+        self.assertListEqual(obs, exp.values.tolist())
+
+    def test_has_category_single(self):
+        obs = self.repo.has_category('num_cat')
+        self.assertTrue(obs)
+        obs = self.repo.has_category('dne')
+        self.assertFalse(obs)
+
+    def test_has_category_group(self):
+        obs = self.repo.has_category(['num_cat', 'none', 'other'])
+        self.assertListEqual(obs, [True, False, True])
+
+    def test_has_sample_id_single(self):
+        obs = self.repo.has_sample_id('b')
+        self.assertTrue(obs)
+        obs = self.repo.has_sample_id('None')
+        self.assertFalse(obs)
+
+    def test_has_sample_id_group(self):
+        obs = self.repo.has_sample_id(['a', 'q', 'c'])
+        self.assertListEqual(obs, [True, False, True])
+
+    def test_get_metadata(self):
+        obs = self.repo.get_metadata(['num_cat', 'other'])
+        # checking the value here is a little weird because it is doing a
+        # conversion. Harcoding based on values in setUp
+        exp = {
+            'num_cat': {
+                    'a': 7.24, 'b': 7.24, 'c': 8.25, 'd': 7.24, 'e': None
+            },
+            'other': {
+                'a': 1.0, 'b': 2.0, 'c': 3.0, 'd': 4.0, 'e': None
+            },
+        }
+        self.assertDictEqual(obs.to_dict(), exp)
+
+        obs = self.repo.get_metadata('num_cat')
+        exp = {
+                'a': 7.24, 'b': 7.24, 'c': 8.25, 'd': 7.24, 'e': None
+        }
+        self.assertDictEqual(obs.to_dict(), exp)
+
+        obs = self.repo.get_metadata('num_cat', sample_ids=['a', 'b'])
+        exp = {
+                'a': 7.24, 'b': 7.24,
+        }
+        self.assertDictEqual(obs.to_dict(), exp)
+
+        obs = self.repo.get_metadata(['num_cat', 'other'],
+                                     sample_ids=['a', 'one'])
+        exp = {
+            'num_cat': {
+                'a': 7.24, 'one': None,
+            },
+            'other': {
+                'a': 1.0, 'one': None,
+            },
+        }
+        self.assertDictEqual(obs.to_dict(), exp)
+
     def test_category_sample_id_matches_query_multiple_category(self):
         exp = ['a', 'd']
         query = {

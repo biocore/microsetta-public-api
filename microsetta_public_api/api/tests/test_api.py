@@ -587,6 +587,93 @@ class AlphaDiversityGroupTests(AlphaDiversityTestCase):
         self.assertDictEqual(exp, obs)
         self.assertEqual(response.status_code, 200)
 
+    def test_alpha_diversity_group_api_with_metadata_query_and_ids(self):
+        exp = {
+            'alpha_metric': 'observed_otus',
+            'alpha_diversity': {'sample-foo-bar': 8.25,
+                                'sample-baz-bat': 9.01,
+                                }
+        }
+
+        with self.app_context():
+            self.mock_method.return_value = jsonify(exp), 200
+
+        _, self.client = self.build_app_test_client()
+
+        request_content = {
+            'sample_ids': ['sample-foo-bar',
+                           'sample-baz-bat'],
+            'metadata_query':
+                {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "id": "age_years",
+                            "field": "age_years",
+                            "type": "double",
+                            "input": "number",
+                            "operator": "less",
+                            "value": 10.25
+                        },
+                    ],
+                    "valid": True
+                },
+            'condition': "OR"
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(request_content)
+        )
+
+        obs = json.loads(response.data)
+
+        self.assertDictEqual(exp, obs)
+        self.assertEqual(response.status_code, 200)
+
+    def test_alpha_diversity_group_api_with_metadata_query_no_ids(self):
+        exp = {
+            'alpha_metric': 'observed_otus',
+            'alpha_diversity': {'sample-foo-bar': 8.25,
+                                'sample-baz-bat': 9.01,
+                                }
+        }
+
+        with self.app_context():
+            self.mock_method.return_value = jsonify(exp), 200
+
+        _, self.client = self.build_app_test_client()
+
+        request_content = {
+            'metadata_query':
+                {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "id": "age_years",
+                            "field": "age_years",
+                            "type": "double",
+                            "input": "number",
+                            "operator": "less",
+                            "value": 10.25
+                        },
+                    ],
+                    "valid": True
+                },
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/observed_otus',
+            content_type='application/json',
+            data=json.dumps(request_content)
+        )
+
+        obs = json.loads(response.data)
+
+        self.assertDictEqual(exp, obs)
+        self.assertEqual(response.status_code, 200)
+
     def test_alpha_diversity_group_unknown_metric_api(self):
 
         available_metrics = ['metric1', 'metric2']
@@ -1326,7 +1413,7 @@ class EmperorTests(FlaskTests):
 
         response = self.client.get(
             '/results-api/plotting/diversity/beta/unifrac/pcoa/body-habitat/'
-            'emperor'
+            'emperor?metadata_categories=age_cat,bmi_cat,body-habitat'
         )
 
         self.assertStatusCode(200, response)
@@ -1335,6 +1422,7 @@ class EmperorTests(FlaskTests):
         mock_method.assert_called_with(
             beta_metric='unifrac',
             named_sample_set='body-habitat',
+            metadata_categories=['age_cat', 'bmi_cat', 'body-habitat']
         )
 
     def test_emperor_plot_404(self):

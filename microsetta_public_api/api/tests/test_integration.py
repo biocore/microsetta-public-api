@@ -5,6 +5,7 @@ import biom
 from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
+from skbio.stats.ordination import OrdinationResults
 
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
@@ -567,6 +568,7 @@ class AlphaIntegrationTests(IntegrationTests):
         super().setUp()
         self.series1_filename = self.create_tempfile(suffix='.qza').name
         self.series2_filename = self.create_tempfile(suffix='.qza').name
+        self.series3_filename = self.create_tempfile(suffix='.qza').name
 
         self.series_1 = pd.Series({
             'sample-foo-bar': 7.24, 'sample-baz-qux': 8.25,
@@ -579,6 +581,15 @@ class AlphaIntegrationTests(IntegrationTests):
             name='chao1'
         )
 
+        self.series_3 = pd.Series({
+            'sample-1': 9.01, 'sample-2': 9.04,
+            'sample-3': 9.31, 'sample-4': 9.33,
+            'sample-5': 9.09, 'sample-6': 9.02,
+            'sample-unique-name': 7.24,
+        },
+            name='shannon'
+        )
+
         imported_artifact = Artifact.import_data(
             "SampleData[AlphaDiversity]", self.series_1
         )
@@ -587,9 +598,14 @@ class AlphaIntegrationTests(IntegrationTests):
             "SampleData[AlphaDiversity]", self.series_2
         )
         imported_artifact.save(self.series2_filename)
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.series_3
+        )
+        imported_artifact.save(self.series3_filename)
         config.resources.update({'alpha_resources': {
             'observed_otus': self.series1_filename,
             'chao1': self.series2_filename,
+            'shannon': self.series3_filename,
         }})
         resources.update(config.resources)
 
@@ -600,7 +616,8 @@ class AlphaIntegrationTests(IntegrationTests):
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
         self.assertIn('alpha_metrics', obs)
-        self.assertCountEqual(['observed_otus', 'chao1'], obs['alpha_metrics'])
+        self.assertCountEqual(['observed_otus', 'chao1', 'shannon'],
+                              obs['alpha_metrics'])
 
     def test_exists_single(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
@@ -619,7 +636,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_single_404(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
-                                   'shannon?sample_id=sample-foo-bar')
+                                   'dne-metric?sample_id=sample-foo-bar')
 
         self.assertStatusCode(404, response)
 
@@ -636,7 +653,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_exists_group_404(self):
         response = self.client.post(
-            '/results-api/diversity/alpha/exists/shannon',
+            '/results-api/diversity/alpha/exists/dne-metric',
             data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
             content_type='application/json',
         )
@@ -887,10 +904,139 @@ class PlottingIntegrationTests(IntegrationTests):
         self.assertStatusCode(200, response)
 
 
+class PCoAIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.metadata_path_pc = self.create_tempfile(suffix='.txt').name
+        self.metadata_table_pc = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not',
+                            'normal', 'overweight'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15, np.nan],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6',
+                                'sample-7',
+                                ],
+                               name='#SampleID')
+        )
+
+        Metadata(self.metadata_table_pc).save(self.metadata_path_pc)
+
+        axis_labels = ['PC1', 'PC2', 'PC3']
+        self.pcoa_fh1 = self.create_tempfile(suffix='.qza')
+        self.pcoa_fh2 = self.create_tempfile(suffix='.qza')
+        self.pcoa_path1 = self.pcoa_fh1.name
+        self.pcoa_path2 = self.pcoa_fh2.name
+        self.test_pcoa_df1 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            'sample-2': [0.9, 0.2, 7],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df1.index.name = 'Sample ID'
+        self.test_pcoa_df2 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            's2': [0.9, 0.2, 7],
+            'sample-3': [0.2, -0.3, 0],
+            'sample-4': [0.111, -4, 0.2],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df2.index.name = 'Sample ID'
+
+        self.pcoa1 = OrdinationResults('pcoa1', 'pcoa1',
+                                       eigvals=pd.Series([7, 2, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df1,
+                                       proportion_explained=pd.Series(
+                                           [0.7, 0.2, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        self.pcoa2 = OrdinationResults('pcoa2', 'pcoa2',
+                                       eigvals=pd.Series([6, 3, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df2,
+                                       proportion_explained=pd.Series(
+                                           [0.6, 0.3, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa1,
+        )
+        imported_artifact.save(self.pcoa_path1)
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa2,
+        )
+        imported_artifact.save(self.pcoa_path2)
+
+        config.resources.update({
+            'metadata': self.metadata_path_pc,
+            'pcoa': {
+                'sample_set_name': {
+                    'pcoa1': self.pcoa_path1,
+                    'pcoa2': self.pcoa_path2,
+                 }
+            }
+        })
+        resources.update(config.resources)
+
+    def test_pcoa(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa1/pcoa/sample_set_name'
+            '/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+
+        decomp = obs['decomposition']
+        np.testing.assert_array_equal(decomp["coordinates"],
+                                      self.pcoa1.samples.values
+                                      )
+        np.testing.assert_array_equal(decomp["percents_explained"],
+                                      100
+                                      * self.pcoa1.proportion_explained.values
+                                      )
+        np.testing.assert_array_equal(decomp["sample_ids"],
+                                      ['sample-1', 'sample-2']
+                                      )
+
+        self.assertListEqual(obs['metadata'],
+                             [['30s', 'normal'], ['40s', 'not']]
+                             )
+        self.assertListEqual(obs['metadata_headers'],
+                             ['age_cat', 'bmi_cat']
+                             )
+
+    def test_pcoa_pcoa_404(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa_dne/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_pcoa_metadata_404(self):
+        response = self.client.get(
+            '/results-api/plotting/diversity/beta/pcoa1/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,dne_cat'
+        )
+        self.assertStatusCode(404, response)
+        obs = json.loads(response.data)
+        self.assertIn('dne_cat', obs['missing_categories'])
+
+
 class AllIntegrationTest(
         AlphaIntegrationTests,
         TaxonomyIntegrationTests,
         MetadataIntegrationTests,
+        PCoAIntegrationTests,
         ):
 
     def test_metadata_filter_on_taxonomy(self):
@@ -937,3 +1083,114 @@ class AllIntegrationTest(
         obs = json.loads(response.data)
         self.assertCountEqual([],
                               obs['sample_ids'])
+
+    def test_alpha_group_metadata_integration(self):
+        # TODO change this to alpha query
+        generic_metadata_query = {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "id": "bmi_cat",
+                            "field": "bmi_cat",
+                            "type": "string",
+                            "input": "select",
+                            "operator": "equal",
+                            "value": "not",
+                        },
+                    ],
+                }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-2', 'sample-3', 'sample-5'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_OR(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-1'],
+                "condition": "OR",
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-1', 'sample-2', 'sample-3', 'sample-5'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_AND(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-2', 'sample-3', 'sample-unique-name'],
+                "condition": "AND",
+            })
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(obs['alpha_diversity'].keys(),
+                              ['sample-2', 'sample-3'])
+
+    def test_alpha_group_metadata_integration_with_sample_ids_400(self):
+        generic_metadata_query = {
+            "condition": "AND",
+            "rules": [
+                {
+                    "id": "bmi_cat",
+                    "field": "bmi_cat",
+                    "type": "string",
+                    "input": "select",
+                    "operator": "equal",
+                    "value": "not",
+                },
+            ],
+        }
+
+        response = self.client.post(
+            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            content_type='application/json',
+            data=json.dumps({
+                "metadata_query": generic_metadata_query,
+                "sample_ids": ['sample-1'],
+            })
+        )
+        self.assertStatusCode(400, response)
