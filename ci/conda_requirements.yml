@@ -15,4 +15,3 @@ dependencies:
   - qiime2
   - q2-types
   - altair
-  - jsonschema
