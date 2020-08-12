@@ -168,50 +168,41 @@ class Entry(dict):
 
     Examples
     --------
-    >>> Entry(
-    ...     'resources',
-    ...     components=Entry('datasets', components={
-    ...         **Entry('metadata',
-    ...                 construct='MetadataLoader',
-    ...                 config={'file': '/path/to/metadata.tsv'},
-    ...                 ),
-    ...         **Entry(
-    ...             '16SAmplicon',
-    ...             components={
-    ...                 **Entry(
-    ...                     'alpha_diversity',
-    ...                     components={
-    ...                         **Entry('faith_pd',
-    ...                                 construct='AlphaQZALoader',
-    ...                                 config={'file': '/path/to/alpha1.qza'},
-    ...                                 ),
-    ...                         **Entry('shannon',
-    ...                                 construct='AlphaQZALoader',
-    ...                                 config={'file': '/path/to/alpha1.qza'},
-    ...                                 ),
-    ...                     }),
-    ...                 **Entry(
-    ...                     'pcoa',
-    ...                     components={
-    ...                         **Entry(
-    ...                             'oral',
-    ...                             components={
-    ...                                 **Entry(
-    ...                                     'unifrac',
-    ...                                     construct='PCOALoader',
-    ...                                     config={'file':
-    ...                                               '/path/to/oral-'
-    ...                                               'unifrac.qza'},
-    ...                                 ),
-    ...                             }
-    ...                         )
-    ...                     }
-    ...                 )
-    ...             }
-    ...         )
-    ...     })
-    ... )
-    >>>
+    >>> resource_config = Entry('datasets', components={
+    ...    **Entry('metadata',
+    ...            construct='MetadataLoader',
+    ...            config={'file': '/path/to/metadata.tsv'},
+    ...            ),
+    ...    **Entry(
+    ...        '16SAmplicon',
+    ...        components={
+    ...            **Entry(
+    ...                'alpha_diversity',
+    ...                components={
+    ...                    **Entry('faith_pd',
+    ...                            construct='AlphaQZALoader',
+    ...                            config={'file': '/path/to/alpha1.qza'},
+    ...                            ),
+    ...                    **Entry('shannon',
+    ...                            construct='AlphaQZALoader',
+    ...                            config={'file': '/path/to/alpha1.qza'},
+    ...                            ),
+    ...                }),
+    ...            **Entry(
+    ...                'pcoa',
+    ...                components=Entry(
+    ...                     'oral',
+    ...                     components=Entry(
+    ...                         'unifrac',
+    ...                         construct='PCOALoader',
+    ...                         config={'file': '/path/to/oral-unifrac.qza'},
+    ...                     )))})})
+    >>> json.dump({
+    ...     "debug": true,
+    ...     "port": 8084,
+    ...     "use_test_database": false,
+    ...     "resources": resource_config
+    ... }, open('server_config.json', 'r'))
     """
 
     def __init__(self, name, components=None, construct=None, config=None):
