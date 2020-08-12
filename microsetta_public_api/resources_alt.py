@@ -16,6 +16,7 @@ class Component:
 
     def add_child(self, child: 'Component'):
         self.children.update({child.name: child})
+        return child
 
     def set(self, other: 'Component'):
         self.__dict__ = other.__dict__

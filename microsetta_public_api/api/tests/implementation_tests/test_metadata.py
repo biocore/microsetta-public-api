@@ -7,6 +7,7 @@ from microsetta_public_api.api.metadata import (
     filter_sample_ids,
     filter_sample_ids_query_builder,
 )
+from microsetta_public_api.resources_alt import resources_alt, Component
 
 
 class MetadataImplementationTests(MockedJsonifyTestCase):
@@ -48,6 +49,33 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         exp_values = ['30s', '40s', '50s']
         obs = json.loads(response)
         self.assertCountEqual(exp_values, obs)
+
+    def test_metadata_category_values_with_component_resources(self):
+        root = Component('root')
+        datasets = Component('datasets')
+        metadata = Component('metadata')
+        root.add_child(datasets).add_child(metadata)
+
+        class MockRepo:
+            categories = ['age_cat']
+
+            def category_values(self, _):
+                return ['30s', '40s', '90s']
+
+        metadata.set_data(MockRepo())
+        resources_alt.set(root)
+
+        response, code = category_values('age_cat')
+
+        self.assertEqual(code, 200)
+        exp_values = ['30s', '40s', '90s']
+        obs = json.loads(response)
+        self.assertCountEqual(exp_values, obs)
+
+        # TEARDOWN
+        from microsetta_public_api.config import SERVER_CONFIG
+        res = Component.from_dict(SERVER_CONFIG['resources'])
+        resources_alt.set(res)
 
     def test_metadata_category_values_category_dne(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
