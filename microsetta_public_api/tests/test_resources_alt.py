@@ -101,6 +101,33 @@ class ComponentTests(TestCase):
         obs = comp.gets()
         self.assertEqual(obs, comp)
 
+    def test_has(self):
+        comp = Component('some_name')
+        child1 = Component('child1')
+        child2 = Component('child2')
+        child3 = Component('child3')
+        comp.add_child(child1)
+        child1.add_child(child2)
+        child1.add_child(child3)
+
+        obs = comp.has('child1', 'child2')
+        self.assertTrue(obs)
+
+        obs = comp.has('child1')
+        self.assertTrue(obs)
+
+        obs = comp.has('child1', 'child3')
+        self.assertTrue(obs)
+
+        obs = child1.has('child1', 'child2')
+        self.assertFalse(obs)
+
+        obs = comp.has('gimme a name')
+        self.assertFalse(obs)
+
+        obs = comp.gets()
+        self.assertTrue(obs)
+
     def test_remove(self):
         child1 = Component('child1')
         child2 = Component('child2')

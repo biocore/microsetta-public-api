@@ -43,7 +43,16 @@ class Component:
         return child
 
     def has(self, *args):
-        raise NotImplementedError()
+        if len(args) == 0:
+            return True
+        first = args[0]
+        rest = args[1:]
+        if not rest:
+            return first in self.children
+        elif first in self.children:
+            return self.get_child(first).has(*rest)
+        else:
+            return False
 
     def remove(self, name: str):
         del self.children[name]
