@@ -12,14 +12,15 @@ class Component:
         self.name = name
         self.data = None
         self.children: Dict[str, 'Component'] = dict()
-        self.parent = None
 
     def add_child(self, child: 'Component'):
         self.children.update({child.name: child})
         return child
 
     def set(self, other: 'Component'):
-        self.__dict__ = other.__dict__
+        self.name = other.name
+        self.data = other.data
+        self.children = other.children
 
     def set_data(self, data: object):
         self.data = data
@@ -39,30 +40,20 @@ class Component:
         first = args[0]
         rest = args[1:]
         child = self.get_child(first)
-        if rest:
-            return child.gets(*rest)
-        return child
+        return child.gets(*rest)
 
     def has(self, *args):
         if len(args) == 0:
             return True
         first = args[0]
         rest = args[1:]
-        if not rest:
-            return first in self.children
-        elif first in self.children:
+        if first in self.children:
             return self.get_child(first).has(*rest)
         else:
             return False
 
-    def remove(self, name: str):
+    def remove_child(self, name: str):
         del self.children[name]
-
-    def set_parent(self, parent: 'Component'):
-        self.parent = parent
-
-    def remove_parent(self):
-        self.parent = None
 
     @staticmethod
     def from_dict(dict_, default_name='root', dry_run=False):
@@ -82,7 +73,6 @@ class Component:
             children = value.get('components', dict())
             Component._from_dict_helper(children, new_, dry_run)
             parent.add_child(new_)
-            new_.set_parent(parent)
 
     def __str__(self):
         return self._str()

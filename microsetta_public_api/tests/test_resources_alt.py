@@ -11,7 +11,6 @@ class ComponentTests(TestCase):
         self.assertEqual(comp.name, 'some_name')
         self.assertDictEqual(comp.children, dict())
         self.assertIsNone(comp.data)
-        self.assertIsNone(comp.parent)
 
     def test_add_child(self):
         comp = Component('some_name')
@@ -134,16 +133,8 @@ class ComponentTests(TestCase):
         child3 = Component('child3')
         child1.add_child(child2)
         child1.add_child(child3)
-        child1.remove('child2')
+        child1.remove_child('child2')
         self.assertDictEqual(child1.children, {'child3': child3})
-
-    def test_set_parent(self):
-        comp = Component('name')
-        child = Component('child')
-        child.set_parent(comp)
-        self.assertEqual(child.parent, comp)
-        child.remove_parent()
-        self.assertIsNone(child.parent)
 
     def test_str(self):
         child1 = Component('child1')
