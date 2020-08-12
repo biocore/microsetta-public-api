@@ -29,4 +29,5 @@ constructors = {
     'TaxonomyDataLoader': TrivialLoader,
     'PCOALoader': TrivialLoader,
     'MetadataLoader': MetadataLoader,
+    'TrivialLoader': TrivialLoader,
 }
