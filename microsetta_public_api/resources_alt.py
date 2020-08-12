@@ -14,7 +14,7 @@ class Component:
         self.children: Dict[str, 'Component'] = dict()
         self.parent = None
 
-    def add(self, child: 'Component'):
+    def add_child(self, child: 'Component'):
         self.children.update({child.name: child})
 
     def set(self, other: 'Component'):
@@ -23,7 +23,7 @@ class Component:
     def set_data(self, component: object):
         self.data = component
 
-    def get(self, name: str) -> 'Component':
+    def get_child(self, name: str) -> 'Component':
         try:
             return self.children[name]
         except KeyError:
@@ -35,7 +35,7 @@ class Component:
             return self
         first = args[0]
         rest = args[1:]
-        child = self.get(first)
+        child = self.get_child(first)
         if rest:
             return child.gets(*rest)
         return child
@@ -69,7 +69,7 @@ class Component:
 
             children = value.get('components', dict())
             Component._from_dict_helper(children, new_, dry_run)
-            parent.add(new_)
+            parent.add_child(new_)
             new_.set_parent(parent)
 
     def __str__(self):
