@@ -619,6 +619,555 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/alphaMetric'
+      - $ref: '#/components/parameters/percentiles'
+      - $ref: '#/components/parameters/sampleIdQueryOpt'
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_alt
+      tags:
+        - Plotting
+        - Alpha Diversity
+      summary: Get a Vega schema for alpha diversity CDF matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      parameters:
+        - in: query
+          name: age_cat
+          schema:
+            type: string
+            example: '30s'
+        - in: query
+          name: bmi_cat
+          schema:
+            type: string
+            example: 'Normal'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '422':
+          $ref: '#/components/responses/422UnprocessableEntity'
+    post:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_json_query_alt
+      tags:
+        - Plotting
+        - Alpha Diversity
+      summary: Get a Vega schema for alpha diversity cdf matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '422':
+          $ref: '#/components/responses/422UnprocessableEntity'
+
+  '/{dataset}/diversity/alpha/metrics/available':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.available_metrics_alpha_alt
+      tags:
+        - Alpha Diversity
+      summary: Get available alpha diversity metrics
+      description: Get available alpha diversity metrics
+      responses:
+        '200':
+          description: Successfully returned alpha diversity metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - alpha_metrics
+                properties:
+                  alpha_metrics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/alphaMetric'
+                    example:
+                      - "faith_pd"
+                      - "observed_otus"
+                      - "chao1"
+
+  '/{dataset}/diversity/alpha/exists/{alpha_metric}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/alphaMetric'
+    summary: Determine whether the given sample is contained in the alpha resource
+    description: Determine whether the given sample is contained in the alpha resource
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.exists_single_alt
+      tags:
+        - Alpha Diversity
+      parameters:
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Indicates whether the sample is in the alpha resource
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.diversity.alpha.exists_group_alt
+      tags:
+        - Alpha Diversity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdArray"
+      responses:
+        '200':
+          description: Indicates whether each sample is in the alpha resource, in the same order as the input list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/diversity/alpha/single/{alpha_metric}/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.diversity.alpha.get_alpha_alt
+      tags:
+        - Alpha Diversity
+      summary: Get single sample alpha diversity
+      description: Get single sample alpha diversity
+      parameters:
+        - $ref: '#/components/parameters/sampleIdPath'
+        - $ref: '#/components/parameters/alphaMetric'
+      responses:
+        '200':
+          description: Successfully return alpha diversity information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sample_id:
+                    $ref: '#/components/schemas/sampleId'
+                  alpha_metric:
+                    $ref: '#/components/schemas/alphaMetric'
+                  data:
+                    type: number
+                    example: 7.24
+                    description: Alpha diversity value for sample ID with metric
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/diversity/alpha/group/{alpha_metric}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    post:
+      operationId: microsetta_public_api.api.diversity.alpha.alpha_group_alt
+      tags:
+        - Alpha Diversity
+      summary: Query alpha diversity for a group of samples
+      description: >
+        Query alpha diversity for a group of samples.
+        If `condition="AND"`, a group summary will be provided for those ID's matching both
+        `sample_ids` and `metadata_query`.
+        If `condition="OR"`, the summary will be provided for ID's matching either `sample_ids` or `metadata_query`.
+        '`condition` must be specified if both '`sample_ids` and `metadata_query` are specified.'
+      parameters:
+        - $ref: '#/components/parameters/alphaMetric'
+        - in: query
+          name: summary_statistics
+          schema:
+            type: boolean
+            default: true
+          description: >
+            Indicates whether summary statistics should be returned.
+        - in: query
+          name: return_raw
+          schema:
+            type: boolean
+            default: false
+          description: >
+            Indicates whether raw alpha diversity values should be returned.
+        - in: query
+          name: percentiles
+          explode: false
+          schema:
+            $ref: '#/components/schemas/percentiles'
+          required: false
+          description: >
+            Percentiles that should be returned. If not specified, then
+            `10,20,30,40,50,60,70,80,90` will be used.
+            Ignored if `summary_statistics=false`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    sample_ids:
+                      $ref: "#/components/schemas/sampleIdArray"
+                    metadata_query:
+                      $ref: "#/components/schemas/metadataQuery"
+                    condition:
+                      $ref: "#/components/schemas/ANDOR"
+              not:
+                type: object
+                additionalProperties: false
+                required:
+                  - sample_ids
+                  - metadata_query
+                properties:
+                  sample_ids:
+                    $ref: "#/components/schemas/sampleIdArray"
+                  metadata_query:
+                    $ref: "#/components/schemas/metadataQuery"
+      responses:
+        '200':
+          description: Successfuly return alpha diversity information
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    required:
+                      - alpha_metric
+                    properties:
+                      alpha_metric:
+                        $ref: '#/components/schemas/alphaMetric'
+                  - anyOf:
+                      - type: object
+                        required:
+                          - alpha_diversity
+                        properties:
+                          alpha_diversity:
+                            type: object
+                            additionalProperties:
+                              type: number
+                              example: 7.24
+                              description: Alpha diversity value of the metric for a given sample ID.
+                            example:
+                              sample1: 0.1,
+                              sample2: 9.01,
+                              sample3: 7.24,
+                            description: Dictionary of sample ID - alpha diversity value pairs
+                      - type: object
+                        required:
+                          - group_summary
+                        properties:
+                          group_summary:
+                            type: object
+                            required:
+                              - mean
+                              - median
+                              - std
+                              - group_size
+                              - percentile
+                              - percentile_values
+                            properties:
+                              mean:
+                                type: number
+                                example: 8.47
+                              median:
+                                type: number
+                                example: 8.25
+                              std:
+                                type: number
+                                example: 0.54
+                              group_size:
+                                type: integer
+                                example: 24
+                              percentile:
+                                type: array
+                                items:
+                                  type: number
+                                  minimum: 0
+                                  maximum: 100
+                                example:
+                                  - 0
+                                  - 24
+                                  - 49
+                                  - 74
+                                  - 99
+                              percentile_values:
+                                type: array
+                                items:
+                                  type: number
+                                example:
+                                  - 7.15
+                                  - 7.24
+                                  - 8.25
+                                  - 9.01
+                                  - 9.04
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '400':
+          description: >
+            Either `summary_statistics`, `return_raw`, or both are required to be true.
+
+  '/{dataset}/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/contains':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.diversity.beta.pcoa_contains_alt
+      tags:
+        - Beta Diversity
+      summary: Get whether the given `sample_id` is contained in the `named_sample_set`
+      description: Get whether the given `sample_id` is contained in the `named_sample_set`
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: a `boolean`, which indicates if `sample_id` is contained in `named_sample_set`
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta_alt
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a Vega schema for PCOA plot
+      description: Get a Vega schema for PCOA plot
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/taxonomy/available':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.resources_alt
+      tags:
+        - Taxonomy
+      summary: Get list of available taxonomy resources
+      description: Get list of available taxonomy resources
+      responses:
+        '200':
+          description: Successfully returned taxonomy resources
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - resources
+                properties:
+                  resources:
+                    type: array
+                    items:
+                      type: string
+                      example: "greengenes"
+                    example:
+                      - "greengenes"
+                      - "silva"
+
+  '/{dataset}/taxonomy/exists/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/taxonomyResource'
+      - $ref: '#/components/parameters/namedDataset'
+    summary: Determine whether the given sample is contained in the taxonomy resource
+    description: Determine whether the given sample is contained in the taxonomy resource
+    get:
+      operationId: microsetta_public_api.api.taxonomy.exists_single_alt
+      tags:
+        - Taxonomy
+      parameters:
+        - $ref: '#/components/parameters/sampleIdQuery'
+      responses:
+        '200':
+          description: Indicates whether the sample is in the taxonomy resource
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.taxonomy.exists_group_alt
+      tags:
+        - Taxonomy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdArray"
+      responses:
+        '200':
+          description: Indicates whether each sample is in the taxonomy resource. Order of the output array corresponds to the order of the input array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: boolean
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/taxonomy/group/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    post:
+      operationId: microsetta_public_api.api.taxonomy.summarize_group_alt
+      tags:
+        - Taxonomy
+      summary: Get taxonomy information for a group of samples
+      description: Get taxonomy information for a group of samples
+      parameters:
+        - $ref: '#/components/parameters/taxonomyResource'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdList"
+      responses:
+        '200':
+          description: Successfuly return taxonomy information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyFeatures'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/taxonomy/single/{resource}/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.single_sample_alt
+      tags:
+        - Taxonomy
+      summary: Get taxonomy information for a sample
+      description: Get taxonomy information for a sample
+      parameters:
+        - $ref: '#/components/parameters/sampleIdPath'
+        - $ref: '#/components/parameters/taxonomyResource'
+      responses:
+        '200':
+          description: Successfuly return taxonomy information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyFeatures'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/taxonomy/present/group/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    post:
+      operationId: microsetta_public_api.api.taxonomy.group_taxa_present_alt
+      tags:
+        - Taxonomy
+      summary: Get a DataTable of taxa, broken down by rank, for a list of samples
+      description: Get a DataTable of taxa, broken down by rank, for a list of samples
+      parameters:
+        - $ref: '#/components/parameters/taxonomyResource'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdList"
+      responses:
+        '200':
+          description: Successfully return taxonomy table
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sampleDataTable'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/taxonomy/present/single/{resource}/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.single_sample_taxa_present_alt
+      tags:
+        - Taxonomy
+      summary: Get a DataTable of taxa, broken down by rank, for a given sample
+      description: Get a DataTable of taxa, broken down by rank, for a given sample
+      parameters:
+        - $ref: '#/components/parameters/sampleIdPath'
+        - $ref: '#/components/parameters/taxonomyResource'
+      responses:
+        '200':
+          description: Successfully return taxonomy table
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sampleDataTable'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.emperor.plot_pcoa_alt
+      tags:
+        - Plotting
+        - Beta Diversity
+        - Emperor
+      summary: Get an Emperor compatible PCoA schema
+      description: Get an Emperor compatible PCoA schema
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/metadataCategories'
+        - $ref: '#/components/parameters/fillna'
+      responses:
+        '200':
+          description: Successfully return Emperor Schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/emperorPCoA'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 components:
   parameters:
     alphaMetric:
@@ -647,6 +1196,13 @@ components:
       description: An array of metadata categories
       schema:
         $ref: '#/components/schemas/metadataHeaders'
+      required: true
+    namedDataset:
+      name: dataset
+      in: path
+      description: A named dataset
+      schema:
+        $ref: '#/components/schemas/namedDataset'
       required: true
     namedSampleSet:
       name: named_sample_set
@@ -804,6 +1360,11 @@ components:
         }
     metadataValue:
       $ref: '#/components/schemas/anyValue'
+    namedDataset:
+      type: string
+      example:
+        - '16SAmplicon'
+        - 'ShotgunMetagenomics'
     namedSampleSet:
       type: string
       example: 'body-site'
