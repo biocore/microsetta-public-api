@@ -158,12 +158,12 @@ class TestConfigSchema(TestCase):
                     '__alpha__': {
                         'faith_pd': 'path/to/shotgun_faith_pd.qza',
                     },
-                    ## this validates that adding an extra keyword to a
+                    # this validates that adding an extra keyword to a
                     # dataset will make it invalid
                     '__bad_kw__': [
                         'anything'
                     ],
-                },
+                    },
             },
             '__metadata__': '/path/to/metadata.tsv',
         }
@@ -241,7 +241,7 @@ class TestParsing(TestCase):
         parsed_config = SchemaBase().make_elements(
             json.loads(json.dumps(config)))
         obs = parsed_config.has('dataset', '__alpha__', '__taxonomy__',
-                                 'a', 0, 'a', '__pcoa__')
+                                'a', 0, 'a', '__pcoa__')
         self.assertTrue(obs)
         obs = parsed_config.has('dataset', '__metadata__', '/some/path')
         self.assertFalse(obs)
