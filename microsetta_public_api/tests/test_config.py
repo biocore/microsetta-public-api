@@ -10,7 +10,6 @@ from microsetta_public_api.config import (
     DictElement,
     PCOAElement,
     TaxonomyElement,
-    make_elements,
     ConfigElementVisitor,
     SchemaBase,
     Schema,
@@ -187,9 +186,8 @@ class TestParsing(TestCase):
                 "__metadata__": "/some/path",
             }
         }
-        # parsed_config = json.loads(json.dumps(config), object_hook=as_config)
-        parsed_config = make_elements(json.loads(json.dumps(config)),
-                                      element_map=SchemaBase().element_map())
+        dict_config = json.loads(json.dumps(config))
+        parsed_config = SchemaBase().make_elements(dict_config)
         self.assertIsInstance(parsed_config['dataset']['__alpha__'],
                               AlphaElement)
         self.assertIsInstance(parsed_config['dataset']['__metadata__'],
@@ -240,7 +238,8 @@ class TestParsing(TestCase):
             }
         }
         # parsed_config = json.loads(json.dumps(config), object_hook=as_config)
-        parsed_config = make_elements(json.loads(json.dumps(config)))
+        parsed_config = SchemaBase().make_elements(
+            json.loads(json.dumps(config)))
         obs = parsed_config.has('dataset', '__alpha__', '__taxonomy__',
                                  'a', 0, 'a', '__pcoa__')
         self.assertTrue(obs)
@@ -260,7 +259,7 @@ class TestParsing(TestCase):
         obs = parsed_config.has('dataset', 'other', 9, 19)
         self.assertFalse(obs)
 
-    def test_json_hook_with_alternate_schema(self):
+    def test_make_elements_with_alternate_schema(self):
         class AlternateSchema(SchemaBase):
             def __init__(self):
                 self.alpha_kw = '__foo__'
@@ -307,7 +306,8 @@ class TestParsing(TestCase):
                 "other": 9,
             }
         }
-        parsed_config = make_elements(json.loads(json.dumps(config)))
+        parsed_config = SchemaBase().make_elements(json.loads(json.dumps(
+            config)))
         obs = parsed_config.gets('dataset', '__alpha__', '__taxonomy__',
                                  'a', 0, 'a', '__pcoa__')
         self.assertDictEqual(obs, {"do": "this"})
@@ -330,7 +330,8 @@ class TestParsing(TestCase):
 
     def test_deep_list_config(self):
         config = [[[[[{'__metadata__': 'filepath'}, {}]]]]]
-        parsed_config = make_elements(json.loads(json.dumps(config)))
+        parsed_config = SchemaBase().make_elements(
+            json.loads(json.dumps(config)))
         self.assertIsInstance(parsed_config, Element)
         self.assertIsInstance(parsed_config[0], Element)
         self.assertIsInstance(parsed_config[0][0], Element)
@@ -340,15 +341,6 @@ class TestParsing(TestCase):
 
 
 class TestElement(TestCase):
-
-    # def test_dict_element_get(self):
-    #     alpha = AlphaElement({'metric': 'path'})
-    #     element = DictElement({'a': alpha})
-    #     self.assertDictEqual(alpha, element['a'])
-    #     alpha.data = 'stuff goes here'
-    #     self.assertEqual('stuff goes here', element['a'])
-    #     with self.assertRaises(KeyError):
-    #         element['c']
 
     def test_nested_element(self):
         element = AlphaElement(DictElement({'a': 'b',
