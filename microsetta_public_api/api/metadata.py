@@ -2,14 +2,11 @@ from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.utils._utils import jsonify, validate_resource
-from microsetta_public_api.resources_alt import resources_alt
+from microsetta_public_api.resources_alt import get_resources
 
 
 def category_values(category):
-    if resources_alt.has('datasets', 'metadata'):
-        repo = resources_alt.gets('datasets', 'metadata').get_data()
-    else:
-        repo = MetadataRepo()
+    repo = MetadataRepo(get_resources().gets('metadata').data)
     if category in repo.categories:
         values = repo.category_values(category)
         return jsonify(values), 200
@@ -33,7 +30,7 @@ def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
 
 
 def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
-    repo = MetadataRepo()
+    repo = MetadataRepo(get_resources().gets('metadata').data)
     query = _format_query(kwargs)
     is_invalid = _validate_query(kwargs, repo)
     if is_invalid:
@@ -43,7 +40,7 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
 
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
     query = body
-    repo = MetadataRepo()
+    repo = MetadataRepo(get_resources().gets('metadata').data)
     return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
 
 
