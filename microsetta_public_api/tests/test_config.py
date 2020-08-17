@@ -18,7 +18,7 @@ from microsetta_public_api.config import (
 
 
 class TestConfigSchema(TestCase):
-    def test_valdiate_new_schema(self):
+    def test_validate_new_schema(self):
         test_config = {
             'datasets': {
                 '16SAmplicon':

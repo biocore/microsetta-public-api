@@ -46,7 +46,7 @@ pcoa_schema = {
     "additionalProperties":
         {
             "type": "string",
-            "description": "Path to a PCOA QZA",
+            "description": "Path to a PCoA QZA",
         },
 }
 
@@ -54,7 +54,7 @@ pcoa_schema = {
 pcoa_group_schema = {
     "type": "object",
     "additionalProperties": pcoa_schema,
-    "description": "A group of related PCOAs.",
+    "description": "A group of related PCoAs.",
 }
 
 
@@ -80,14 +80,13 @@ class Element:
 
         Parameters
         ----------
-        *args
+        *args: Iterable of str or int
             A path of keys
 
         Returns
         -------
         object
             The object located by the path of keys
-
 
         Raises
         ------
@@ -120,7 +119,7 @@ class Element:
 
         Parameters
         ----------
-        *args
+        *args: Iterable of str or int
             A path of keys
 
         Returns
@@ -197,7 +196,6 @@ class PCOAElement(DictElement):
 
 
 class MetadataElement(str, Element):
-
     def accept(self, visitor):
         visitor.visit_metadata(self)
 
@@ -251,9 +249,9 @@ class SchemaBase:
         elif isinstance(json_dump, dict):
             for key, value in json_dump.items():
                 json_dump[key] = self.make_elements(value)
-                element_type = self.element_map().get(key, False)
-                if element_type:
-                    json_dump[key] = element_type(self.make_elements(value))
+                element_type = self.element_map().get(key, None)
+                if element_type is not None:
+                    json_dump[key] = element_type(json_dump[key])
 
         return ElementFactory.get_element(json_dump)
 
