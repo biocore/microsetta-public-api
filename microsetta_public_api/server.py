@@ -1,7 +1,13 @@
 from pkg_resources import resource_filename
-from microsetta_public_api.config import (SERVER_CONFIG,
-                                          resources as config_resources)
+import copy
+from microsetta_public_api.config import (
+    SERVER_CONFIG,
+    resources as config_resources,
+    schema,
+)
 from microsetta_public_api.resources import resources
+from microsetta_public_api.resources_alt import resources_alt
+from microsetta_public_api.resources_alt import Q2Visitor
 from microsetta_public_api.exceptions import UnknownMetric
 from flask import jsonify
 
@@ -23,6 +29,10 @@ def build_app():
     # passed to `build_app`.
     config_resources.update(resource_config)
     resources.update(config_resources)
+    resource = copy.deepcopy(config_resources)
+    resource = schema.make_elements(resource)
+    resources_alt.update(resource)
+    resources_alt.accept(Q2Visitor())
 
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')

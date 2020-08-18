@@ -31,6 +31,10 @@ class TestMetadataRepo(TempfileTestCase, ConfigTestCase):
         TempfileTestCase.tearDown(self)
         ConfigTestCase.tearDown(self)
 
+    def test_construct_from_dataframe(self):
+        new_repo = MetadataRepo(self.repo._metadata)
+        pd.testing.assert_frame_equal(new_repo._metadata, self.repo._metadata)
+
     def test_categories(self):
         exp = ['age_cat', 'num_cat', 'other']
         obs = self.repo.categories
