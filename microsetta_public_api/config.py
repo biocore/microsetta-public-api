@@ -109,6 +109,10 @@ class Element:
         rest = args[1:]
         try:
             child = self[first]
+            # this covers the case when child is str or None or something
+            # that is 'gets'able but does not have 'gets' method itself
+            if not hasattr(child, 'gets') and len(rest) == 0:
+                return child
         # if you can't index into self for whatever reason, give me a key error
         except (TypeError, KeyError, IndexError):
             raise KeyError(first)
@@ -163,6 +167,36 @@ class DictElement(dict, Element):
             # not been converted to an Element
             except AttributeError:
                 pass
+
+    def updates(self, value, *args):
+        """
+
+        Parameters
+        ----------
+        value: Any
+            A value to store at the given path of arguments
+        *args: Iterable of str or int
+            A path of keys. Must have at least one key.
+
+        Returns
+        -------
+        None
+
+        """
+        if len(args) == 0:
+            return ValueError('Must receive at least one key.')
+
+        first = args[0]
+        rest = args[1:]
+
+        if len(rest) == 0:
+            self.update(DictElement({first: value}))
+        elif first in self and isinstance(self[first], dict):
+            self[first].updates(value, *rest)
+        else:
+            self[first] = DictElement()
+            self[first].updates(value, *rest)
+        return
 
 
 class ListElement(list, Element):
@@ -307,10 +341,10 @@ class CompatibilitySchema(SchemaBase):
         self.old_taxonomy_kw = 'table_resources'
         self.old_pcoa_kw = 'pcoa'
         self.old_metadata_kw = 'metadata'
-        self.new_alpha_kw = '__alpha__'
-        self.new_taxonomy_kw = '__taxonomy__'
-        self.new_pcoa_kw = '__pcoa__'
-        self.new_metadata_kw = '__metadata__'
+        self.alpha_kw = '__alpha__'
+        self.taxonomy_kw = '__taxonomy__'
+        self.pcoa_kw = '__pcoa__'
+        self.metadata_kw = '__metadata__'
 
     def element_map(self):
         return {
@@ -318,10 +352,10 @@ class CompatibilitySchema(SchemaBase):
             self.old_taxonomy_kw: TaxonomyElement,
             self.old_pcoa_kw: PCOAElement,
             self.old_metadata_kw: MetadataElement,
-            self.new_alpha_kw: AlphaElement,
-            self.new_taxonomy_kw: TaxonomyElement,
-            self.new_pcoa_kw: PCOAElement,
-            self.new_metadata_kw: MetadataElement,
+            self.alpha_kw: AlphaElement,
+            self.taxonomy_kw: TaxonomyElement,
+            self.pcoa_kw: PCOAElement,
+            self.metadata_kw: MetadataElement,
         }
 
     def schema(self):
@@ -336,16 +370,16 @@ class CompatibilitySchema(SchemaBase):
                     {
                         "type": "object",
                         "properties": {
-                            self.new_metadata_kw: metadata_schema,
+                            self.metadata_kw: metadata_schema,
                         },
                         "additionalProperties":
                             {
                                 "type": "object",
                                 "properties": {
-                                    self.new_alpha_kw: alpha_group_schema,
-                                    self.new_taxonomy_kw:
+                                    self.alpha_kw: alpha_group_schema,
+                                    self.taxonomy_kw:
                                         taxonomy_group_schema,
-                                    self.new_pcoa_kw: pcoa_group_schema,
+                                    self.pcoa_kw: pcoa_group_schema,
                                 },
                                 "additionalProperties": False,
                             }

@@ -1,10 +1,18 @@
 from collections import namedtuple
-
 from flask import jsonify as flask_jsonify
+from microsetta_public_api.exceptions import UnknownResource, UnknownID
 
 
 def jsonify(*args, **kwargs):
     return flask_jsonify(*args, **kwargs)
+
+
+def validate_resource_alt(available, name, type_):
+    if name not in available:
+        raise UnknownResource(
+            f"Requested {type_}: '{name}' "
+            f"is unavailable. Available {type_}(s): "
+            f"{available}")
 
 
 def validate_resource(available, name, type_):
@@ -13,6 +21,12 @@ def validate_resource(available, name, type_):
                        text=f"Requested {type_}: '{name}' "
                             f"is unavailable. Available {type_}(s): "
                             f"{available}"), 404
+
+
+def check_missing_ids_alt(missing_ids, alpha_metric, type_):
+    if len(missing_ids) > 0:
+        raise UnknownID(f"Sample ID(s) not found for {type_}: {alpha_metric}. "
+                        f"Unknown IDs: {missing_ids}")
 
 
 def check_missing_ids(missing_ids, alpha_metric, type_):

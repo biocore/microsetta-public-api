@@ -3,6 +3,15 @@ from unittest.mock import patch, PropertyMock
 from microsetta_public_api.api.diversity.alpha import (
     available_metrics_alpha, get_alpha, alpha_group, exists_single,
     exists_group,
+    available_metrics_alpha_alt,
+    get_alpha_alt,
+    alpha_group_alt,
+    exists_single_alt,
+    exists_group_alt,
+)
+from microsetta_public_api.config import DictElement, AlphaElement
+from microsetta_public_api.exceptions import (
+    UnknownResource, UnknownID, IncompatibleOptions,
 )
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 import numpy.testing as npt
@@ -11,7 +20,11 @@ import pandas.testing as pdt
 import json
 from math import sqrt
 
-from microsetta_public_api.utils.testing import MockedJsonifyTestCase
+from microsetta_public_api.utils.testing import (
+    MockMetadataElement,
+    MockedJsonifyTestCase,
+    TrivialVisitor,
+)
 
 
 class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
@@ -71,9 +84,9 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             }
             mock_exists.side_effect = [True]
 
-            response, code = exists_single(alpha_metric='other-metric',
-                                           sample_id='sample_1')
-        self.assertEqual(404, code)
+            with self.assertRaises(UnknownResource):
+                exists_single(alpha_metric='other-metric',
+                              sample_id='sample_1')
 
     def test_alpha_diveristy_exists_group(self):
 
@@ -102,9 +115,9 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
             }
             mock_exists.side_effect = [True, False, True]
 
-            response, code = exists_group(alpha_metric='other-metric',
-                                          body=['s1', 's2', 's3'])
-        self.assertEqual(404, code)
+            with self.assertRaises(UnknownResource):
+                exists_group(alpha_metric='other-metric',
+                             body=['s1', 's2', 's3'])
 
     def test_alpha_diversity_single_sample(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
@@ -126,11 +139,8 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
     def test_alpha_diversity_unknown_id(self):
         with patch.object(AlphaRepo, 'exists') as mock_exists:
             mock_exists.return_value = [False]
-            response, code = get_alpha('sample-foo-bar', 'observed-otus')
-
-        self.assertRegex(response,
-                         "Sample ID not found.")
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                get_alpha('sample-foo-bar', 'observed-otus')
 
     def test_alpha_diversity_improper_parameters(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
@@ -143,15 +153,11 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                 name='observed_otus'
             )
             metric = 'observed_otus'
-            response, code = alpha_group(self.post_body,
-                                         alpha_metric=metric,
-                                         summary_statistics=False,
-                                         return_raw=False)
-            obs = json.loads(response)
-            self.assertEqual(400, code)
-            self.assertEqual('Either `summary_statistics`, `return_raw`, '
-                             'or both are required to be true.',
-                             obs['text'])
+            with self.assertRaises(IncompatibleOptions):
+                alpha_group(self.post_body,
+                            alpha_metric=metric,
+                            summary_statistics=False,
+                            return_raw=False)
 
     def test_alpha_diversity_group_return_raw_only(self):
         with patch.object(AlphaRepo, 'get_alpha_diversity') as mock_method, \
@@ -458,16 +464,11 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
         with patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['metric-a', 'metric-b']
             metric = 'observed_otus'
-            response, code = alpha_group(self.post_body,
-                                         alpha_metric=metric,
-                                         summary_statistics=False,
-                                         return_raw=True)
-
-        api_out = json.loads(response.data)
-        self.assertRegex(api_out['text'],
-                         r"Requested metric: 'observed_otus' is unavailable. "
-                         r"Available metric\(s\): \[(.*)\]")
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownResource):
+                alpha_group(self.post_body,
+                            alpha_metric=metric,
+                            summary_statistics=False,
+                            return_raw=True)
 
     def test_alpha_diversity_group_unknown_sample(self):
         # One ID not found (out of two)
@@ -475,27 +476,117 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
                 patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [True, False]
-            response, code = alpha_group(self.post_body, 'observed_otus',
-                                         )
-
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                alpha_group(self.post_body, 'observed_otus')
 
         # Multiple IDs do not exist
         with patch.object(AlphaRepo, 'exists') as mock_exists, \
                 patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [False, False]
-            response, code = alpha_group(self.post_body, 'observed_otus',
-                                         )
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-foo-bar',
-                              'sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                alpha_group(self.post_body, 'observed_otus')
+
+
+class AlphaAltTests(MockedJsonifyTestCase):
+
+    jsonify_to_patch = [
+        'microsetta_public_api.api.diversity.alpha.jsonify',
+        'microsetta_public_api.utils._utils.jsonify',
+    ]
+
+    def setUp(self):
+        super().setUp()
+        faith_pd_values = [1, 2, 3, 4]
+        faith_pd_index = ['s01', 's02', 's04', 's05']
+        shannon_values = [7.24, 9.05, 8.25]
+        shannon_index = ['s01', 's02', 'sOther']
+        self.resources = DictElement({
+            'datasets': DictElement({
+                'dataset1': DictElement({
+                    '__alpha__': AlphaElement({
+                        'faith_pd': pd.Series(faith_pd_values,
+                                              index=faith_pd_index),
+                        'shannon': pd.Series(shannon_values,
+                                             index=shannon_index),
+                    })
+                }),
+                'dataset2': DictElement({}),
+                '__metadata__': MockMetadataElement(pd.DataFrame({
+                    'age_cat': ['30s', '40s', '50s', '30s', '30s'],
+                    'num_var': [3, 4, 5, 6, 7],
+                }, index=['s01', 's02', 's04', 's05', 'sOther']))
+            }),
+        })
+        self.resources.accept(TrivialVisitor())
+        self.res_patcher = patch(
+            'microsetta_public_api.api.diversity.alpha.get_resources')
+        self.mock_resources = self.res_patcher.start()
+        self.mock_resources.return_value = self.resources
+
+    def tearDown(self):
+        self.res_patcher.stop()
+        super().tearDown()
+
+    def test_get_alpha_alt(self):
+        faith_pd, code1 = get_alpha_alt('dataset1', 's01',
+                                        'faith_pd')
+        shannon, code2 = get_alpha_alt('dataset1', 's02', 'shannon')
+        faith_pd_value = json.loads(faith_pd)
+        shannon_value = json.loads(shannon)
+        self.assertEqual(faith_pd_value['data'], 1)
+        self.assertEqual(200, code1)
+        self.assertEqual(shannon_value['data'], 9.05)
+        self.assertEqual(200, code2)
+
+    def test_get_alpha_alt_404(self):
+        with self.assertRaisesRegex(UnknownResource, 'dataset3'):
+            get_alpha_alt('dataset3', 's03', 'faith_pd')
+        with self.assertRaisesRegex(UnknownResource, '__alpha__'):
+            get_alpha_alt('dataset2', 's03', 'faith_pd')
+
+    def test_alpha_group_alt(self):
+        request = {'sample_ids': ['s01', 's04']}
+        response, code = alpha_group_alt(request, 'dataset1', 'faith_pd',
+                                         return_raw=True)
+        self.assertEqual(code, 200)
+        obs = json.loads(response)
+        self.assertDictEqual({'s01': 1, 's04': 3},
+                             obs['alpha_diversity'])
+
+    def test_alpha_group_alt_404_sample_id(self):
+        request = {'sample_ids': ['s01', 'dne']}
+        with self.assertRaises(UnknownID):
+            alpha_group_alt(request, 'dataset1', 'faith_pd',
+                            return_raw=True)
+
+    def test_alpha_group_alt_404_metric(self):
+        request = {'sample_ids': ['s01', 's04']}
+        with self.assertRaises(UnknownResource):
+            alpha_group_alt(request, 'dataset1', 'bad-metric',
+                            return_raw=True)
+
+    def test_alpha_group_alt_filter_metadata_OR(self):
+        post_body = {
+            'sample_ids': [
+                's04',
+            ],
+            'metadata_query': {
+                    "condition": "AND",
+                    "rules": [
+                        {
+                            "id": "age_cat",
+                            "field": "age_cat",
+                            "operator": "equal",
+                            "value": "30s",
+                        },
+                    ],
+                },
+            'condition': "OR",
+        }
+        response, code = alpha_group_alt(post_body, 'dataset1', 'faith_pd',
+                                         return_raw=True)
+        obs = json.loads(response)
+        self.assertEqual(code, 200)
+        sample_ids = obs['alpha_diversity'].keys()
+        self.assertCountEqual(['s01', 's04', 's05'], sample_ids)

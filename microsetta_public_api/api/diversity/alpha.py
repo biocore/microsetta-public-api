@@ -2,19 +2,45 @@ from microsetta_public_api.models._alpha import Alpha
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils import jsonify
-from microsetta_public_api.utils._utils import validate_resource, \
-    check_missing_ids
+from microsetta_public_api.utils._utils import (validate_resource_alt,
+                                                check_missing_ids_alt,
+                                                )
+from microsetta_public_api.resources_alt import get_resources
+from microsetta_public_api.exceptions import (
+    UnknownID,
+    UnknownResource,
+    IncompatibleOptions,
+)
+from microsetta_public_api.config import schema
 
 
-def get_alpha_alt(sample_id, alpha_metric):
-    raise NotImplementedError()
+def get_alpha_alt(dataset, sample_id, alpha_metric):
+    try:
+        dataset_resource = get_resources().gets('datasets', dataset)
+    except KeyError:
+        raise UnknownResource(f"Unknown dataset: '{dataset}'")
+    try:
+        alpha_resource = dataset_resource.gets(schema.alpha_kw)
+    except KeyError:
+        raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
+                              f"dataset='{dataset}'.")
+
+    alpha_repo = AlphaRepo(alpha_resource)
+    alpha_value = _get_alpha(alpha_repo, alpha_metric, sample_id)
+
+    return jsonify(alpha_value), 200
 
 
 def get_alpha(sample_id, alpha_metric):
     alpha_repo = AlphaRepo()
+    ret_val = _get_alpha(alpha_repo, alpha_metric, sample_id)
+
+    return jsonify(ret_val), 200
+
+
+def _get_alpha(alpha_repo, alpha_metric, sample_id):
     if not all(alpha_repo.exists([sample_id], alpha_metric)):
-        return jsonify(error=404, text="Sample ID not found."), \
-               404
+        raise UnknownID(f"Sample ID not found. Got: {sample_id}")
     alpha_series = alpha_repo.get_alpha_diversity([sample_id],
                                                   alpha_metric)
     alpha_ = Alpha(alpha_series)
@@ -24,35 +50,66 @@ def get_alpha(sample_id, alpha_metric):
         'alpha_metric': alpha_data['alpha_metric'],
         'data': alpha_data['alpha_diversity'][sample_id],
     }
+    return ret_val
 
-    return jsonify(ret_val), 200
 
-
-def alpha_group_alt(body, alpha_metric, summary_statistics=True,
+def alpha_group_alt(body, dataset, alpha_metric, summary_statistics=True,
                     percentiles=None, return_raw=False):
-    raise NotImplementedError()
+    try:
+        dataset_resource = get_resources().gets('datasets', dataset)
+    except KeyError:
+        raise UnknownResource(f"Unknown dataset: '{dataset}'")
+    try:
+        alpha_resource = dataset_resource.gets(schema.alpha_kw)
+    except KeyError:
+        raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
+                              f"dataset='{dataset}'.")
+
+    alpha_repo = AlphaRepo(alpha_resource)
+    alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter_alt,
+                              alpha_metric, percentiles,
+                              return_raw, summary_statistics)
+
+    return jsonify(alpha_data), 200
 
 
 def alpha_group(body, alpha_metric, summary_statistics=True,
                 percentiles=None, return_raw=False):
+    alpha_repo = AlphaRepo()
+    alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter,
+                              alpha_metric, percentiles,
+                              return_raw, summary_statistics)
+
+    response = jsonify(alpha_data)
+    return response, 200
+
+
+def _metadata_repo_getter():
+    return MetadataRepo()
+
+
+def _metadata_repo_getter_alt():
+    try:
+        return MetadataRepo(get_resources().gets('datasets',
+                            schema.metadata_kw).data)
+    except KeyError:
+        UnknownResource(f"No metadata (kw: '{schema.metadata_kw}')")
+
+
+def _alpha_group(body, alpha_repo, metadata_repo_getter, alpha_metric,
+                 percentiles, return_raw, summary_statistics):
     if not (summary_statistics or return_raw):
         # swagger does not account for parameter dependencies, so we should
         #  give a bad request error here
-        return jsonify(
-            error=400, text='Either `summary_statistics`, `return_raw`, '
-                            'or both are required to be true.'
-            ), 400
-
+        raise IncompatibleOptions('Either `summary_statistics`, '
+                                  '`return_raw`, or both are required to be '
+                                  'true.')
     sample_ids = []
-    alpha_repo = AlphaRepo()
     # do the common checks
     available_metrics = alpha_repo.available_metrics()
     type_ = 'metric'
-    missing_metric = validate_resource(available_metrics, alpha_metric,
-                                       type_)
-    if missing_metric:
-        return missing_metric
-
+    validate_resource_alt(available_metrics, alpha_metric,
+                          type_)
     if 'sample_ids' in body:
         sample_ids = body['sample_ids']
 
@@ -61,14 +118,12 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
         # for the given metric
         missing_ids = [id_ for id_ in sample_ids if
                        not alpha_repo.exists(id_, alpha_metric)]
-        missing_ids_msg = check_missing_ids(missing_ids, alpha_metric, type_)
-        if missing_ids_msg:
-            return missing_ids_msg
-
+        check_missing_ids_alt(missing_ids, alpha_metric,
+                              type_)
     # find sample IDs matching the metadata query
     if 'metadata_query' in body:
         query = body['metadata_query']
-        metadata_repo = MetadataRepo()
+        metadata_repo = metadata_repo_getter()
         matching_ids = metadata_repo.sample_id_matches(query)
         matching_ids = [id_ for id_ in matching_ids if
                         alpha_repo.exists(id_, alpha_metric)
@@ -79,14 +134,12 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
             sample_ids = list(set(sample_ids) | set(matching_ids))
         elif body['condition'] == 'AND':
             sample_ids = list(set(sample_ids) & set(matching_ids))
-
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,
                                                   alpha_metric,
                                                   )
     alpha_ = Alpha(alpha_series, percentiles=percentiles)
     alpha_data = dict()
-
     if return_raw:
         # not using name right now, so give it a placeholder name
         alpha_values = alpha_.get_group_raw(name='').to_dict()
@@ -98,12 +151,10 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
         del alpha_summary['name']
         alpha_data.update({'alpha_metric': alpha_summary.pop('alpha_metric')})
         alpha_data.update({'group_summary': alpha_summary})
-
-    response = jsonify(alpha_data)
-    return response, 200
+    return alpha_data
 
 
-def available_metrics_alpha_alt():
+def available_metrics_alpha_alt(dataset):
     raise NotImplementedError()
 
 
@@ -116,7 +167,7 @@ def available_metrics_alpha():
     return jsonify(ret_val), 200
 
 
-def exists_single_alt(alpha_metric, sample_id):
+def exists_single_alt(dataset, alpha_metric, sample_id):
     raise NotImplementedError()
 
 
@@ -124,7 +175,7 @@ def exists_single(alpha_metric, sample_id):
     return _exists(alpha_metric, sample_id)
 
 
-def exists_group_alt(body, alpha_metric):
+def exists_group_alt(body, dataset, alpha_metric):
     raise NotImplementedError()
 
 
@@ -137,9 +188,7 @@ def _exists(alpha_metric, samples):
     # figure out if the user asked for a metric we have data on
     available_metrics = alpha_repo.available_metrics()
     type_ = 'metric'
-    missing_metric = validate_resource(available_metrics, alpha_metric,
-                                       type_)
-    if missing_metric:
-        return missing_metric
+    validate_resource_alt(available_metrics, alpha_metric,
+                          type_)
 
     return jsonify(alpha_repo.exists(samples, alpha_metric)), 200

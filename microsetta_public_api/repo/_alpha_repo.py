@@ -1,11 +1,14 @@
 from microsetta_public_api.exceptions import UnknownMetric
-from microsetta_public_api.resources import resources
+from microsetta_public_api.resources import resources as RESOURCES
 
 
 class AlphaRepo:
 
-    def __init__(self):
-        self._resources = resources.get('alpha_resources', dict())
+    def __init__(self, resources=None):
+        if resources is not None:
+            self._resources = resources
+        else:
+            self._resources = RESOURCES.get('alpha_resources', dict())
 
     # resources needs to be a property in order to be able to be
     #  mocked in the test cases, but also be instance specific

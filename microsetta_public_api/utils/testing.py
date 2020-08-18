@@ -15,6 +15,28 @@ import microsetta_public_api.server
 import microsetta_public_api.utils._utils
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
+from microsetta_public_api.config import ConfigElementVisitor, Element
+
+
+class MockMetadataElement(Element):
+
+    def __init__(self, instance):
+        super().__init__()
+        self.instance = instance
+
+    def accept(self, visitor):
+        self.data = self.instance
+
+
+class TrivialVisitor(ConfigElementVisitor):
+
+    def visit(self, element):
+        element.data = element
+
+    visit_alpha = visit
+    visit_taxonomy = visit
+    visit_pcoa = visit
+    visit_metadata = visit
 
 
 class TempfileTestCase(TestCase):
