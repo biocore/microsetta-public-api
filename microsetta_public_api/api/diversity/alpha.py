@@ -6,6 +6,10 @@ from microsetta_public_api.utils._utils import validate_resource, \
     check_missing_ids
 
 
+def get_alpha_alt(sample_id, alpha_metric):
+    raise NotImplementedError()
+
+
 def get_alpha(sample_id, alpha_metric):
     alpha_repo = AlphaRepo()
     if not all(alpha_repo.exists([sample_id], alpha_metric)):
@@ -22,6 +26,11 @@ def get_alpha(sample_id, alpha_metric):
     }
 
     return jsonify(ret_val), 200
+
+
+def alpha_group_alt(body, alpha_metric, summary_statistics=True,
+                    percentiles=None, return_raw=False):
+    raise NotImplementedError()
 
 
 def alpha_group(body, alpha_metric, summary_statistics=True,
@@ -94,6 +103,10 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
     return response, 200
 
 
+def available_metrics_alpha_alt():
+    raise NotImplementedError()
+
+
 def available_metrics_alpha():
     alpha_repo = AlphaRepo()
     ret_val = {
@@ -103,8 +116,16 @@ def available_metrics_alpha():
     return jsonify(ret_val), 200
 
 
+def exists_single_alt(alpha_metric, sample_id):
+    raise NotImplementedError()
+
+
 def exists_single(alpha_metric, sample_id):
     return _exists(alpha_metric, sample_id)
+
+
+def exists_group_alt(body, alpha_metric):
+    raise NotImplementedError()
 
 
 def exists_group(body, alpha_metric):

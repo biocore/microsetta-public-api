@@ -3,6 +3,11 @@ from microsetta_public_api.repo._pcoa_repo import PCoARepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 
 
+def plot_pcoa_alt(beta_metric, named_sample_set, metadata_categories,
+                  fillna='nan'):
+    raise NotImplementedError()
+
+
 def plot_pcoa(beta_metric, named_sample_set, metadata_categories,
               fillna='nan'):
     pcoa_repo = PCoARepo()

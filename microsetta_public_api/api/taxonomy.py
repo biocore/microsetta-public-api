@@ -5,9 +5,17 @@ from microsetta_public_api.utils._utils import (validate_resource,
                                                 )
 
 
+def single_sample_alt(sample_id, resource):
+    raise NotImplementedError()
+
+
 def single_sample(sample_id, resource):
     sample_ids = [sample_id]
     return _summarize_group(sample_ids, resource)
+
+
+def summarize_group_alt(body, resource):
+    raise NotImplementedError()
 
 
 def summarize_group(body, resource):
@@ -47,6 +55,10 @@ def _summarize_group(sample_ids, table_name):
     return response, 200
 
 
+def resources_alt():
+    raise NotImplementedError()
+
+
 def resources():
     taxonomy_repo = TaxonomyRepo()
     ret_val = {
@@ -55,9 +67,17 @@ def resources():
     return jsonify(ret_val), 200
 
 
+def single_sample_taxa_present_alt(sample_id, resource):
+    raise NotImplementedError()
+
+
 def single_sample_taxa_present(sample_id, resource):
     sample_ids = [sample_id]
     return _present_microbes_taxonomy_table(sample_ids, resource)
+
+
+def group_taxa_present_alt(body, resource):
+    raise NotImplementedError()
 
 
 def group_taxa_present(body, resource):
@@ -78,8 +98,16 @@ def _present_microbes_taxonomy_table(sample_ids, resource):
     return response, 200
 
 
+def exists_single_alt(resource, sample_id):
+    raise NotImplementedError()
+
+
 def exists_single(resource, sample_id):
     return _exists(resource, sample_id)
+
+
+def exists_group_alt(body, resource):
+    raise NotImplementedError()
 
 
 def exists_group(body, resource):
