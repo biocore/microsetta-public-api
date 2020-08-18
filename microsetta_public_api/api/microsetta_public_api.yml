@@ -120,12 +120,7 @@ paths:
             example: 'Normal'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
         '422':
@@ -144,12 +139,7 @@ paths:
               $ref: '#/components/schemas/metadataQuery'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
         '422':
@@ -431,12 +421,7 @@ paths:
         - $ref: '#/components/parameters/sampleIdQuery'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -619,7 +604,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
+  '/dataset/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
       - $ref: '#/components/parameters/alphaMetric'
@@ -645,12 +630,7 @@ paths:
             example: 'Normal'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
         '422':
@@ -669,18 +649,13 @@ paths:
               $ref: '#/components/schemas/metadataQuery'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
         '422':
           $ref: '#/components/responses/422UnprocessableEntity'
 
-  '/{dataset}/diversity/alpha/metrics/available':
+  '/dataset/{dataset}/diversity/alpha/metrics/available':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -708,7 +683,7 @@ paths:
                       - "observed_otus"
                       - "chao1"
 
-  '/{dataset}/diversity/alpha/exists/{alpha_metric}':
+  '/dataset/{dataset}/diversity/alpha/exists/{alpha_metric}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
       - $ref: '#/components/parameters/alphaMetric'
@@ -750,7 +725,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/diversity/alpha/single/{alpha_metric}/{sample_id}':
+  '/dataset/{dataset}/diversity/alpha/single/{alpha_metric}/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -781,7 +756,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/diversity/alpha/group/{alpha_metric}':
+  '/dataset/{dataset}/diversity/alpha/group/{alpha_metric}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     post:
@@ -928,7 +903,7 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/{dataset}/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/contains':
+  '/dataset/{dataset}/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/contains':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -951,7 +926,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
+  '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -967,16 +942,11 @@ paths:
         - $ref: '#/components/parameters/sampleIdQuery'
       responses:
         '200':
-          description: Successfully returned Vega JSON
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
+          $ref: '#/components/responses/200VegaSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/taxonomy/available':
+  '/dataset/{dataset}/taxonomy/available':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -1004,7 +974,7 @@ paths:
                       - "greengenes"
                       - "silva"
 
-  '/{dataset}/taxonomy/exists/{resource}':
+  '/dataset/{dataset}/taxonomy/exists/{resource}':
     parameters:
       - $ref: '#/components/parameters/taxonomyResource'
       - $ref: '#/components/parameters/namedDataset'
@@ -1046,7 +1016,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/taxonomy/group/{resource}':
+  '/dataset/{dataset}/taxonomy/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     post:
@@ -1072,7 +1042,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/taxonomy/single/{resource}/{sample_id}':
+  '/dataset/{dataset}/taxonomy/single/{resource}/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -1094,7 +1064,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/taxonomy/present/group/{resource}':
+  '/dataset/{dataset}/taxonomy/present/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     post:
@@ -1120,7 +1090,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/taxonomy/present/single/{resource}/{sample_id}':
+  '/dataset/{dataset}/taxonomy/present/single/{resource}/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -1142,7 +1112,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
+  '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
     get:
@@ -1515,6 +1485,13 @@ components:
             - 0.11
 
   responses:
+    200VegaSchema:
+      description: Successfully returned Vega JSON
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
     404NotFound:       # Can be referenced as '#/components/responses/404NotFound'
       description: The specified resource was not found.
       content:
