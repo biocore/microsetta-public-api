@@ -184,7 +184,8 @@ class DictElement(dict, Element):
 
         """
         if len(args) == 0:
-            return ValueError('Must receive at least one key.')
+            self.update(value)
+            return
 
         first = args[0]
         rest = args[1:]

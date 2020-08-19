@@ -360,6 +360,12 @@ class TestElement(TestCase):
         element.updates('Arg3', 'c', 'd')
         self.assertEqual('Arg3', element['c']['d'])
 
+        element.updates(DictElement({'a': DictElement({'c': MetadataElement(
+            'Arg4')
+        })}))
+        self.assertEqual('Arg3', element['c']['d'])
+        self.assertEqual('Arg4', element['a']['c'])
+
     # TODO this should probably have more tests...
 
 
