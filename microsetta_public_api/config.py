@@ -205,6 +205,8 @@ class DictElement(dict, Element):
             except AttributeError:
                 raise ValueError(f"{value} is not a dict.")
             for first, val in iterator:
+                if first not in self:
+                    self[first] = DictElement()
                 if isinstance(val, dict):
                     self[first].updates(val)
                 else:

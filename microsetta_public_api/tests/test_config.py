@@ -380,6 +380,9 @@ class TestElement(TestCase):
         exp = {'bar': {'qux': 'corge', 'hoge': 'fuga',
                        'garp': {'grault': 'waldo'}}}
         self.assertDictEqual(exp, foo)
+        foo = DictElement()
+        foo.updates({'datasets': {'garply': 'grault'}})
+        self.assertDictEqual({'datasets': {'garply': 'grault'}}, foo)
 
     # TODO this should probably have more tests...
 
