@@ -6,12 +6,15 @@ from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 from skbio.stats.ordination import OrdinationResults
+from copy import deepcopy
 
 from microsetta_public_api import config
+from microsetta_public_api.config import schema
 from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import FlaskTests, \
     TempfileTestCase, ConfigTestCase
 from microsetta_public_api.utils import create_data_entry, DataTable
+from microsetta_public_api.resources_alt import resources_alt, Q2Visitor
 
 
 class IntegrationTests(FlaskTests, TempfileTestCase, ConfigTestCase):
@@ -609,6 +612,22 @@ class AlphaIntegrationTests(IntegrationTests):
         }})
         resources.update(config.resources)
 
+        config_alt = {
+            'datasets': {
+                'dataset_name': {
+                    '__alpha__': {
+                        'observed_otus': self.series1_filename,
+                        'chao1': self.series2_filename,
+                        'shannon': self.series3_filename,
+                    }
+                }
+            }
+        }
+        config_elements = deepcopy(config_alt)
+        schema.make_elements(config_elements)
+        resources_alt.update(config_elements)
+        resources_alt.accept(Q2Visitor())
+
     def test_resources_available(self):
         response = self.client.get('/results-api/diversity/alpha/metrics/'
                                    'available')
@@ -664,6 +683,30 @@ class AlphaIntegrationTests(IntegrationTests):
         response = self.client.post(
             '/results-api/diversity/alpha/group/observed_otus'
             '?summary_statistics=true&percentiles=0,50,100&return_raw=true',
+            content_type='application/json',
+            data=json.dumps({'sample_ids': ['sample-foo-bar',
+                                            'sample-baz-qux']})
+        )
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['alpha_metric', 'group_summary',
+                               'alpha_diversity'],
+                              obs.keys())
+        self.assertCountEqual(['mean', 'median', 'std', 'group_size',
+                               'percentile', 'percentile_values'],
+                              obs['group_summary'].keys())
+        self.assertListEqual([0, 50, 100],
+                             obs['group_summary']['percentile'])
+        self.assertEqual(3, len(obs['group_summary']['percentile_values']))
+        self.assertDictEqual({'sample-foo-bar': 7.24, 'sample-baz-qux': 8.25},
+                             obs['alpha_diversity'])
+        self.assertEqual('observed_otus', obs['alpha_metric'])
+
+    def test_group_summary_alt(self):
+        response = self.client.post(
+            '/results-api/dataset/dataset_name/diversity/alpha/group'
+            '/observed_otus?summary_statistics=true&percentiles=0,50,100'
+            '&return_raw=true',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample-foo-bar',
                                             'sample-baz-qux']})

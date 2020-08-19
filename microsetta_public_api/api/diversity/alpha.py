@@ -25,7 +25,7 @@ def get_alpha_alt(dataset, sample_id, alpha_metric):
         raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
                               f"dataset='{dataset}'.")
 
-    alpha_repo = AlphaRepo(alpha_resource)
+    alpha_repo = AlphaRepo(alpha_resource.data)
     alpha_value = _get_alpha(alpha_repo, alpha_metric, sample_id)
 
     return jsonify(alpha_value), 200
@@ -65,7 +65,7 @@ def alpha_group_alt(body, dataset, alpha_metric, summary_statistics=True,
         raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
                               f"dataset='{dataset}'.")
 
-    alpha_repo = AlphaRepo(alpha_resource)
+    alpha_repo = AlphaRepo(alpha_resource.data)
     alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter_alt,
                               alpha_metric, percentiles,
                               return_raw, summary_statistics)
