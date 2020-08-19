@@ -6,10 +6,6 @@ from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.config import schema
 
 
-def category_values_alt(category):
-    raise NotImplementedError()
-
-
 def category_values(category):
     repo = _get_repo()
     if category in repo.categories:
@@ -34,10 +30,6 @@ def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
     return jsonify(sample_ids=matching_ids), 200
 
 
-def filter_sample_ids_alt(taxonomy=None, alpha_metric=None, **kwargs):
-    raise NotImplementedError()
-
-
 def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     repo = _get_repo()
     query = _format_query(kwargs)
@@ -57,11 +49,6 @@ def _get_repo():
     else:
         repo = MetadataRepo()
     return repo
-
-
-def filter_sample_ids_query_builder_alt(body, taxonomy=None,
-                                        alpha_metric=None):
-    raise NotImplementedError()
 
 
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
