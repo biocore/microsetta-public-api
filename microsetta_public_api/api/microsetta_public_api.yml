@@ -682,6 +682,8 @@ paths:
                       - "faith_pd"
                       - "observed_otus"
                       - "chao1"
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
   '/dataset/{dataset}/diversity/alpha/exists/{alpha_metric}':
     parameters:
@@ -973,6 +975,8 @@ paths:
                     example:
                       - "greengenes"
                       - "silva"
+        '404':
+          $ref: '#/components/responses/404NotFound'
 
   '/dataset/{dataset}/taxonomy/exists/{resource}':
     parameters:
