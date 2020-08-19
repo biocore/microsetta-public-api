@@ -169,12 +169,13 @@ class DictElement(dict, Element):
                 pass
 
     def updates(self, value, *args):
-        """
+        """A non-destructive update of nested DictElements.
 
         Parameters
         ----------
-        value: Any
-            A value to store at the given path of arguments
+        value: Union[Dict, Any]
+            A value to store at the given path of arguments. Must be dict if
+            passed without *args
         *args: Iterable of str or int
             A path of keys. Must have at least one key.
 
@@ -182,9 +183,32 @@ class DictElement(dict, Element):
         -------
         None
 
+        Examples
+        --------
+        >>> foo = DictElement({'bar': DictElement({'qux': 'corge'})})
+        >>> foo.updates({'bar': DictElement({'hoge': 'piyo'})})
+        >>> foo
+        {'bar': {'qux': 'corge', 'hoge': 'piyo'}}
+        Alternatively, you could use the syntax as follows
+        >>> foo.updates('fuga', 'bar', 'hoge')
+        >>> foo
+        {'bar': {'qux': 'corge', 'hoge': 'fuga'}}
+        Or even
+        >>> foo.updates('waldo', 'bar', 'garp', 'grault')
+        >>> foo
+        {'bar': {'qux': 'corge', 'hoge': 'fuga', 'garp': {'grault': 'waldo'}}}
+
         """
         if len(args) == 0:
-            self.update(value)
+            try:
+                iterator = value.items()
+            except AttributeError:
+                raise ValueError(f"{value} is not a dict.")
+            for first, val in iterator:
+                if isinstance(val, dict):
+                    self[first].updates(val)
+                else:
+                    self.update({first: val})
             return
 
         first = args[0]

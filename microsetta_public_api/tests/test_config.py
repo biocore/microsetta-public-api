@@ -366,6 +366,21 @@ class TestElement(TestCase):
         self.assertEqual('Arg3', element['c']['d'])
         self.assertEqual('Arg4', element['a']['c'])
 
+        exp = {'bar': {'qux': 'corge', 'hoge': 'piyo'}}
+        foo = DictElement({'bar': DictElement({'qux': 'corge'})})
+        foo.updates('piyo', 'bar', 'hoge')
+        self.assertDictEqual(exp, foo)
+        foo = DictElement({'bar': DictElement({'qux': 'corge'})})
+        foo.updates({'bar': DictElement({'hoge': 'piyo'})})
+        self.assertDictEqual(exp, foo)
+        exp = {'bar': {'qux': 'corge', 'hoge': 'fuga'}}
+        foo.updates('fuga', 'bar', 'hoge')
+        self.assertDictEqual(exp, foo)
+        foo.updates('waldo', 'bar', 'garp', 'grault')
+        exp = {'bar': {'qux': 'corge', 'hoge': 'fuga',
+                       'garp': {'grault': 'waldo'}}}
+        self.assertDictEqual(exp, foo)
+
     # TODO this should probably have more tests...
 
 
