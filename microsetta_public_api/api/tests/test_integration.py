@@ -17,6 +17,13 @@ from microsetta_public_api.utils import create_data_entry, DataTable
 from microsetta_public_api.resources_alt import resources_alt, Q2Visitor
 
 
+def _update_resources_from_config(config):
+    config_elements = deepcopy(config)
+    schema.make_elements(config_elements)
+    resources_alt.update(config_elements)
+    resources_alt.accept(Q2Visitor())
+
+
 class IntegrationTests(FlaskTests, TempfileTestCase, ConfigTestCase):
     def setUp(self):
         ConfigTestCase.setUp(self)
@@ -49,9 +56,6 @@ class MetadataIntegrationTests(IntegrationTests):
 
         Metadata(self.metadata_table).save(self.metadata_path)
 
-        config.resources.update({'metadata': self.metadata_path})
-        resources.update(config.resources)
-
         self.sample_querybuilder = {
             "condition": "AND",
             "rules": [
@@ -65,6 +69,12 @@ class MetadataIntegrationTests(IntegrationTests):
                 },
             ]
         }
+        config_alt = {
+            'datasets': {
+                '__metadata__': self.metadata_path,
+            }
+        }
+        _update_resources_from_config(config_alt)
 
     def test_metadata_category_values_returns_string_array(self):
         exp = ['30s', '40s', '50s']
@@ -623,10 +633,7 @@ class AlphaIntegrationTests(IntegrationTests):
                 }
             }
         }
-        config_elements = deepcopy(config_alt)
-        schema.make_elements(config_elements)
-        resources_alt.update(config_elements)
-        resources_alt.accept(Q2Visitor())
+        _update_resources_from_config(config_alt)
 
     def test_resources_available(self):
         response = self.client.get('/results-api/diversity/alpha/metrics/'
