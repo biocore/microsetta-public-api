@@ -384,6 +384,11 @@ class TestElement(TestCase):
         foo.updates({'datasets': {'garply': 'grault'}})
         self.assertDictEqual({'datasets': {'garply': 'grault'}}, foo)
 
+        foo = DictElement()
+        foo.updates({'datasets': AlphaElement({'garply': 'grault'})})
+        self.assertDictEqual({'datasets': {'garply': 'grault'}}, foo)
+        self.assertIsInstance(foo['datasets'], AlphaElement)
+
     # TODO this should probably have more tests...
 
 

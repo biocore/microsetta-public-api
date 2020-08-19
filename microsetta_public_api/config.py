@@ -173,11 +173,11 @@ class DictElement(dict, Element):
 
         Parameters
         ----------
-        value: Union[Dict, Any]
+        value : dict or any
             A value to store at the given path of arguments. Must be dict if
             passed without *args
-        *args: Iterable of str or int
-            A path of keys. Must have at least one key.
+        *args : Iterable of str or int
+            A path of keys.
 
         Returns
         -------
@@ -206,8 +206,8 @@ class DictElement(dict, Element):
                 raise ValueError(f"{value} is not a dict.")
             for first, val in iterator:
                 if first not in self:
-                    self[first] = DictElement()
-                if isinstance(val, dict):
+                    self[first] = val
+                elif isinstance(val, dict):
                     self[first].updates(val)
                 else:
                     self.update({first: val})
