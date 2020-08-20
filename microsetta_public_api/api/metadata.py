@@ -5,6 +5,10 @@ from microsetta_public_api.utils._utils import jsonify, validate_resource
 from microsetta_public_api.resources_alt import get_resources
 
 
+def category_values_alt(category):
+    raise NotImplementedError()
+
+
 def category_values(category):
     repo = MetadataRepo(get_resources().gets('metadata').data)
     if category in repo.categories:
@@ -29,6 +33,10 @@ def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
     return jsonify(sample_ids=matching_ids), 200
 
 
+def filter_sample_ids_alt(taxonomy=None, alpha_metric=None, **kwargs):
+    raise NotImplementedError()
+
+
 def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     repo = MetadataRepo(get_resources().gets('metadata').data)
     query = _format_query(kwargs)
@@ -36,6 +44,11 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     if is_invalid:
         return is_invalid
     return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
+
+
+def filter_sample_ids_query_builder_alt(body, taxonomy=None,
+                                        alpha_metric=None):
+    raise NotImplementedError()
 
 
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):

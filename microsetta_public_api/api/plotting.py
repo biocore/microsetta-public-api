@@ -8,6 +8,11 @@ from microsetta_public_api.api.metadata import _format_query, \
 from microsetta_public_api.utils._utils import jsonify
 
 
+def plot_alpha_filtered_alt(alpha_metric=None, percentiles=None,
+                            sample_id=None, **kwargs):
+    raise NotImplementedError()
+
+
 def plot_alpha_filtered(alpha_metric=None, percentiles=None,
                         sample_id=None, **kwargs):
     repo = MetadataRepo()
@@ -18,6 +23,12 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
 
     return _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles,
                                                 query, repo, sample_id)
+
+
+def plot_alpha_filtered_json_query_alt(body, alpha_metric=None,
+                                       percentiles=None,
+                                       sample_id=None):
+    raise NotImplementedError()
 
 
 def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
@@ -104,6 +115,10 @@ def _filter_ids(repo, alpha_metric, query, sample_id):
             'metric', error_code=error_code, error_response=error_response,
         )
     return error_code, error_response, matching_ids
+
+
+def plot_beta_alt(beta_metric, named_sample_set, sample_id=None):
+    raise NotImplementedError()
 
 
 def plot_beta(beta_metric, named_sample_set, sample_id=None):
