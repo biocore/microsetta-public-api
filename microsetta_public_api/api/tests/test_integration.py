@@ -20,7 +20,7 @@ from microsetta_public_api.resources_alt import resources_alt, Q2Visitor
 def _update_resources_from_config(config):
     config_elements = deepcopy(config)
     schema.make_elements(config_elements)
-    resources_alt.update(config_elements)
+    resources_alt.updates(config_elements)
     resources_alt.accept(Q2Visitor())
 
 
@@ -624,7 +624,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
         config_alt = {
             'datasets': {
-                'dataset_name': {
+                '16SAmplicon': {
                     '__alpha__': {
                         'observed_otus': self.series1_filename,
                         'chao1': self.series2_filename,
@@ -638,6 +638,17 @@ class AlphaIntegrationTests(IntegrationTests):
     def test_resources_available(self):
         response = self.client.get('/results-api/diversity/alpha/metrics/'
                                    'available')
+
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertIn('alpha_metrics', obs)
+        self.assertCountEqual(['observed_otus', 'chao1', 'shannon'],
+                              obs['alpha_metrics'])
+
+    def test_resources_available_alt(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/alpha/metrics/'
+            'available')
 
         self.assertEqual(response.status_code, 200)
         obs = json.loads(response.data)
@@ -660,9 +671,38 @@ class AlphaIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertFalse(obs)
 
+    def test_exists_single_alt(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/alpha/exists/'
+            'chao1?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertTrue(obs)
+
+        response = self.client.get('/results-api/diversity/alpha/exists/'
+                                   'chao1?sample_id=sample-dne')
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertFalse(obs)
+
     def test_exists_single_404(self):
         response = self.client.get('/results-api/diversity/alpha/exists/'
                                    'dne-metric?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(404, response)
+
+    def test_exists_single_404_alt(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/alpha/exists/'
+            'dne-metric?sample_id=sample-foo-bar')
+
+        self.assertStatusCode(404, response)
+
+        response = self.client.get(
+            '/results-api/dataset/dataset_dne/diversity/alpha/exists/'
+            'dne-metric?sample_id=sample-foo-bar')
 
         self.assertStatusCode(404, response)
 
@@ -677,9 +717,30 @@ class AlphaIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertListEqual(obs, [True, False, False])
 
+    def test_exists_group_alt(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/diversity/alpha/exists/chao1',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(obs, [True, False, False])
+
     def test_exists_group_404(self):
         response = self.client.post(
             '/results-api/diversity/alpha/exists/dne-metric',
+            data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(404, response)
+
+    def test_exists_group_404_alt(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/diversity/alpha/exists/dne'
+            '-metric',
             data=json.dumps(['sample-foo-bar', 'sample-dne', 's3']),
             content_type='application/json',
         )
@@ -711,7 +772,7 @@ class AlphaIntegrationTests(IntegrationTests):
 
     def test_group_summary_alt(self):
         response = self.client.post(
-            '/results-api/dataset/dataset_name/diversity/alpha/group'
+            '/results-api/dataset/16SAmplicon/diversity/alpha/group'
             '/observed_otus?summary_statistics=true&percentiles=0,50,100'
             '&return_raw=true',
             content_type='application/json',
@@ -1188,7 +1249,8 @@ class AllIntegrationTest(
                 }
 
         response = self.client.post(
-            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            '/results-api/dataset/16SAmplicon/diversity/alpha/group/shannon'
+            '?return_raw=True',
             content_type='application/json',
             data=json.dumps({
                 "metadata_query": generic_metadata_query,
@@ -1215,7 +1277,8 @@ class AllIntegrationTest(
         }
 
         response = self.client.post(
-            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            '/results-api/dataset/16SAmplicon/diversity/alpha/group/shannon'
+            '?return_raw=True',
             content_type='application/json',
             data=json.dumps({
                 "metadata_query": generic_metadata_query,
@@ -1244,7 +1307,8 @@ class AllIntegrationTest(
         }
 
         response = self.client.post(
-            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            '/results-api/dataset/16SAmplicon/diversity/alpha/group/shannon'
+            '?return_raw=True',
             content_type='application/json',
             data=json.dumps({
                 "metadata_query": generic_metadata_query,
@@ -1273,7 +1337,8 @@ class AllIntegrationTest(
         }
 
         response = self.client.post(
-            '/results-api/diversity/alpha/group/shannon?return_raw=True',
+            '/results-api/dataset/16SAmplicon/diversity/alpha/group/shannon'
+            '?return_raw=True',
             content_type='application/json',
             data=json.dumps({
                 "metadata_query": generic_metadata_query,

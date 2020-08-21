@@ -15,6 +15,15 @@ from microsetta_public_api.config import schema
 
 
 def get_alpha_alt(dataset, sample_id, alpha_metric):
+    alpha_resource = _validate_dataset_alpha(dataset)
+
+    alpha_repo = AlphaRepo(alpha_resource.data)
+    alpha_value = _get_alpha(alpha_repo, alpha_metric, sample_id)
+
+    return jsonify(alpha_value), 200
+
+
+def _validate_dataset_alpha(dataset):
     try:
         dataset_resource = get_resources().gets('datasets', dataset)
     except KeyError:
@@ -24,11 +33,7 @@ def get_alpha_alt(dataset, sample_id, alpha_metric):
     except KeyError:
         raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
                               f"dataset='{dataset}'.")
-
-    alpha_repo = AlphaRepo(alpha_resource.data)
-    alpha_value = _get_alpha(alpha_repo, alpha_metric, sample_id)
-
-    return jsonify(alpha_value), 200
+    return alpha_resource
 
 
 def get_alpha(sample_id, alpha_metric):
@@ -55,16 +60,7 @@ def _get_alpha(alpha_repo, alpha_metric, sample_id):
 
 def alpha_group_alt(body, dataset, alpha_metric, summary_statistics=True,
                     percentiles=None, return_raw=False):
-    try:
-        dataset_resource = get_resources().gets('datasets', dataset)
-    except KeyError:
-        raise UnknownResource(f"Unknown dataset: '{dataset}'")
-    try:
-        alpha_resource = dataset_resource.gets(schema.alpha_kw)
-    except KeyError:
-        raise UnknownResource(f"No alpha data (kw: '{schema.alpha_kw}') for "
-                              f"dataset='{dataset}'.")
-
+    alpha_resource = _validate_dataset_alpha(dataset)
     alpha_repo = AlphaRepo(alpha_resource.data)
     alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter_alt,
                               alpha_metric, percentiles,
@@ -93,7 +89,7 @@ def _metadata_repo_getter_alt():
         return MetadataRepo(get_resources().gets('datasets',
                             schema.metadata_kw).data)
     except KeyError:
-        UnknownResource(f"No metadata (kw: '{schema.metadata_kw}')")
+        raise UnknownResource(f"No metadata (kw: '{schema.metadata_kw}')")
 
 
 def _alpha_group(body, alpha_repo, metadata_repo_getter, alpha_metric,
@@ -155,36 +151,48 @@ def _alpha_group(body, alpha_repo, metadata_repo_getter, alpha_metric,
 
 
 def available_metrics_alpha_alt(dataset):
-    raise NotImplementedError()
+    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_repo = AlphaRepo(alpha_resource.data)
+    return jsonify(_available_metrics(alpha_repo)), 200
 
 
 def available_metrics_alpha():
     alpha_repo = AlphaRepo()
-    ret_val = {
-        'alpha_metrics': alpha_repo.available_metrics(),
-    }
+    ret_val = _available_metrics(alpha_repo)
 
     return jsonify(ret_val), 200
 
 
+def _available_metrics(alpha_repo):
+    ret_val = {
+        'alpha_metrics': alpha_repo.available_metrics(),
+    }
+    return ret_val
+
+
 def exists_single_alt(dataset, alpha_metric, sample_id):
-    raise NotImplementedError()
+    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_repo = AlphaRepo(alpha_resource.data)
+    return _exists(alpha_repo, alpha_metric, sample_id)
 
 
 def exists_single(alpha_metric, sample_id):
-    return _exists(alpha_metric, sample_id)
+    alpha_repo = AlphaRepo()
+    return _exists(alpha_repo, alpha_metric, sample_id)
 
 
 def exists_group_alt(body, dataset, alpha_metric):
-    raise NotImplementedError()
+    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_repo = AlphaRepo(alpha_resource.data)
+    return _exists(alpha_repo, alpha_metric, body)
 
 
 def exists_group(body, alpha_metric):
-    return _exists(alpha_metric, body)
-
-
-def _exists(alpha_metric, samples):
     alpha_repo = AlphaRepo()
+    return _exists(alpha_repo, alpha_metric, body)
+
+
+def _exists(alpha_repo, alpha_metric, samples):
     # figure out if the user asked for a metric we have data on
     available_metrics = alpha_repo.available_metrics()
     type_ = 'metric'

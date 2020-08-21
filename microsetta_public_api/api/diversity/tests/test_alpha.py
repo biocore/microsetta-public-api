@@ -528,6 +528,18 @@ class AlphaAltTests(MockedJsonifyTestCase):
         self.res_patcher.stop()
         super().tearDown()
 
+    def test_availalbe_metrics_alt(self):
+        response, code = available_metrics_alpha_alt('dataset1')
+        avail = json.loads(response)
+        self.assertEqual(200, code)
+        self.assertDictEqual(avail, {'alpha_metrics': ['faith_pd', 'shannon']})
+        with self.assertRaises(UnknownResource):
+            # check for dataset that exists but has no alpha
+            available_metrics_alpha_alt('dataset2')
+        with self.assertRaises(UnknownResource):
+            # check for dataset that does not exist
+            available_metrics_alpha_alt('dataset3')
+
     def test_get_alpha_alt(self):
         faith_pd, code1 = get_alpha_alt('dataset1', 's01',
                                         'faith_pd')
@@ -590,3 +602,41 @@ class AlphaAltTests(MockedJsonifyTestCase):
         self.assertEqual(code, 200)
         sample_ids = obs['alpha_diversity'].keys()
         self.assertCountEqual(['s01', 's04', 's05'], sample_ids)
+
+    def test_alpha_exists_single_alt(self):
+        response, code = exists_single_alt('dataset1', 'faith_pd', 's01')
+        self.assertEqual(code, 200)
+        obs = json.loads(response)
+        self.assertTrue(obs)
+
+        response, code = exists_single_alt('dataset1', 'faith_pd', 's-dne')
+        self.assertEqual(code, 200)
+        obs = json.loads(response)
+        self.assertFalse(obs)
+
+        response, code = exists_single_alt('dataset1', 'shannon', 's03')
+        self.assertEqual(code, 200)
+        obs = json.loads(response)
+        self.assertFalse(obs)
+
+    def test_alpha_exists_single_alt_errors(self):
+        with self.assertRaises(UnknownResource):
+            exists_single_alt('dataset2', 'shannon', 's03')
+
+        with self.assertRaises(UnknownResource):
+            exists_single_alt('dataset1', 'dne-metric', 's03')
+
+    def test_alpha_exists_group_alt(self):
+        body = ['s01', 's03', 's04']
+        response, code = exists_group_alt(body, 'dataset1', 'faith_pd')
+        self.assertEqual(code, 200)
+        obs = json.loads(response)
+        self.assertListEqual(obs, [True, False, True])
+
+    def test_alpha_exists_group_alt_errors(self):
+        body = ['s01', 's03', 's04']
+        with self.assertRaises(UnknownResource):
+            exists_group_alt(body, 'dataset2', 'faith_pd')
+
+        with self.assertRaises(UnknownResource):
+            exists_group_alt(body, 'dataset1', 'dne-metric')
