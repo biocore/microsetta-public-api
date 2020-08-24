@@ -1,26 +1,47 @@
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
-from microsetta_public_api.utils._utils import (validate_resource,
-                                                check_missing_ids,
-                                                )
+from microsetta_public_api.config import schema
+from microsetta_public_api.resources_alt import get_resources
+from microsetta_public_api.utils._utils import (
+    validate_resource,
+    check_missing_ids,
+    stepwise_resource_getter,
+)
 
 
-def single_sample_alt(sample_id, resource):
-    raise NotImplementedError()
+def _get_taxonomy_repo(dataset):
+    tables = stepwise_resource_getter(
+        get_resources(),
+        dataset,
+        schema.taxonomy_kw,
+        'taxonomy',
+    )
+    taxonomy_repo = TaxonomyRepo(tables)
+    return taxonomy_repo
+
+
+def single_sample_alt(dataset, sample_id, resource):
+    sample_ids = [sample_id]
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
 def single_sample(sample_id, resource):
     sample_ids = [sample_id]
-    return _summarize_group(sample_ids, resource)
+    taxonomy_repo = TaxonomyRepo()
+    return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
-def summarize_group_alt(body, resource):
-    raise NotImplementedError()
+def summarize_group_alt(body, dataset, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = body['sample_ids']
+    return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
 def summarize_group(body, resource):
     sample_ids = body['sample_ids']
-    return _summarize_group(sample_ids, resource)
+    taxonomy_repo = TaxonomyRepo()
+    return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
 def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
@@ -40,8 +61,8 @@ def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
         return missing_ids_msg
 
 
-def _summarize_group(sample_ids, table_name):
-    taxonomy_repo = TaxonomyRepo()
+def _summarize_group(sample_ids, table_name, taxonomy_repo):
+
     error_response = _check_resource_and_missing_ids(taxonomy_repo,
                                                      sample_ids, table_name)
     if error_response:
@@ -55,8 +76,12 @@ def _summarize_group(sample_ids, table_name):
     return response, 200
 
 
-def resources_alt():
-    raise NotImplementedError()
+def resources_alt(dataset):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    ret_val = {
+        'resources': taxonomy_repo.resources(),
+    }
+    return jsonify(ret_val), 200
 
 
 def resources():
@@ -67,26 +92,37 @@ def resources():
     return jsonify(ret_val), 200
 
 
-def single_sample_taxa_present_alt(sample_id, resource):
-    raise NotImplementedError()
+def single_sample_taxa_present_alt(dataset, sample_id, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = [sample_id]
+    return _present_microbes_taxonomy_table(sample_ids, resource,
+                                            taxonomy_repo,
+                                            )
 
 
 def single_sample_taxa_present(sample_id, resource):
     sample_ids = [sample_id]
-    return _present_microbes_taxonomy_table(sample_ids, resource)
+    return _present_microbes_taxonomy_table(sample_ids, resource,
+                                            taxonomy_repo=TaxonomyRepo(),
+                                            )
 
 
-def group_taxa_present_alt(body, resource):
-    raise NotImplementedError()
+def group_taxa_present_alt(body, dataset, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = body['sample_ids']
+    return _present_microbes_taxonomy_table(sample_ids, resource,
+                                            taxonomy_repo,
+                                            )
 
 
 def group_taxa_present(body, resource):
     sample_ids = body['sample_ids']
-    return _present_microbes_taxonomy_table(sample_ids, resource)
+    return _present_microbes_taxonomy_table(sample_ids, resource,
+                                            taxonomy_repo=TaxonomyRepo(),
+                                            )
 
 
-def _present_microbes_taxonomy_table(sample_ids, resource):
-    taxonomy_repo = TaxonomyRepo()
+def _present_microbes_taxonomy_table(sample_ids, resource, taxonomy_repo):
     error_response = _check_resource_and_missing_ids(taxonomy_repo,
                                                      sample_ids, resource)
     if error_response:
@@ -98,24 +134,25 @@ def _present_microbes_taxonomy_table(sample_ids, resource):
     return response, 200
 
 
-def exists_single_alt(resource, sample_id):
-    raise NotImplementedError()
+def exists_single_alt(dataset, resource, sample_id):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    return _exists(resource, sample_id, taxonomy_repo)
 
 
 def exists_single(resource, sample_id):
-    return _exists(resource, sample_id)
+    return _exists(resource, sample_id, taxonomy_repo=TaxonomyRepo())
 
 
-def exists_group_alt(body, resource):
-    raise NotImplementedError()
+def exists_group_alt(body, dataset, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    return _exists(resource, body, taxonomy_repo)
 
 
 def exists_group(body, resource):
-    return _exists(resource, body)
+    return _exists(resource, body, taxonomy_repo=TaxonomyRepo())
 
 
-def _exists(resource, samples):
-    taxonomy_repo = TaxonomyRepo()
+def _exists(resource, samples, taxonomy_repo):
     available_resources = taxonomy_repo.resources()
 
     type_ = 'resource'
