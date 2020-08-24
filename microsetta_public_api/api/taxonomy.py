@@ -16,7 +16,7 @@ def _get_taxonomy_repo(dataset):
         schema.taxonomy_kw,
         'taxonomy',
     )
-    taxonomy_repo = TaxonomyRepo(tables)
+    taxonomy_repo = TaxonomyRepo(tables.data)
     return taxonomy_repo
 
 

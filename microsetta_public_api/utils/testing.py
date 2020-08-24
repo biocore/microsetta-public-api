@@ -42,6 +42,8 @@ class TrivialVisitor(ConfigElementVisitor):
 
 class TempfileTestCase(TestCase):
 
+    _cls_tempfiles = []
+
     def setUp(self):
         self._tempfiles = []
 
@@ -50,8 +52,22 @@ class TempfileTestCase(TestCase):
         # https://docs.python.org/3/library/tempfile.html
         new_tempfile = tempfile.NamedTemporaryFile(
             **named_temporary_file_kwargs)
-        self._tempfiles = []
+        self._tempfiles.append(new_tempfile)
         return new_tempfile
+
+    @classmethod
+    def create_cls_tempfile(cls, **named_temporary_file_kwargs):
+        # See the docs here for kwargs:
+        # https://docs.python.org/3/library/tempfile.html
+        new_tempfile = tempfile.NamedTemporaryFile(
+            **named_temporary_file_kwargs)
+        cls._cls_tempfiles.append(new_tempfile)
+        return new_tempfile
+
+    @classmethod
+    def tearDownClass(cls):
+        for tempfile_ in cls._cls_tempfiles:
+            tempfile_.close()
 
     def tearDown(self):
         for tempfile_ in self._tempfiles:
