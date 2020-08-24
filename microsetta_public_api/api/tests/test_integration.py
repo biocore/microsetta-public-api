@@ -797,119 +797,118 @@ class AlphaIntegrationTests(IntegrationTests):
 
 class TaxonomyAltIntegrationTests(IntegrationTests):
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.table1_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.taxonomy1_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.table2_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.taxonomy2_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.table3_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.var_table_filename = cls.create_cls_tempfile(suffix='.qza').name
-        cls.table_biom = cls.create_cls_tempfile(suffix='.biom').name
-        cls.taxonomy_greengenes_df_filename = cls.create_cls_tempfile(
+    def setUp(self):
+        super().setUp()
+        self.table1_filename = self.create_tempfile(suffix='.qza').name
+        self.taxonomy1_filename = self.create_tempfile(suffix='.qza').name
+        self.table2_filename = self.create_tempfile(suffix='.qza').name
+        self.taxonomy2_filename = self.create_tempfile(suffix='.qza').name
+        self.table3_filename = self.create_tempfile(suffix='.qza').name
+        self.var_table_filename = self.create_tempfile(suffix='.qza').name
+        self.table_biom = self.create_tempfile(suffix='.biom').name
+        self.taxonomy_greengenes_df_filename = self.create_tempfile(
             suffix='.qza').name
 
-        cls.table = biom.Table(np.array([[0, 1, 2],
-                                         [2, 4, 6],
-                                         [3, 0, 1]]),
-                               ['feature-1', 'feature-2', 'feature-3'],
-                               ['sample-1', 'sample-2', 'sample-3'])
+        self.table = biom.Table(np.array([[0, 1, 2],
+                                          [2, 4, 6],
+                                          [3, 0, 1]]),
+                                ['feature-1', 'feature-2', 'feature-3'],
+                                ['sample-1', 'sample-2', 'sample-3'])
 
-        cls.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                        ['feature-2', 'a; b; c; d; e', 0.345],
-                                        ['feature-3', 'a; f; g; h', 0.678]],
-                                       columns=['Feature ID', 'Taxon',
-                                                'Confidence'])
-        cls.taxonomy_greengenes_df = pd.DataFrame(
+        self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
+                                         ['feature-2', 'a; b; c; d; e', 0.345],
+                                         ['feature-3', 'a; f; g; h', 0.678]],
+                                        columns=['Feature ID', 'Taxon',
+                                                 'Confidence'])
+        self.taxonomy_greengenes_df = pd.DataFrame(
             [['feature-1', 'k__a;p__b; o__c', 0.123],
              ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
              ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
-        cls.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
+        self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
 
-        cls.taxonomy_df.set_index('Feature ID', inplace=True)
+        self.taxonomy_df.set_index('Feature ID', inplace=True)
 
-        cls.table2 = biom.Table(np.array([[0, 1, 2],
+        self.table2 = biom.Table(np.array([[0, 1, 2],
                                            [2, 4, 6],
                                            [3, 0, 1]]),
                                  ['feature-1', 'feature-X', 'feature-3'],
                                  ['sample-1', 'sample-2', 'sample-3'])
-        cls.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                         ['feature-X', 'a; b; c; d; e', 0.34],
-                                         ['feature-3', 'a; f; g; h', 0.678]],
-                                        columns=['Feature ID', 'Taxon',
-                                                 'Confidence'])
-        cls.taxonomy2_df.set_index('Feature ID', inplace=True)
+        self.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
+                                          ['feature-X', 'a; b; c; d; e', 0.34],
+                                          ['feature-3', 'a; f; g; h', 0.678]],
+                                         columns=['Feature ID', 'Taxon',
+                                                  'Confidence'])
+        self.taxonomy2_df.set_index('Feature ID', inplace=True)
 
-        cls.table3 = biom.Table(np.array([[1, 2],
+        self.table3 = biom.Table(np.array([[1, 2],
                                            [0, 1]]),
                                  ['feature-X', 'feature-3'],
                                  ['sample-2', 'sample-3'])
 
         imported_artifact = Artifact.import_data(
-            "FeatureTable[Frequency]", cls.table
+            "FeatureTable[Frequency]", self.table
         )
-        imported_artifact.save(cls.table1_filename)
+        imported_artifact.save(self.table1_filename)
         imported_artifact = Artifact.import_data(
-            "FeatureData[Taxonomy]", cls.taxonomy_df
+            "FeatureData[Taxonomy]", self.taxonomy_df
         )
-        imported_artifact.save(cls.taxonomy1_filename)
+        imported_artifact.save(self.taxonomy1_filename)
         imported_artifact = Artifact.import_data(
-            "FeatureTable[Frequency]", cls.table2
+            "FeatureTable[Frequency]", self.table2
         )
-        imported_artifact.save(cls.table2_filename)
+        imported_artifact.save(self.table2_filename)
         imported_artifact = Artifact.import_data(
-            "FeatureData[Taxonomy]", cls.taxonomy2_df
+            "FeatureData[Taxonomy]", self.taxonomy2_df
         )
-        imported_artifact.save(cls.taxonomy2_filename)
+        imported_artifact.save(self.taxonomy2_filename)
         imported_artifact = Artifact.import_data(
-            "FeatureTable[Frequency]", cls.table3
+            "FeatureTable[Frequency]", self.table3
         )
-        imported_artifact.save(cls.table3_filename)
-        with biom_open(cls.table_biom, 'w') as f:
-            cls.table.to_hdf5(f, 'test-table')
+        imported_artifact.save(self.table3_filename)
+        with biom_open(self.table_biom, 'w') as f:
+            self.table.to_hdf5(f, 'test-table')
 
         imported_artifact = Artifact.import_data(
-            "FeatureData[Taxonomy]", cls.taxonomy_greengenes_df
+            "FeatureData[Taxonomy]", self.taxonomy_greengenes_df
         )
-        imported_artifact.save(cls.taxonomy_greengenes_df_filename)
+        imported_artifact.save(self.taxonomy_greengenes_df_filename)
 
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
                     '__taxonomy__': {
                         'table-cached-model': {
-                            'table': cls.table1_filename,
-                            'feature-data-taxonomy': cls.taxonomy1_filename,
+                            'table': self.table1_filename,
+                            'feature-data-taxonomy': self.taxonomy1_filename,
                             'cache-taxonomy': True,
                         },
                         'table6': {
-                            'table': cls.table_biom,
+                            'table': self.table_biom,
                             'table-format': 'biom',
                         },
                         'table5': {
-                            'table': cls.table2_filename,
+                            'table': self.table2_filename,
                         },
                     },
                 },
                 'ShotgunMetagenomics': {
                     '__taxonomy__': {
                         'table1': {
-                            'table': cls.table1_filename,
+                            'table': self.table1_filename,
                         },
                         'table2': {
-                            'table': cls.table1_filename,
-                            'feature-data-taxonomy': cls.taxonomy1_filename,
+                            'table': self.table1_filename,
+                            'feature-data-taxonomy': self.taxonomy1_filename,
                         },
                         'table2-greengenes': {
-                            'table': cls.table1_filename,
+                            'table': self.table1_filename,
                             'feature-data-taxonomy':
-                                cls.taxonomy_greengenes_df_filename,
+                                self.taxonomy_greengenes_df_filename,
                         },
                         'table-fish': {
-                            'table': cls.table_biom,
-                            'feature-data-taxonomy': cls.taxonomy1_filename,
+                            'table': self.table_biom,
+                            'feature-data-taxonomy': self.taxonomy1_filename,
                             'table-format': 'biom'
                         },
                     },
