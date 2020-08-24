@@ -7,6 +7,14 @@ class UnknownMetric(ValueError):
     pass
 
 
+class UnknownResource(ValueError):
+    pass
+
+
+class IncompatibleOptions(ValueError):
+    pass
+
+
 # Key errors
 class DisjointError(KeyError):
     pass

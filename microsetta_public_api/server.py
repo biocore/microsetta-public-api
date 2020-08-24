@@ -8,15 +8,28 @@ from microsetta_public_api.config import (
 from microsetta_public_api.resources import resources
 from microsetta_public_api.resources_alt import resources_alt
 from microsetta_public_api.resources_alt import Q2Visitor
-from microsetta_public_api.exceptions import UnknownMetric
+from microsetta_public_api.exceptions import (UnknownMetric,
+                                              UnknownResource,
+                                              UnknownID,
+                                              IncompatibleOptions,
+                                              )
 from flask import jsonify
 
 import connexion
 from flask_cors import CORS
 
 
-def handle_404(e):
-    return jsonify(text=str(e), code=404), 404
+class ErrorHandlerFactory:
+
+    @staticmethod
+    def get_method(code):
+        def handler(e):
+            return jsonify(text=str(e), code=code), code
+        return handler
+
+
+handle_400 = ErrorHandlerFactory.get_method(400)
+handle_404 = ErrorHandlerFactory.get_method(404)
 
 
 def build_app():
@@ -39,6 +52,9 @@ def build_app():
     app.add_api(app_file, validate_responses=True)
 
     app.app.register_error_handler(UnknownMetric, handle_404)
+    app.app.register_error_handler(UnknownResource, handle_404)
+    app.app.register_error_handler(UnknownID, handle_404)
+    app.app.register_error_handler(IncompatibleOptions, handle_400)
 
     CORS(app.app)
 

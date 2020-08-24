@@ -275,7 +275,7 @@ class TestParsing(TestCase):
                               })
 
         config = {
-            "dataset": {
+            "datasets": {
                 "__alpha__": {
                     "a": "b",
                     "__taxonomy__": {
@@ -288,9 +288,9 @@ class TestParsing(TestCase):
         schema = AlternateSchema()
         loaded_config = json.loads(json.dumps(config))
         parsed_config = schema.make_elements(loaded_config)
-        obs = parsed_config.gets('dataset', '__alpha__')
+        obs = parsed_config.gets('datasets', '__alpha__')
         self.assertIsInstance(obs, PCOAElement)
-        obs = parsed_config.gets('dataset', '__metadata__')
+        obs = parsed_config.gets('datasets', '__metadata__')
         self.assertNotIsInstance(obs, MetadataElement)
 
     def test_gets(self):
@@ -349,6 +349,45 @@ class TestElement(TestCase):
         element.accept(mock)
         mock.visit_alpha.assert_called()
         mock.visit_metadata.assert_called()
+
+    def test_updates(self):
+        element = DictElement({'a': DictElement({'b': None})})
+        element.updates(MetadataElement('Arg'), 'a', 'b')
+        self.assertEqual('Arg', element.gets('a', 'b'))
+
+        element.updates('Arg2', 'a', 'b', 'c', 'd', 'e')
+        self.assertEqual('Arg2', element.gets('a', 'b', 'c', 'd', 'e'))
+        element.updates('Arg3', 'c', 'd')
+        self.assertEqual('Arg3', element['c']['d'])
+
+        element.updates(DictElement({'a': DictElement({'c': MetadataElement(
+            'Arg4')
+        })}))
+        self.assertEqual('Arg3', element['c']['d'])
+        self.assertEqual('Arg4', element['a']['c'])
+
+        exp = {'bar': {'qux': 'corge', 'hoge': 'piyo'}}
+        foo = DictElement({'bar': DictElement({'qux': 'corge'})})
+        foo.updates('piyo', 'bar', 'hoge')
+        self.assertDictEqual(exp, foo)
+        foo = DictElement({'bar': DictElement({'qux': 'corge'})})
+        foo.updates({'bar': DictElement({'hoge': 'piyo'})})
+        self.assertDictEqual(exp, foo)
+        exp = {'bar': {'qux': 'corge', 'hoge': 'fuga'}}
+        foo.updates('fuga', 'bar', 'hoge')
+        self.assertDictEqual(exp, foo)
+        foo.updates('waldo', 'bar', 'garp', 'grault')
+        exp = {'bar': {'qux': 'corge', 'hoge': 'fuga',
+                       'garp': {'grault': 'waldo'}}}
+        self.assertDictEqual(exp, foo)
+        foo = DictElement()
+        foo.updates({'datasets': {'garply': 'grault'}})
+        self.assertDictEqual({'datasets': {'garply': 'grault'}}, foo)
+
+        foo = DictElement()
+        foo.updates({'datasets': AlphaElement({'garply': 'grault'})})
+        self.assertDictEqual({'datasets': {'garply': 'grault'}}, foo)
+        self.assertIsInstance(foo['datasets'], AlphaElement)
 
     # TODO this should probably have more tests...
 
