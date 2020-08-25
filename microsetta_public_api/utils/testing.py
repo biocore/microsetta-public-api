@@ -50,7 +50,7 @@ class TempfileTestCase(TestCase):
         # https://docs.python.org/3/library/tempfile.html
         new_tempfile = tempfile.NamedTemporaryFile(
             **named_temporary_file_kwargs)
-        self._tempfiles = []
+        self._tempfiles.append(new_tempfile)
         return new_tempfile
 
     def tearDown(self):

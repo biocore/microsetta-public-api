@@ -7,6 +7,19 @@ def jsonify(*args, **kwargs):
     return flask_jsonify(*args, **kwargs)
 
 
+def stepwise_resource_getter(resources, dataset, keyword, type_):
+    try:
+        dataset_resource = resources.gets('datasets', dataset)
+    except KeyError:
+        raise UnknownResource(f"Unknown dataset: '{dataset}'")
+    try:
+        resource = dataset_resource.gets(keyword)
+    except KeyError:
+        raise UnknownResource(f"No {type_} data (kw: '{keyword}') for "
+                              f"dataset='{dataset}'.")
+    return resource
+
+
 def validate_resource_alt(available, name, type_):
     if name not in available:
         raise UnknownResource(

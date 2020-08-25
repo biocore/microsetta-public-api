@@ -4,8 +4,9 @@ from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 class TaxonomyRepo:
 
-    def __init__(self):
-        tables = resources.get('table_resources', dict())
+    def __init__(self, tables=None):
+        if tables is None:
+            tables = resources.get('table_resources', dict())
 
         def has_taxonomy(_, resource):
             return 'feature-data-taxonomy' in resource and 'table' in resource
