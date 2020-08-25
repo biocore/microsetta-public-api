@@ -1345,6 +1345,244 @@ class PlottingIntegrationTests(IntegrationTests):
         self.assertStatusCode(200, response)
 
 
+class PlottingAltIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.plotting_metadata_path = self.create_tempfile(suffix='.txt').name
+        self.plotting_metadata_table = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not', 'normal'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6'],
+                               name='#SampleID')
+        )
+
+        Metadata(self.plotting_metadata_table).save(
+            self.plotting_metadata_path)
+
+        self.plotting_series1_filename = self.create_tempfile(
+            suffix='.qza').name
+        self.plotting_series2_filename = self.create_tempfile(
+            suffix='.qza').name
+
+        self.plotting_series_1 = pd.Series({
+            'sample-2': 7.24, 'sample-4': 8.25,
+            'sample-3': 6.4, },
+            name='observed_otus'
+        )
+
+        self.plotting_series_2 = pd.Series({
+            'sample-2': 9.01, 'sample-5': 9.04},
+            name='chao1'
+        )
+
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_1
+        )
+        imported_artifact.save(self.plotting_series1_filename)
+        imported_artifact = Artifact.import_data(
+            "SampleData[AlphaDiversity]", self.plotting_series_2
+        )
+        imported_artifact.save(self.plotting_series2_filename)
+        config_alt = {
+            'datasets': {
+                '16SAmplicon': {
+                    '__alpha__': {
+                        'observed_otus': self.plotting_series1_filename,
+                        'chao1': self.plotting_series2_filename,
+                    }
+                },
+                '__metadata__': self.plotting_metadata_path,
+            },
+        }
+        _update_resources_from_config(config_alt)
+
+    def test_percentiles_plot_with_filtering_422(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s'
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/chao1/percentiles-plot'
+            '?age_cat=30s&sample_id=sample-2'
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/dne-metric/percentiles-plot'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+            '?bmi_cat=not'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+            '?bmi_cat=not&sample_id=sample-2'
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_dne(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+            '?bmi_cat=not&sample_id=sample-does-not-exist'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot_with_filtering_422_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/chao1/percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_422_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/chao1/percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(422, response)
+
+    def test_percentiles_plot_404_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/dne-metric/'
+            'percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "age_cat",
+                        "field": "age_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "30s",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(404, response)
+
+    def test_percentiles_plot_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/plotting/'
+            'diversity/alpha/observed_otus/'
+            'percentiles-plot',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+    def test_percentiles_plot_with_filtering_and_sample_post(self):
+        response = self.client.post(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/alpha/observed_otus/'
+            'percentiles-plot'
+            '?sample_id=sample-2',
+            content_type='application/json',
+            data=json.dumps({
+                "condition": "AND",
+                "rules": [
+                    {
+                        "id": "bmi_cat",
+                        "field": "bmi_cat",
+                        "type": "string",
+                        "input": "select",
+                        "operator": "equal",
+                        "value": "not",
+                    },
+                ],
+            })
+        )
+        self.assertStatusCode(200, response)
+
+
 class PCoAIntegrationTests(IntegrationTests):
 
     def setUp(self):
@@ -1507,7 +1745,181 @@ class PCoAIntegrationTests(IntegrationTests):
         )
         self.assertStatusCode(404, response)
         obs = json.loads(response.data)
-        self.assertIn('dne_cat', obs['missing_categories'])
+        self.assertRegexpMatches(obs['text'], 'dne_cat')
+
+
+class PCoAAltIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        self.metadata_path_pc = self.create_tempfile(suffix='.txt').name
+        self.metadata_table_pc = pd.DataFrame(
+            {
+                'age_cat': ['30s', '40s', '50s', '30s', '30s', '50s', '50s'],
+                'bmi_cat': ['normal', 'not', 'not', 'normal', 'not',
+                            'normal', 'overweight'],
+                'num_cat': [20, 30, 7.15, 8.25, 30, 7.15, np.nan],
+            }, index=pd.Series(['sample-1', 'sample-2', 'sample-3',
+                                'sample-4', 'sample-5', 'sample-6',
+                                'sample-7',
+                                ],
+                               name='#SampleID')
+        )
+
+        Metadata(self.metadata_table_pc).save(self.metadata_path_pc)
+
+        axis_labels = ['PC1', 'PC2', 'PC3']
+        self.pcoa_fh1 = self.create_tempfile(suffix='.qza')
+        self.pcoa_fh2 = self.create_tempfile(suffix='.qza')
+        self.pcoa_path1 = self.pcoa_fh1.name
+        self.pcoa_path2 = self.pcoa_fh2.name
+        self.test_pcoa_df1 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            'sample-2': [0.9, 0.2, 7],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df1.index.name = 'Sample ID'
+        self.test_pcoa_df2 = pd.DataFrame.from_dict({
+            'sample-1': [0.1, 0.2, 7],
+            's2': [0.9, 0.2, 7],
+            'sample-3': [0.2, -0.3, 0],
+            'sample-7': [0.111, -4, 0.2],
+        },
+            orient='index',
+            columns=axis_labels,
+        )
+        self.test_pcoa_df2.index.name = 'Sample ID'
+
+        self.pcoa1 = OrdinationResults('pcoa1', 'pcoa1',
+                                       eigvals=pd.Series([7, 2, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df1,
+                                       proportion_explained=pd.Series(
+                                           [0.7, 0.2, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        self.pcoa2 = OrdinationResults('pcoa2', 'pcoa2',
+                                       eigvals=pd.Series([6, 3, 1],
+                                                         index=axis_labels,
+                                                         ),
+                                       samples=self.test_pcoa_df2,
+                                       proportion_explained=pd.Series(
+                                           [0.6, 0.3, 0.1],
+                                           index=axis_labels,
+                                       ),
+                                       )
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa1,
+        )
+        imported_artifact.save(self.pcoa_path1)
+        imported_artifact = Artifact.import_data(
+            "PCoAResults", self.pcoa2,
+        )
+        imported_artifact.save(self.pcoa_path2)
+
+        config_alt = {
+            'datasets': {
+                '16SAmplicon': {
+                    '__pcoa__': {
+                        'sample_set_name': {
+                            'pcoa1': self.pcoa_path1,
+                            'pcoa2': self.pcoa_path2,
+                        }
+                    }
+                },
+                '__metadata__': self.metadata_path_pc,
+            },
+        }
+        _update_resources_from_config(config_alt)
+
+    def test_pcoa(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/beta/pcoa1/pcoa/sample_set_name'
+            '/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+
+        decomp = obs['decomposition']
+        np.testing.assert_array_equal(decomp["coordinates"],
+                                      self.pcoa1.samples.values
+                                      )
+        np.testing.assert_array_equal(decomp["percents_explained"],
+                                      100
+                                      * self.pcoa1.proportion_explained.values
+                                      )
+        np.testing.assert_array_equal(decomp["sample_ids"],
+                                      ['sample-1', 'sample-2']
+                                      )
+
+        self.assertListEqual(obs['metadata'],
+                             [['30s', 'normal'], ['40s', 'not']]
+                             )
+        self.assertListEqual(obs['metadata_headers'],
+                             ['age_cat', 'bmi_cat']
+                             )
+
+    def test_pcoa_with_nan(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/beta/pcoa2/pcoa/sample_set_name'
+            '/emperor?metadata_categories=age_cat,num_cat&fillna=fish'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+
+        decomp = obs['decomposition']
+        np.testing.assert_array_equal(decomp["coordinates"],
+                                      self.pcoa2.samples.values
+                                      )
+        np.testing.assert_array_equal(decomp["percents_explained"],
+                                      100
+                                      * self.pcoa2.proportion_explained.values
+                                      )
+        np.testing.assert_array_equal(decomp["sample_ids"],
+                                      ['sample-1', 's2', 'sample-3',
+                                       'sample-7',
+                                       ]
+                                      )
+        self.assertListEqual(obs['metadata'],
+                             [['30s', 20], ['fish', 'fish'],
+                              ['50s', 7.15], ['50s', 'fish'],
+                              ]
+                             )
+        self.assertListEqual(obs['metadata_headers'],
+                             ['age_cat', 'num_cat']
+                             )
+
+    def test_pcoa_pcoa_404(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/beta/pcoa_dne/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,bmi_cat'
+        )
+        self.assertStatusCode(404, response)
+
+    def test_pcoa_400(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/beta/pcoa_dne/pcoa'
+            '/sample_set_name/emperor'
+        )
+        self.assertStatusCode(400, response)
+
+    def test_pcoa_metadata_404(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/'
+            'plotting/diversity/beta/pcoa1/pcoa'
+            '/sample_set_name/emperor?metadata_categories=age_cat,dne_cat'
+        )
+        self.assertStatusCode(404, response)
+        obs = json.loads(response.data)
+        self.assertRegexpMatches(obs['text'], 'dne_cat')
 
 
 class AllIntegrationTest(

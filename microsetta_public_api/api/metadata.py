@@ -39,8 +39,10 @@ def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
 
 
-def _get_repo():
-    resources = get_resources()
+def _get_repo(resource_getter=None):
+    if resource_getter is None:
+        resource_getter = get_resources
+    resources = resource_getter()
     if resources.has('metadata'):
         repo = MetadataRepo(resources.gets('metadata').data)
     elif resources.has('datasets', schema.metadata_kw):
