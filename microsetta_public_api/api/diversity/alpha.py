@@ -15,7 +15,7 @@ from microsetta_public_api.config import schema
 
 
 def get_alpha_alt(dataset, sample_id, alpha_metric):
-    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_resource = _validate_dataset_alpha(dataset, get_resources)
 
     alpha_repo = AlphaRepo(alpha_resource.data)
     alpha_value = _get_alpha(alpha_repo, alpha_metric, sample_id)
@@ -23,9 +23,9 @@ def get_alpha_alt(dataset, sample_id, alpha_metric):
     return jsonify(alpha_value), 200
 
 
-def _validate_dataset_alpha(dataset):
+def _validate_dataset_alpha(dataset, resource_getter):
     try:
-        dataset_resource = get_resources().gets('datasets', dataset)
+        dataset_resource = resource_getter().gets('datasets', dataset)
     except KeyError:
         raise UnknownResource(f"Unknown dataset: '{dataset}'")
     try:
@@ -60,7 +60,7 @@ def _get_alpha(alpha_repo, alpha_metric, sample_id):
 
 def alpha_group_alt(body, dataset, alpha_metric, summary_statistics=True,
                     percentiles=None, return_raw=False):
-    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_resource = _validate_dataset_alpha(dataset, get_resources)
     alpha_repo = AlphaRepo(alpha_resource.data)
     alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter_alt,
                               alpha_metric, percentiles,
@@ -151,7 +151,7 @@ def _alpha_group(body, alpha_repo, metadata_repo_getter, alpha_metric,
 
 
 def available_metrics_alpha_alt(dataset):
-    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_resource = _validate_dataset_alpha(dataset, get_resources)
     alpha_repo = AlphaRepo(alpha_resource.data)
     return jsonify(_available_metrics(alpha_repo)), 200
 
@@ -171,7 +171,7 @@ def _available_metrics(alpha_repo):
 
 
 def exists_single_alt(dataset, alpha_metric, sample_id):
-    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_resource = _validate_dataset_alpha(dataset, get_resources)
     alpha_repo = AlphaRepo(alpha_resource.data)
     return _exists(alpha_repo, alpha_metric, sample_id)
 
@@ -182,7 +182,7 @@ def exists_single(alpha_metric, sample_id):
 
 
 def exists_group_alt(body, dataset, alpha_metric):
-    alpha_resource = _validate_dataset_alpha(dataset)
+    alpha_resource = _validate_dataset_alpha(dataset, get_resources)
     alpha_repo = AlphaRepo(alpha_resource.data)
     return _exists(alpha_repo, alpha_metric, body)
 
