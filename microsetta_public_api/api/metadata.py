@@ -6,6 +6,11 @@ from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.config import schema
 
 
+def categories():
+    repo = _get_repo()
+    return jsonify(repo.categories), 200
+
+
 def category_values(category):
     repo = _get_repo()
     if category in repo.categories:

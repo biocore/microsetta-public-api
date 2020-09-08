@@ -7,6 +7,23 @@ servers:
   - url: '/results-api'
 
 paths:
+  '/metadata/category/available':
+    get:
+      operationId: microsetta_public_api.api.metadata.categories
+      tags:
+        - Metadata
+      summary: Get categories of metadata available
+      description: Get categories of metadata available
+      responses:
+        '200':
+          description: Successfully returned categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
   '/metadata/category/values/{category}':
     get:
       operationId: microsetta_public_api.api.metadata.category_values

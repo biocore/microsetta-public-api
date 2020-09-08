@@ -4,6 +4,35 @@ import json
 from microsetta_public_api.utils.testing import FlaskTests
 
 
+class MetadataCategoriesTests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.metadata.categories')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_metadata_categories(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify([
+                '20s',
+                '30s',
+                '40s',
+                '50',
+            ])
+        _, self.client = self.build_app_test_client()
+        exp = ['20s', '30s', '40s', '50']
+        response = self.client.get(
+            "/results-api/metadata/category/available")
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with()
+
+
 class MetadataCategoryTests(FlaskTests):
 
     def setUp(self):
