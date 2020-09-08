@@ -4,8 +4,10 @@ from microsetta_public_api.resources import resources
 
 class PCoARepo:
 
-    def __init__(self):
-        self._sample_sets = resources.get('pcoa', dict())
+    def __init__(self, sample_sets=None):
+        if sample_sets is None:
+            sample_sets = resources.get('pcoa', dict())
+        self._sample_sets = sample_sets
 
     def get_pcoa(self, sample_set, metric) -> OrdinationResults:
         return self._sample_sets[sample_set][metric]

@@ -9,7 +9,7 @@ from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import (TempfileTestCase,
                                                  ConfigTestCase)
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
-from microsetta_public_api.exceptions import UnknownMetric
+from microsetta_public_api.exceptions import UnknownMetric, UnknownID
 
 
 class TestAlphaRepoHelpers(TempfileTestCase):
@@ -80,6 +80,18 @@ class TestAlphaRepoWithResources(TempfileTestCase, ConfigTestCase):
         exp_series = pd.Series([9.04], index=['sample2'],
                                name='chao1')
         assert_series_equal(obs, exp_series)
+
+    def test_get_alpha_diversity_unknown_metric(self):
+        with self.assertRaises(UnknownMetric):
+            self.repo.get_alpha_diversity('sample2', 'metric-dne')
+
+    def test_get_alpha_diversity_unknown_ids(self):
+        with self.assertRaisesRegex(UnknownID, 'sample-dne'):
+            self.repo.get_alpha_diversity('sample-dne',
+                                          'chao1')
+        with self.assertRaisesRegex(UnknownID, 'sample-dne'):
+            self.repo.get_alpha_diversity(['sample-dne', 'sample2'],
+                                          'chao1')
 
     def test_exists(self):
         # group tests

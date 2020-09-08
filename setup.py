@@ -28,6 +28,7 @@ setup(
         'biom-format>=2.0',
         'scikit-bio',
         'altair',
+        'jsonschema',
     ],
     package_data={'microsetta_public_api':
                   [

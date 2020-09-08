@@ -1,11 +1,15 @@
-from microsetta_public_api.exceptions import UnknownMetric
-from microsetta_public_api.resources import resources
+import pandas as pd
+from microsetta_public_api.exceptions import UnknownMetric, UnknownID
+from microsetta_public_api.resources import resources as RESOURCES
 
 
 class AlphaRepo:
 
-    def __init__(self):
-        self._resources = resources.get('alpha_resources', dict())
+    def __init__(self, resources=None):
+        if resources is not None:
+            self._resources = resources
+        else:
+            self._resources = RESOURCES.get('alpha_resources', dict())
 
     # resources needs to be a property in order to be able to be
     #  mocked in the test cases, but also be instance specific
@@ -50,16 +54,26 @@ class AlphaRepo:
             union of samples ids in the database the ids in `sample_ids`.
             Sets the name of the series to `metric`.
 
+        Raises
+        ------
+
+        UnknownMetric
+            If the metric is not in the repo's resources
+        Unknown Id
+            If the id does not have value for the requested metric
+
         """
         # this could raise an UnknownMetric or ConfigurationError
         alpha_series = self._get_resource(metric)
-        # TODO the following could throw KeyErrors if a sample id is not in
-        #  the index. Right now, the API checks for missing ID's before
-        #  calling this.
         if isinstance(sample_ids, str):
-            return alpha_series.loc[[sample_ids]]
+            ids = pd.Series([sample_ids])
         else:
-            return alpha_series.loc[sample_ids]
+            ids = pd.Series(sample_ids)
+        unknown = ~ids.isin(alpha_series.index)
+        if any(unknown):
+            raise UnknownID(f"For metric='{metric}', unknown ids: "
+                            f"{ids.loc[unknown]}")
+        return alpha_series.loc[ids]
 
     def exists(self, sample_ids, metric):
         """Checks if sample_ids exist for the given metric.
