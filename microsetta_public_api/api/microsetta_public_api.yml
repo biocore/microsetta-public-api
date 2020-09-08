@@ -621,6 +621,21 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/available/dataset':
+    get:
+      operationId: microsetta_public_api.api.datasets.available
+      summary: Get a list of available datasets
+      description: Get a list of available datasets
+      responses:
+        '200':
+          description: Successfully return available datasets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
   '/dataset/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
       - $ref: '#/components/parameters/namedDataset'

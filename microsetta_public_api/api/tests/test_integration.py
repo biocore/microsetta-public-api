@@ -1938,6 +1938,14 @@ class AllIntegrationTest(
         PCoAIntegrationTests,
         ):
 
+    def test_available_datasets(self):
+        response = self.client.get('/results-api/available/dataset')
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['16SAmplicon'],
+                              obs
+                              )
+
     def test_metadata_filter_on_taxonomy(self):
         response = self.client.get('/results-api/metadata/sample_ids?'
                                    'taxonomy=table2')
