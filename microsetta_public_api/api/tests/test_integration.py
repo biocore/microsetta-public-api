@@ -76,6 +76,15 @@ class MetadataIntegrationTests(IntegrationTests):
         }
         _update_resources_from_config(config_alt)
 
+    def test_metadata_available_categories(self):
+        exp = ['age_cat', 'bmi_cat', 'num_cat']
+        response = self.client.get(
+            'results-api/metadata/category/available'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
     def test_metadata_category_values_returns_string_array(self):
         exp = ['30s', '40s', '50s']
         response = self.client.get(
@@ -1928,6 +1937,14 @@ class AllIntegrationTest(
         MetadataIntegrationTests,
         PCoAIntegrationTests,
         ):
+
+    def test_available_datasets(self):
+        response = self.client.get('/results-api/available/dataset')
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertCountEqual(['16SAmplicon'],
+                              obs
+                              )
 
     def test_metadata_filter_on_taxonomy(self):
         response = self.client.get('/results-api/metadata/sample_ids?'

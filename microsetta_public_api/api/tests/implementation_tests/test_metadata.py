@@ -6,7 +6,9 @@ from microsetta_public_api.api.metadata import (
     category_values,
     filter_sample_ids,
     filter_sample_ids_query_builder,
+    categories,
 )
+import pandas as pd
 
 
 class MetadataImplementationTests(MockedJsonifyTestCase):
@@ -33,6 +35,19 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
                 },
             ]
         }
+
+    def test_metadata_categories(self):
+        metadata_df = pd.DataFrame(
+            [[1, 2, 3], [4, 5, 6]], columns=['cat', 'fish', 'dog'],
+        )
+        with patch('microsetta_public_api.api.metadata._get_repo') as \
+                mock_repo:
+            mock_repo.return_value = MetadataRepo(metadata_df)
+            response, code = categories()
+        self.assertEqual(code, 200)
+        exp_values = ['cat', 'fish', 'dog']
+        obs = json.loads(response)
+        self.assertEqual(obs, exp_values)
 
     def test_metadata_category_values(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'

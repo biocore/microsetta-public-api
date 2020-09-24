@@ -7,6 +7,23 @@ servers:
   - url: '/results-api'
 
 paths:
+  '/metadata/category/available':
+    get:
+      operationId: microsetta_public_api.api.metadata.categories
+      tags:
+        - Metadata
+      summary: Get categories of metadata available
+      description: Get categories of metadata available
+      responses:
+        '200':
+          description: Successfully returned categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
   '/metadata/category/values/{category}':
     get:
       operationId: microsetta_public_api.api.metadata.category_values
@@ -603,6 +620,21 @@ paths:
                 $ref: '#/components/schemas/emperorPCoA'
         '404':
           $ref: '#/components/responses/404NotFound'
+
+  '/available/dataset':
+    get:
+      operationId: microsetta_public_api.api.datasets.available
+      summary: Get a list of available datasets
+      description: Get a list of available datasets
+      responses:
+        '200':
+          description: Successfully return available datasets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
 
   '/dataset/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
