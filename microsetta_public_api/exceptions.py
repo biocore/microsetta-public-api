@@ -11,6 +11,10 @@ class UnknownResource(ValueError):
     pass
 
 
+class InvalidParameter(ValueError):
+    pass
+
+
 class IncompatibleOptions(ValueError):
     pass
 

@@ -17,6 +17,18 @@ alpha_group_schema = {
     "description": "A group of related alpha diversity objects.",
 }
 
+beta_schema = {
+    "type": "string",
+    "description":
+        "Filepath to a distance matrix"
+}
+
+beta_group_schema = {
+    "type": "object",
+    "additionalProperties": beta_schema,
+    "description": "A group of related beta diversity objects.",
+}
+
 taxonomy_schema = {
     "type": "object",
     "properties": {
@@ -261,6 +273,11 @@ class MetadataElement(str, Element):
         visitor.visit_metadata(self)
 
 
+class BetaElement(DictElement):
+    def accept(self, visitor):
+        visitor.visit_beta(self)
+
+
 class ConfigElementVisitor:
 
     @abstractmethod
@@ -279,10 +296,15 @@ class ConfigElementVisitor:
     def visit_metadata(self, element):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_beta(self, element):
+        raise NotImplementedError()
+
 
 class SchemaBase:
     def __init__(self):
         self.alpha_kw = '__alpha__'
+        self.beta_kw = '__beta__'
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
@@ -290,6 +312,7 @@ class SchemaBase:
     def element_map(self):
         map_ = {
             self.alpha_kw: AlphaElement,
+            self.beta_kw: BetaElement,
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
@@ -333,6 +356,7 @@ class Schema(SchemaBase):
                                 "type": "object",
                                 "properties": {
                                     self.alpha_kw: alpha_group_schema,
+                                    self.beta_kw: beta_group_schema,
                                     self.taxonomy_kw: taxonomy_group_schema,
                                     self.pcoa_kw: pcoa_group_schema,
                                 },
@@ -369,6 +393,7 @@ class CompatibilitySchema(SchemaBase):
         self.old_pcoa_kw = 'pcoa'
         self.old_metadata_kw = 'metadata'
         self.alpha_kw = '__alpha__'
+        self.beta_kw = '__beta__'
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
@@ -380,6 +405,7 @@ class CompatibilitySchema(SchemaBase):
             self.old_pcoa_kw: PCOAElement,
             self.old_metadata_kw: MetadataElement,
             self.alpha_kw: AlphaElement,
+            self.beta_kw: BetaElement,
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
@@ -404,6 +430,7 @@ class CompatibilitySchema(SchemaBase):
                                 "type": "object",
                                 "properties": {
                                     self.alpha_kw: alpha_group_schema,
+                                    self.beta_kw: beta_group_schema,
                                     self.taxonomy_kw:
                                         taxonomy_group_schema,
                                     self.pcoa_kw: pcoa_group_schema,
