@@ -4,6 +4,7 @@ from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.utils._utils import jsonify, validate_resource
 from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.config import schema
+from microsetta_public_api.exceptions import UnknownID, UnknownCategory
 
 
 def categories():
@@ -19,6 +20,30 @@ def category_values(category):
     else:
         text = f"Metadata category: '{category}' does not exist."
         return jsonify(text=text, error=404), 404
+
+
+def get_metadata_values(body, cat):
+    repo = _get_repo()
+    # check all categories are valid
+    invalid_categories = list(filter(lambda x: not repo.has_category(x), cat))
+    if invalid_categories:
+        raise UnknownCategory(
+            f"Cannot find metadata categories corresponding to: "
+            f"{invalid_categories}"
+        )
+    # check all sample ID's are valid
+    sample_ids = body
+    invalid_ids = list(filter(lambda x: not repo.has_sample_id(x), sample_ids))
+    if invalid_ids:
+        raise UnknownID(
+            f"Cannot find sample ID's corresponding to: {invalid_ids}"
+        )
+
+    metadata = repo.get_metadata(cat,
+                                 sample_ids=sample_ids,
+                                 fillna=None,
+                                 )
+    return jsonify(metadata.values.tolist()), 200
 
 
 def _filter_sample_ids(query, repo, alpha_metric, taxonomy):

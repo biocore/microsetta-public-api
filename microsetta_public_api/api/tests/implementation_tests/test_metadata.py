@@ -2,11 +2,13 @@ import json
 from unittest.mock import patch, PropertyMock
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
+from microsetta_public_api.exceptions import UnknownID, UnknownCategory
 from microsetta_public_api.api.metadata import (
     category_values,
     filter_sample_ids,
     filter_sample_ids_query_builder,
     categories,
+    get_metadata_values,
 )
 import pandas as pd
 
@@ -48,6 +50,54 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
         exp_values = ['cat', 'fish', 'dog']
         obs = json.loads(response)
         self.assertEqual(obs, exp_values)
+
+    def test_metadata_values(self):
+        metadata_df = pd.DataFrame(
+            [[1, 2, 3], [4, 5, 6], ['foo', 'bar', 'baz']],
+            columns=['cat', 'fish', 'dog'],
+            index=['sample-01', 'sample-02', 'sample-03'],
+        )
+        with patch('microsetta_public_api.api.metadata._get_repo') as \
+                mock_repo:
+            mock_repo.return_value = MetadataRepo(metadata_df)
+            response, code = get_metadata_values(body=['sample-01',
+                                                       'sample-03'],
+                                                 cat=['fish', 'dog']
+                                                 )
+        self.assertEqual(code, 200)
+        exp_values = [[2, 3], ['bar', 'baz']]
+        obs = json.loads(response)
+        self.assertEqual(obs, exp_values)
+
+    def test_metadata_values_dne_category_404(self):
+        metadata_df = pd.DataFrame(
+            [[1, 2, 3], [4, 5, 6], ['foo', 'bar', 'baz']],
+            columns=['cat', 'fish', 'dog'],
+            index=['sample-01', 'sample-02', 'sample-03'],
+        )
+        with patch('microsetta_public_api.api.metadata._get_repo') as \
+                mock_repo:
+            mock_repo.return_value = MetadataRepo(metadata_df)
+            with self.assertRaises(UnknownCategory):
+                get_metadata_values(body=['sample-01',
+                                          'sample-03'],
+                                    cat=['fish', 'dne_cat']
+                                    )
+
+    def test_metadata_values_dne_sample_id_404(self):
+        metadata_df = pd.DataFrame(
+            [[1, 2, 3], [4, 5, 6], ['foo', 'bar', 'baz']],
+            columns=['cat', 'fish', 'dog'],
+            index=['sample-01', 'sample-02', 'sample-03'],
+        )
+        with patch('microsetta_public_api.api.metadata._get_repo') as \
+                mock_repo:
+            mock_repo.return_value = MetadataRepo(metadata_df)
+            with self.assertRaises(UnknownID):
+                get_metadata_values(body=['sample-01',
+                                          'sample-dne'],
+                                    cat=['fish', 'dog']
+                                    )
 
     def test_metadata_category_values(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
