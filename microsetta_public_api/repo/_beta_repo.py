@@ -5,17 +5,21 @@ import numpy as np
 
 class BetaRepo(DiversityRepo):
 
+    def __init__(self, resources):
+        super().__init__(resources)
+        self._ids = {key: set(dm.ids) for key, dm in resources.items()}
+
     def exists(self, sample_ids, metric):
         distance_matrix = self._get_resource(metric)
         if isinstance(sample_ids, str):
             return sample_ids in distance_matrix.ids
         else:
-            existing_ids = set(distance_matrix.ids)
+            existing_ids = self._ids[metric]
             return [(id_ in existing_ids) for id_ in sample_ids]
 
     def k_nearest(self, sample_id, metric, k=1):
         distance_matrix = self._get_resource(metric)
-        if sample_id not in distance_matrix.ids:
+        if not self.exists(sample_id, metric):
             raise UnknownID(sample_id)
         n_neighbors = len(distance_matrix.ids) - 1
         if k > n_neighbors:
