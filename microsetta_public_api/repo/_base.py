@@ -42,7 +42,7 @@ class DiversityRepo(metaclass=ABCMeta):
             Ids for to check database for.
 
         metric : str
-            Alpha diversity metric.
+            Diversity metric.
 
         Returns
         -------
