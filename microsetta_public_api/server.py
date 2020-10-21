@@ -12,6 +12,7 @@ from microsetta_public_api.exceptions import (UnknownMetric,
                                               UnknownResource,
                                               UnknownID,
                                               InvalidParameter,
+                                              UnknownCategory,
                                               IncompatibleOptions,
                                               )
 from flask import jsonify
@@ -55,6 +56,7 @@ def build_app():
     app.app.register_error_handler(UnknownMetric, handle_404)
     app.app.register_error_handler(UnknownResource, handle_404)
     app.app.register_error_handler(UnknownID, handle_404)
+    app.app.register_error_handler(UnknownCategory, handle_404)
     app.app.register_error_handler(IncompatibleOptions, handle_400)
     app.app.register_error_handler(InvalidParameter, handle_400)
 

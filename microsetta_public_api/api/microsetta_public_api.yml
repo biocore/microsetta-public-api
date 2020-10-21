@@ -52,6 +52,34 @@ paths:
         '404':
             $ref: '#/components/responses/404NotFound'
 
+  '/metadata/values':
+    parameters:
+      - in: query
+        name: cat
+        description: Metadata categories to return
+        schema:
+          $ref: '#/components/schemas/metadataHeaders'
+    post:
+      operationId: microsetta_public_api.api.metadata.get_metadata_values
+      tags:
+        - Metadata
+      summary: Get metadata associated with given samples
+      description: Get metadata associated with given samples
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sampleIdArray'
+      responses:
+        '200':
+          description: Successfully returned metadata values
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/metadata"
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/metadata/sample_ids':
     parameters:
       - in: query
