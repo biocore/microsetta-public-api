@@ -12,7 +12,7 @@ class BetaRepo(DiversityRepo):
     def exists(self, sample_ids, metric):
         distance_matrix = self._get_resource(metric)
         if isinstance(sample_ids, str):
-            return sample_ids in distance_matrix.ids
+            return sample_ids in distance_matrix
         else:
             existing_ids = self._ids[metric]
             return [(id_ in existing_ids) for id_ in sample_ids]

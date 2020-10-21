@@ -27,6 +27,12 @@ class BetaRepoTestCase(TestCase):
         obs = self.repo.exists(['s1', 'dne', 's3'], 'unifrac')
         self.assertListEqual(exp, obs)
 
+    def test_exists_single(self):
+        obs = self.repo.exists('s1', 'unifrac')
+        self.assertTrue(obs)
+        obs = self.repo.exists('dne', 'unifrac')
+        self.assertFalse(obs)
+
     def test_exists_bad_metric(self):
         with self.assertRaises(UnknownMetric):
             self.repo.exists(['s1'], 'bad-metric')
