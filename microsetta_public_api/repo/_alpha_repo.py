@@ -1,40 +1,14 @@
 import pandas as pd
-from microsetta_public_api.exceptions import UnknownMetric, UnknownID
+from microsetta_public_api.exceptions import UnknownID
+from microsetta_public_api.repo._base import DiversityRepo
 from microsetta_public_api.resources import resources as RESOURCES
 
 
-class AlphaRepo:
-
+class AlphaRepo(DiversityRepo):
     def __init__(self, resources=None):
-        if resources is not None:
-            self._resources = resources
-        else:
-            self._resources = RESOURCES.get('alpha_resources', dict())
-
-    # resources needs to be a property in order to be able to be
-    #  mocked in the test cases, but also be instance specific
-    @property
-    def resources(self):
-        return self._resources
-
-    def _get_resource(self, metric):
-        if metric not in self.available_metrics():
-            raise UnknownMetric(f"No resource available for metric="
-                                f"'{metric}'")
-        else:
-            res = self.resources.get(metric, None)
-            return res
-
-    def available_metrics(self):
-        """Return the metrics that are available with this Repo
-
-        Returns
-        -------
-        list of str:
-            Names of metrics that this repo has configured.
-
-        """
-        return list(self.resources.keys())
+        if resources is None:
+            resources = RESOURCES.get('alpha_resources', dict())
+        super().__init__(resources)
 
     def get_alpha_diversity(self, sample_ids, metric):
         """Obtains alpha diversity of a given metric for a list of samples.

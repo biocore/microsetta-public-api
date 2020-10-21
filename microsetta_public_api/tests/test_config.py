@@ -6,6 +6,7 @@ from jsonschema.exceptions import ValidationError
 from microsetta_public_api.config import (
     Element,
     AlphaElement,
+    BetaElement,
     MetadataElement,
     DictElement,
     PCOAElement,
@@ -46,6 +47,10 @@ class TestConfigSchema(TestCase):
                             'unifrac': '/path/to/all_unifrac.qza',
                         }
                     },
+                    '__beta__': {
+                        'unifrac': '/path/to/unifrac.qza',
+                        'braycurtis': '/path/to/braycurtis.qza',
+                    }
                 },
                 'ShotgunMetagenomics': {
                     '__alpha__': {
@@ -266,12 +271,14 @@ class TestParsing(TestCase):
                 self.taxonomy_kw = '__bar__'
                 self.pcoa_kw = '__alpha__'
                 self.metadata_kw = '__qux__'
+                self.beta_kw = '__corge__'
 
         self.assertDictEqual(AlternateSchema().element_map(),
                              {"__foo__": AlphaElement,
                               "__bar__": TaxonomyElement,
                               "__alpha__": PCOAElement,
                               "__qux__": MetadataElement,
+                              "__corge__": BetaElement,
                               })
 
         config = {

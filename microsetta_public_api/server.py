@@ -11,6 +11,7 @@ from microsetta_public_api.resources_alt import Q2Visitor
 from microsetta_public_api.exceptions import (UnknownMetric,
                                               UnknownResource,
                                               UnknownID,
+                                              InvalidParameter,
                                               UnknownCategory,
                                               IncompatibleOptions,
                                               )
@@ -57,6 +58,7 @@ def build_app():
     app.app.register_error_handler(UnknownID, handle_404)
     app.app.register_error_handler(UnknownCategory, handle_404)
     app.app.register_error_handler(IncompatibleOptions, handle_400)
+    app.app.register_error_handler(InvalidParameter, handle_400)
 
     CORS(app.app)
 
