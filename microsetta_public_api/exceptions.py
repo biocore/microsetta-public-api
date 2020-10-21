@@ -15,6 +15,10 @@ class InvalidParameter(ValueError):
     pass
 
 
+class UnknownCategory(ValueError):
+    pass
+
+
 class IncompatibleOptions(ValueError):
     pass
 

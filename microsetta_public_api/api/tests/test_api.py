@@ -61,6 +61,41 @@ class MetadataCategoriesTests(FlaskTests):
         self.mock_method.assert_called_with()
 
 
+class MetadataValuesTests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.metadata.get_metadata_values')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_metadata_values(self):
+        return_value = [
+            ['30s', 32, None],
+            ['20s', 45, 'str'],
+        ]
+        request_body = ['sample-1', 'sample-2']
+        with self.app_context():
+            self.mock_method.return_value = jsonify(return_value)
+
+        _, self.client = self.build_app_test_client()
+        exp = return_value
+        response = self.client.post(
+            "/results-api/metadata/values?cat=age_cat,age,name",
+            content_type='application/json',
+            data=json.dumps(request_body),
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+        self.mock_method.assert_called_with(body=request_body,
+                                            cat=['age_cat', 'age', 'name']
+                                            )
+
+
 class MetadataCategoryTests(FlaskTests):
 
     def setUp(self):
