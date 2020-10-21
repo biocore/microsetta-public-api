@@ -7,15 +7,13 @@ class BetaRepo(DiversityRepo):
 
     def __init__(self, resources):
         super().__init__(resources)
-        self._ids = {key: set(dm.ids) for key, dm in resources.items()}
 
     def exists(self, sample_ids, metric):
         distance_matrix = self._get_resource(metric)
         if isinstance(sample_ids, str):
             return sample_ids in distance_matrix
         else:
-            existing_ids = self._ids[metric]
-            return [(id_ in existing_ids) for id_ in sample_ids]
+            return [(id_ in distance_matrix) for id_ in sample_ids]
 
     def k_nearest(self, sample_id, metric, k=1):
         distance_matrix = self._get_resource(metric)
