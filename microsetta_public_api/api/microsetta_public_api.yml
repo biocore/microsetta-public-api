@@ -1254,6 +1254,7 @@ components:
       description: Number to select
       schema:
         type: integer
+        minimum: 1
         default: 1
     metadataCategories:
       name: metadata_categories
