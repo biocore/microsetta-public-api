@@ -1202,6 +1202,30 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/dataset/{dataset}/diversity/beta/{beta_metric}/nearest':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.diversity.beta.k_nearest
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get the k nearest sample ID's to a given sample ID
+      description: Get the k nearest sample ID's to a given sample ID
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/sampleIdQuery'
+        - $ref: '#/components/parameters/k'
+      responses:
+        '200':
+          description: Successfully return nearest sample IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sampleIdArray'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 components:
   parameters:
     alphaMetric:
@@ -1224,6 +1248,13 @@ components:
       description: Value to populate NaN values with
       schema:
         type: string
+    k:
+      name: k
+      in: query
+      description: Number to select
+      schema:
+        type: integer
+        default: 1
     metadataCategories:
       name: metadata_categories
       in: query
