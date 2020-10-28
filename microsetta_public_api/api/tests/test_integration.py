@@ -1380,7 +1380,7 @@ class BetaIntegreationTests(IntegrationTests):
             'datasets': {
                 '16SAmplicon': {
                     '__beta__': {
-                        'unifrac': self.beta_dm_path,
+                        'awesome-metric': self.beta_dm_path,
                     }
                 }
             }
@@ -1389,8 +1389,8 @@ class BetaIntegreationTests(IntegrationTests):
 
     def test_k_nearest(self):
         response = self.client.get(
-            '/results-api/dataset/16SAmplicon/diversity/beta/unifrac/nearest'
-            '?sample_id=s1'
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=s1'
         )
         self.assertStatusCode(200, response)
         exp = ['s0']
@@ -1399,8 +1399,8 @@ class BetaIntegreationTests(IntegrationTests):
 
     def test_k_nearest_k_2(self):
         response = self.client.get(
-            '/results-api/dataset/16SAmplicon/diversity/beta/unifrac/nearest'
-            '?sample_id=s1&k=2'
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=s1&k=2'
         )
         self.assertStatusCode(200, response)
         exp = ['s0', 's2']
