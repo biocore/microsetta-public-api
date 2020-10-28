@@ -1360,10 +1360,10 @@ class BetaIntegreationTests(IntegrationTests):
     def setUp(self):
         super().setUp()
         dm_data = [
-            [0, 1, 2, 3,],
-            [1, 0, 3, 4,],
-            [2, 3, 0, 1,],
-            [3, 4, 1, 0,],
+            [0, 1, 2, 3, ],
+            [1, 0, 3, 4, ],
+            [2, 3, 0, 1, ],
+            [3, 4, 1, 0, ],
         ]
 
         ids = [f's{i}' for i in range(4)]
