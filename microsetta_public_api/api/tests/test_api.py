@@ -1280,6 +1280,10 @@ class BetaTests(FlaskTests):
         self.mock_method = self.patcher.start()
         _, self.client = self.build_app_test_client()
 
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
     def test_beta_k_nearest_default_k(self):
         with self.app_context():
             self.mock_method.return_value = jsonify(['a', 'b', 'c']), 200

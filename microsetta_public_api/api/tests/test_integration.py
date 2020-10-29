@@ -1355,7 +1355,7 @@ class PlottingIntegrationTests(IntegrationTests):
         self.assertStatusCode(200, response)
 
 
-class BetaIntegreationTests(IntegrationTests):
+class BetaIntegrationTests(IntegrationTests):
 
     def setUp(self):
         super().setUp()
@@ -1381,8 +1381,8 @@ class BetaIntegreationTests(IntegrationTests):
                 '16SAmplicon': {
                     '__beta__': {
                         'awesome-metric': self.beta_dm_path,
-                    }
-                }
+                    },
+                },
             }
         }
         _update_resources_from_config(config_alt)

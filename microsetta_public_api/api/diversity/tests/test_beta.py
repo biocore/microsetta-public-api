@@ -51,6 +51,10 @@ class BetaTests(MockedJsonifyTestCase):
         self.mock_resources = self.res_patcher.start()
         self.mock_resources.return_value = self.resources
 
+    def tearDown(self):
+        self.res_patcher.stop()
+        super().tearDown()
+
     def test_k_nearest(self):
         results, code = k_nearest(
             dataset='dataset1',
