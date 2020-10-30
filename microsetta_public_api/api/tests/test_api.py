@@ -2,6 +2,7 @@ from unittest.mock import patch
 from flask import jsonify
 import json
 from microsetta_public_api.utils.testing import FlaskTests
+from microsetta_public_api.exceptions import UnknownID
 
 
 class DatasetsAvailableTests(FlaskTests):
@@ -1315,6 +1316,22 @@ class BetaTests(FlaskTests):
             sample_id='s2',
         )
         self.assertEqual(200, response.status_code)
+
+    def test_beta_k_nearest_unknown_id_api(self):
+        with self.app_context():
+            self.mock_method.side_effect = UnknownID()
+
+        response = self.client.get(
+            '/results-api/dataset/d1/diversity/beta/unifrac/nearest'
+            '?sample_id=s2&k=3'
+        )
+        self.mock_method.assert_called_with(
+            dataset='d1',
+            beta_metric='unifrac',
+            k=3,
+            sample_id='s2',
+        )
+        self.assertEqual(404, response.status_code)
 
 
 class PlottingTests(FlaskTests):

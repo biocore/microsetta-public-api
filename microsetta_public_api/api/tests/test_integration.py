@@ -1407,6 +1407,13 @@ class BetaIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertCountEqual(exp, obs)
 
+    def test_k_nearest_unknown_id(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=a'
+        )
+        self.assertStatusCode(404, response)
+
 
 class PlottingAltIntegrationTests(IntegrationTests):
 
