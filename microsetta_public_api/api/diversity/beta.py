@@ -8,15 +8,17 @@ from microsetta_public_api.config import schema
 
 
 def _validate_dataset_beta(dataset, resource_getter):
-    try:
-        dataset_resource = resource_getter().gets('datasets', dataset)
-    except KeyError:
+    getter = resource_getter()
+    dataset_info = ('datasets', dataset)
+    if not getter.has(*dataset_info):
         raise UnknownResource(f"Unknown dataset: '{dataset}'")
-    try:
-        beta_resource = dataset_resource.gets(schema.beta_kw)
-    except KeyError:
-        raise UnknownResource(f"No beta data (kw: '{schema.beta_kw}') for "
+    dataset_resource = getter.gets(*dataset_info)
+
+    beta_kw = schema.beta_kw
+    if not dataset_resource.has(beta_kw):
+        raise UnknownResource(f"No beta data (kw: '{beta_kw}') for "
                               f"dataset='{dataset}'.")
+    beta_resource = dataset_resource.gets(beta_kw)
     return beta_resource
 
 
