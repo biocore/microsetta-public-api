@@ -2,6 +2,7 @@ from unittest.mock import patch
 from flask import jsonify
 import json
 from microsetta_public_api.utils.testing import FlaskTests
+from microsetta_public_api.exceptions import UnknownID
 
 
 class DatasetsAvailableTests(FlaskTests):
@@ -1267,6 +1268,68 @@ class TaxonomyDataTableTests(FlaskTests):
             '/results-api/taxonomy/present/group/greengenes',
             content_type='application/json',
             data=json.dumps({'sample_ids': ['sample1', 'sample2']})
+        )
+        self.assertEqual(404, response.status_code)
+
+
+class BetaTests(FlaskTests):
+
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.diversity.beta.k_nearest')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_beta_k_nearest_default_k(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(['a', 'b', 'c']), 200
+
+        response = self.client.get(
+            '/results-api/dataset/d1/diversity/beta/unifrac/nearest'
+            '?sample_id=s2'
+        )
+        self.mock_method.assert_called_with(
+            dataset='d1',
+            beta_metric='unifrac',
+            k=1,
+            sample_id='s2',
+        )
+        self.assertEqual(200, response.status_code)
+
+    def test_beta_k_nearest_k3(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(['a', 'b', 'c']), 200
+
+        response = self.client.get(
+            '/results-api/dataset/d1/diversity/beta/unifrac/nearest'
+            '?sample_id=s2&k=3'
+        )
+        self.mock_method.assert_called_with(
+            dataset='d1',
+            beta_metric='unifrac',
+            k=3,
+            sample_id='s2',
+        )
+        self.assertEqual(200, response.status_code)
+
+    def test_beta_k_nearest_unknown_id_api(self):
+        with self.app_context():
+            self.mock_method.side_effect = UnknownID()
+
+        response = self.client.get(
+            '/results-api/dataset/d1/diversity/beta/unifrac/nearest'
+            '?sample_id=s2&k=3'
+        )
+        self.mock_method.assert_called_with(
+            dataset='d1',
+            beta_metric='unifrac',
+            k=3,
+            sample_id='s2',
         )
         self.assertEqual(404, response.status_code)
 

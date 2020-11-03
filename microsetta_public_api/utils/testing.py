@@ -38,6 +38,7 @@ class TrivialVisitor(ConfigElementVisitor):
     visit_taxonomy = visit
     visit_pcoa = visit
     visit_metadata = visit
+    visit_beta = visit
 
 
 class TempfileTestCase(TestCase):

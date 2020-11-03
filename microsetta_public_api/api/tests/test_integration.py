@@ -6,6 +6,7 @@ from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 from skbio.stats.ordination import OrdinationResults
+from skbio import DistanceMatrix
 from copy import deepcopy
 
 from microsetta_public_api import config
@@ -1352,6 +1353,66 @@ class PlottingIntegrationTests(IntegrationTests):
             })
         )
         self.assertStatusCode(200, response)
+
+
+class BetaIntegrationTests(IntegrationTests):
+
+    def setUp(self):
+        super().setUp()
+        dm_data = [
+            [0, 1, 2, 3, ],
+            [1, 0, 3, 4, ],
+            [2, 3, 0, 1, ],
+            [3, 4, 1, 0, ],
+        ]
+
+        ids = [f's{i}' for i in range(4)]
+
+        self.dm = DistanceMatrix(dm_data, ids=ids)
+
+        imported_artifact = Artifact.import_data(
+            "DistanceMatrix", self.dm
+        )
+        self.beta_dm_path = self.create_tempfile(suffix='.qza').name
+        imported_artifact.save(self.beta_dm_path)
+
+        config_alt = {
+            'datasets': {
+                '16SAmplicon': {
+                    '__beta__': {
+                        'awesome-metric': self.beta_dm_path,
+                    },
+                },
+            }
+        }
+        _update_resources_from_config(config_alt)
+
+    def test_k_nearest(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=s1'
+        )
+        self.assertStatusCode(200, response)
+        exp = ['s0']
+        obs = json.loads(response.data)
+        self.assertCountEqual(exp, obs)
+
+    def test_k_nearest_k_2(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=s1&k=2'
+        )
+        self.assertStatusCode(200, response)
+        exp = ['s0', 's2']
+        obs = json.loads(response.data)
+        self.assertCountEqual(exp, obs)
+
+    def test_k_nearest_unknown_id(self):
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/diversity/beta/awesome-metric'
+            '/nearest?sample_id=a'
+        )
+        self.assertStatusCode(404, response)
 
 
 class PlottingAltIntegrationTests(IntegrationTests):
