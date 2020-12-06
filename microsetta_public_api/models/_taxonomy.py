@@ -130,8 +130,7 @@ class Taxonomy(ModelBase):
                 set(self._table.ids(axis='observation')):
             raise DisjointError("Table and variances are disjoint")
 
-        if set(self._table.ids(axis='observation')) != \
-                set(self._features.index):
+        if not self._feature_id_lookup.issubset(set(self._features.index)):
             raise DisjointError("Table and features are disjoint")
 
         self._features = self._features.loc[self._feature_order]
