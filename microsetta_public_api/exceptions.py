@@ -28,6 +28,10 @@ class DisjointError(KeyError):
     pass
 
 
+class SubsetError(KeyError):
+    pass
+
+
 # Type errors
 class ConfigurationError(TypeError):
     pass
