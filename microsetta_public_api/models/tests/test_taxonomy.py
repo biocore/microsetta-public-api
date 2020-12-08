@@ -7,7 +7,8 @@ import numpy.testing as npt
 
 from qiime2 import Artifact
 from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
-from microsetta_public_api.exceptions import DisjointError, UnknownID
+from microsetta_public_api.exceptions import (DisjointError, UnknownID,
+                                              SubsetError)
 from microsetta_public_api.utils import DataTable, create_data_entry
 
 
@@ -99,11 +100,11 @@ class TaxonomyTests(unittest.TestCase):
                          list(taxonomy._variances.ids(axis='observation')))
 
     def test_init_disjoint(self):
-        with self.assertRaisesRegex(DisjointError,
-                                    "Table and features are disjoint"):
+        with self.assertRaisesRegex(SubsetError,
+                                    "not a subset"):
             Taxonomy(self.table, self.taxonomy2_df)
-        with self.assertRaisesRegex(DisjointError,
-                                    "Table and features are disjoint"):
+        with self.assertRaisesRegex(SubsetError,
+                                    "not a subset"):
             Taxonomy(self.table2, self.taxonomy_df)
 
     def test_init_allow_taxonomy_superset(self):

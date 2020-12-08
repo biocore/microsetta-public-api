@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from microsetta_public_api.exceptions import DisjointError, UnknownID
+from microsetta_public_api.exceptions import (DisjointError, UnknownID,
+                                              SubsetError)
 from microsetta_public_api.utils import DataTable
 from ._base import ModelBase
 
@@ -131,7 +132,8 @@ class Taxonomy(ModelBase):
             raise DisjointError("Table and variances are disjoint")
 
         if not self._feature_id_lookup.issubset(set(self._features.index)):
-            raise DisjointError("Table and features are disjoint")
+            raise SubsetError("Table features are not a subset of the "
+                              "taxonomy information")
 
         self._features = self._features.loc[self._feature_order]
         self._variances = self._variances.sort_order(self._feature_order,
