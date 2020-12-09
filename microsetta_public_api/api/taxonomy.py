@@ -164,8 +164,23 @@ def _exists(resource, samples, taxonomy_repo):
 
 
 def ranks_sample(dataset, resource, sample_size):
-    pass
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    taxonomy_ = taxonomy_repo.model(resource)
+    summary = taxonomy_.ranks_sample(sample_size)
+    response = jsonify(summary.to_dict())
+    return response, 200
 
 
 def ranks_specific(dataset, resource, sample_id):
-    pass
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     sample_id,
+                                                     resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+    summary = taxonomy_.ranks_specific(sample_id)
+    response = jsonify(summary.to_dict())
+    return response, 200
