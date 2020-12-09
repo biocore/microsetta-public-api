@@ -118,6 +118,29 @@ class TaxonomyTests(unittest.TestCase):
                                     "Table and variances are disjoint"):
             Taxonomy(self.table, self.taxonomy_df, bad)
 
+    def test_init_rankdata(self):
+        exp = pd.DataFrame([['c', 'sample-1', 1.],
+                            ['c', 'sample-2', 1],
+                            ['c', 'sample-3', 2],
+                            ['g', 'sample-1', 2],
+                            ['g', 'sample-3', 1]],
+                           columns=['Taxon', 'Sample ID', 'Rank'])
+
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        obs = taxonomy._ranked
+        obs.sort_values(['Taxon', 'Sample ID'], inplace=True)
+        exp.sort_values(['Taxon', 'Sample ID'], inplace=True)
+        obs.reset_index(drop=True, inplace=True)
+        exp.reset_index(drop=True, inplace=True)
+        pdt.assert_frame_equal(obs, exp, check_like=True)
+
+    def test_init_rankdata_order(self):
+        exp = ['g', 'c']
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        obs = list(taxonomy._ranked_order.index)
+        self.assertEqual(obs, exp)
+
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
         exp = GroupTaxonomy(name='sample-2',

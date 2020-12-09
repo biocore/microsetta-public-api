@@ -94,7 +94,8 @@ class Taxonomy(ModelBase):
 
     def __init__(self, table: biom.Table, features: pd.DataFrame,
                  variances: biom.Table = None,
-                 formatter: Optional['Formatter'] = None
+                 formatter: Optional['Formatter'] = None,
+                 rank_level: int = 1
                  ):
         """Establish the taxonomy data
 
@@ -107,13 +108,14 @@ class Taxonomy(ModelBase):
             DataFrame relating an observation to a Taxon
         variances : biom.Table, optional
             Variation information about a taxon within a label.
+        rank_level : int
+            The taxonomic level to compute ranked data over
         """
         self._table = table.norm(inplace=False)
         self._group_id_lookup = set(self._table.ids())
         self._feature_id_lookup = set(self._table.ids(axis='observation'))
         self._feature_order = self._table.ids(axis='observation')
         self._features = features
-        self._ranks = table.rankdata(inplace=False)
 
         if variances is None:
             empty = ss.csr_matrix((len(self._table.ids(axis='observation')),
@@ -135,6 +137,8 @@ class Taxonomy(ModelBase):
             raise SubsetError("Table features are not a subset of the "
                               "taxonomy information")
 
+        self._ranked, self._ranked_order = self._rankdata(rank_level)
+
         self._features = self._features.loc[self._feature_order]
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
@@ -147,6 +151,58 @@ class Taxonomy(ModelBase):
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
+
+    def _rankdata(self, rank_level):
+        index = {idx: v.split(';')[rank_level].strip()
+                 for idx, v in self._features['Taxon'].items()}
+
+        def collapse(i, m):
+            return index[i]
+
+        base = self._table.collapse(collapse, axis='observation', norm=False)
+
+        # test to see if there are greengenes style strings, and
+        # revise the names if needed
+        if base.ids(axis='observation')[0][:3].endswith('__'):
+            base.update_ids({i: i.split('__', 1)[1]
+                             for i in base.ids(axis='observation')},
+                            axis='observation', inplace=True)
+
+        # 16S mitochondria reads report as g__human
+        keep = {v for v in base.ids(axis='observation')
+                if 'human' not in v.lower()}
+        keep -= {None, ""}
+        base.filter(keep, axis='observation')
+
+        # remove taxa not present in at least 10% of samples
+        min_ = len(base.ids()) * 0.1
+
+        base.filter(lambda v, i, m: (v > 0).sum() > min_, axis='observation')
+        base.rankdata(inplace=True)
+
+        median_order = self._rankdata_order(base)
+
+        # reduce to the top observed taxa
+        base.filter(set(median_order.index), axis='observation')
+
+        # convert to a melted dataframe
+        base_df = base.to_dataframe(dense=True)
+        base_df.index.name = 'Taxon'
+        base_df_melted = base_df.reset_index().melt(id_vars=['Taxon'],
+                                                    value_name='Rank')
+        base_df_melted = base_df_melted[base_df_melted['Rank'] > 0]
+        base_df_melted.rename(columns={'variable': 'Sample ID'}, inplace=True)
+
+        return base_df_melted, median_order
+
+    def _rankdata_order(self, table, top_n=50):
+        # rank by median
+        medians = []
+        for v in table.iter_data(axis='observation', dense=False):
+            medians.append(np.median(v.data))
+
+        medians = pd.Series(medians, index=table.ids(axis='observation'))
+        return medians.sort_values(ascending=False).head(top_n)
 
     def _get_sample_ids(self) -> np.ndarray:
         return self._table.ids()
