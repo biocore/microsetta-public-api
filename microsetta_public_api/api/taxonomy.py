@@ -71,7 +71,6 @@ def _summarize_group(sample_ids, table_name, taxonomy_repo):
 
     taxonomy_data = taxonomy_.get_group(sample_ids, '').to_dict()
     del taxonomy_data['name']
-    del taxonomy_data['feature_ranks']
     response = jsonify(taxonomy_data)
     return response, 200
 

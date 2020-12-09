@@ -14,8 +14,8 @@ from microsetta_public_api.utils import DataTable
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',
-                                         'feature_values', 'feature_variances',
-                                         'feature_ranks'])
+                                         'feature_values',
+                                         'feature_variances'])
 
 
 class GroupTaxonomy(_gt_named):
@@ -38,11 +38,6 @@ class GroupTaxonomy(_gt_named):
         etc)
     feature_variances : list of float
         Values associated with the variance of the features
-    feature_ranks : list of float
-        Values associated with the rank of the features. For example, if
-        an instance represents multiple samples (e.g., all fecal samples), then
-        feature_ranks would describe the median rank for a corresponding
-        feature.
 
     Notes
     -----
@@ -53,9 +48,7 @@ class GroupTaxonomy(_gt_named):
     __slots__ = ()
 
     def __init__(self, *args, name=None, taxonomy=None, features=None,
-                 feature_values=None, feature_variances=None,
-                 feature_ranks=None,
-                 ):
+                 feature_values=None, feature_variances=None):
         if args:
             raise NotImplementedError("%s only supports kwargs" %
                                       str(self.__class__))
@@ -74,10 +67,6 @@ class GroupTaxonomy(_gt_named):
         if feature_variances is not None and len(features) != len(
                 feature_variances):
             raise ValueError("features and feature_variances have a length "
-                             "mismatch")
-
-        if feature_ranks is not None and len(features) != len(feature_ranks):
-            raise ValueError("features and feature_ranks have a length "
                              "mismatch")
 
         super().__init__()
@@ -152,7 +141,7 @@ class Taxonomy(ModelBase):
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
 
-    def _rankdata(self, rank_level):
+    def _rankdata(self, rank_level) -> (pd.DataFrame, pd.Series):
         index = {idx: v.split(';')[rank_level].strip()
                  for idx, v in self._features['Taxon'].items()}
 
@@ -195,7 +184,7 @@ class Taxonomy(ModelBase):
 
         return base_df_melted, median_order
 
-    def _rankdata_order(self, table, top_n=50):
+    def _rankdata_order(self, table, top_n=50) -> pd.Series:
         # rank by median
         medians = []
         for v in table.iter_data(axis='observation', dense=False):
@@ -277,7 +266,6 @@ class Taxonomy(ModelBase):
                              features=list(features),
                              feature_values=list(feature_values),
                              feature_variances=list(feature_variances),
-                             feature_ranks=None,
                              )
 
     def presence_data_table(self, ids: Iterable[str]) -> DataTable:

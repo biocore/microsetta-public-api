@@ -147,8 +147,7 @@ class TaxonomyTests(unittest.TestCase):
                             taxonomy='((((feature-1,((feature-2)e)d)c)b)a);',
                             features=['feature-1', 'feature-2'],
                             feature_values=[1. / 5, 4. / 5],
-                            feature_variances=[0.0, 0.0],
-                            feature_ranks=None)
+                            feature_variances=[0.0, 0.0])
         obs = taxonomy.get_group(['sample-2'])
         self.assertEqual(obs, exp)
 
@@ -158,8 +157,7 @@ class TaxonomyTests(unittest.TestCase):
                             taxonomy='((((feature-1,((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',  # noqa
                             features=['feature-1', 'feature-2', 'feature-3'],
                             feature_values=[1. / 10, 6. / 10, 3. / 10],
-                            feature_variances=[0.0, 0.0, 0.0],
-                            feature_ranks=None)
+                            feature_variances=[0.0, 0.0, 0.0])
         obs = taxonomy.get_group(['sample-1', 'sample-2'], 'foo')
         self.assertEqual(obs.name, exp.name)
         self.assertEqual(obs.taxonomy, exp.taxonomy)
@@ -173,8 +171,7 @@ class TaxonomyTests(unittest.TestCase):
                             taxonomy='((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',  # noqa
                             features=['feature-2', 'feature-3'],
                             feature_values=[2. / 5, 3. / 5],
-                            feature_variances=[2.0, 3.0],
-                            feature_ranks=None,)
+                            feature_variances=[2.0, 3.0])
         obs = taxonomy.get_group(['sample-1'])
         self.assertEqual(obs, exp)
 
@@ -262,8 +259,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                                  taxonomy=self.tstr,
                                  features=['feature-1', 'feature-2'],
                                  feature_values=[1. / 5, 4. / 5],
-                                 feature_variances=[0.0, 0.0],
-                                 feature_ranks=[1.0, 2.0])
+                                 feature_variances=[0.0, 0.0])
 
     def test_init(self):
         self.assertEqual(self.obj.name, 'sample-2')
@@ -271,7 +267,6 @@ class GroupTaxonomyTests(unittest.TestCase):
         self.assertEqual(self.obj.features, ['feature-1', 'feature-2'])
         self.assertEqual(self.obj.feature_values, [1. / 5, 4. / 5])
         self.assertEqual(self.obj.feature_variances, [0.0, 0.0])
-        self.assertEqual(self.obj.feature_ranks, [1.0, 2.0])
 
     def test_init_tree_missing_feature(self):
         with self.assertRaisesRegex(UnknownID,
@@ -280,8 +275,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr,
                           features=['feature-1', 'feature-3'],
                           feature_values=[1. / 5, 4. / 5],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
     def test_init_feature_value_lengths(self):
         with self.assertRaisesRegex(ValueError,
@@ -290,8 +284,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr + 'feature-3',
                           features=['feature-1', 'feature-2', 'feature-3'],
                           feature_values=[1. / 5, 4. / 5],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
         with self.assertRaisesRegex(ValueError,
                                     "length mismatch"):
@@ -299,16 +292,14 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr,
                           features=['feature-1', 'feature-2'],
                           feature_values=[1. / 5, ],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
     def test_to_dict(self):
         exp = {'name': 'sample-2',
                'taxonomy': self.tstr,
                'features': ['feature-1', 'feature-2'],
                'feature_values': [1. / 5, 4. / 5],
-               'feature_variances': [0.0, 0.0],
-               'feature_ranks': [1.0, 2.0]}
+               'feature_variances': [0.0, 0.0]}
         obs = self.obj.to_dict()
         self.assertEqual(obs, exp)
 
