@@ -1120,7 +1120,7 @@ paths:
         - $ref: '#/components/parameters/taxonomyResource'
       responses:
         '200':
-          description: Successfuly return taxonomy information
+          description: Successfully return taxonomy information
           content:
             application/json:
               schema:
@@ -1128,6 +1128,62 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/dataset/{dataset}/taxonomy/ranks/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/taxonomyResource'
+      - $ref: '#/components/parameters/ranksSampleSize'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.ranks_sample
+      tags:
+        - Taxonomy
+      summary: Obtain a random sample of the rank order of observed taxa
+      description: |
+        Obtain a random sample of the rank order of observed taxa in the dataset.
+        A high value for a rank means that taxon was observed to have a high relative
+        abundance in a particular sample. A low value means that taxon was observed
+        to have a low relative abundance. The data being sampled are a reduced set 
+        of the overall taxa in the dataset, such that low prevalence taxa are 
+        removed prior to ranking. In addition, ranks are only computed over the 
+        genus level.
+      responses:
+        '200':
+          description: Successfully obtained a sampling of ranks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyRanks'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/dataset/{dataset}/taxonomy/ranks/{resource}/sample/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/taxonomyResource'
+      - $ref: '#/components/parameters/sampleIdPath'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.ranks_specific
+      tags:
+        - Taxonomy
+      summary: Obtain the rank order of observed taxa in a specific sample
+      description: |
+        Obtain the rank order of observed taxa in a specific sample. A high
+        value for a rank means that taxon was observed to have a high relative
+        abundance in a particular sample. A low value means that taxon was
+        observed to have a low relative abundance. The ranks are a
+        reduced set of the overall taxa in the dataset, such that low
+        prevalence taxa are removed prior to ranking. In addition, ranks are
+        only computed over the genus level.
+      responses:
+        '200':
+          description: Successfully obtained ranks for a specific sample
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyRanks'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+  
   '/dataset/{dataset}/taxonomy/present/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
@@ -1313,6 +1369,14 @@ components:
       schema:
         $ref: '#/components/schemas/percentiles'
       required: false
+    ranksSampleSize:
+      name: sample_size
+      in: query
+      description: The size of the random sample of ranks to obtain
+      schema:
+        type: integer
+        example: 30000
+      required: true
 
   schemas:
     alphaMetric:
@@ -1548,6 +1612,7 @@ components:
                   - "Kingdom"
                   - "Genus"
                   - "relativeAbundance"
+
     taxonomyFeatures:
       type: object
       required:
@@ -1579,6 +1644,40 @@ components:
           example:
             - 0.05
             - 0.11
+
+    taxonomyRanks:
+      type: object
+      required:
+        - taxa
+        - ranks
+        - taxa-order
+      properties:
+        genera:
+          type: array
+          items:
+            type: string
+          example:
+            - "Bacteroides"
+            - "Prevotella"
+            - "Prevotella"
+            - "Ruminococcus"
+        ranks:
+          type: array
+          items:
+            type: number
+          example:
+            - 15
+            - 12
+            - 12
+            - 11
+        genera-order:
+          type: array
+          items:
+            type: string
+          example:
+            - "Bacteroides"
+            - "Prevotella"
+            - "Ruminococcus"
 
   responses:
     200VegaSchema:

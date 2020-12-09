@@ -161,3 +161,11 @@ def _exists(resource, samples, taxonomy_repo):
         return missing_resource
 
     return jsonify(taxonomy_repo.exists(samples, resource)), 200
+
+
+def ranks_sample(dataset, resource, sample_size):
+    pass
+
+
+def ranks_specific(dataset, resource, sample_id):
+    pass
