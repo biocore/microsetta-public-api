@@ -191,7 +191,88 @@ class Taxonomy(ModelBase):
             medians.append(np.median(v.data))
 
         medians = pd.Series(medians, index=table.ids(axis='observation'))
-        return medians.sort_values(ascending=False).head(top_n)
+        ordered = medians.sort_values(ascending=False).head(top_n)
+        ordered.loc[:] = np.arange(0, len(ordered), dtype=int)
+        return ordered
+
+    def ranks_sample(self, sample_size: int) -> pd.DataFrame:
+        """Randomly sample, without replacement, from ._ranked
+
+        Parameters
+        ----------
+        sample_size : int
+            The number of elements to obtain. If value is greater than the
+            total number of entries in .ranked, all entries of .ranked will
+            be returned. If the value is less than zero, no values will be
+            returned
+
+        Returns
+        -------
+        pd.DataFrame
+            The subset of .ranked
+        """
+        if sample_size < 0:
+            sample_size = 0
+
+        n_rows = len(self._ranked)
+        return self._ranked.sample(min(sample_size, n_rows), replace=False)
+
+    def ranks_specific(self, sample_id: str) -> pd.DataFrame:
+        """Obtain the taxonomy rank information for a specific sample
+
+        Parameters
+        ----------
+        sample_id : str
+            The sample identifier to obtain ranks for
+
+        Raises
+        ------
+        UnknownID
+            If the requested sample is not present
+
+        Returns
+        -------
+        pd.DataFrame
+            The subset of .ranked for the sample
+        """
+        subset = self._ranked[self._ranked['Sample ID'] == sample_id]
+        if len(subset) == 0:
+            raise UnknownID("%s not found" % sample_id)
+        else:
+            return subset.copy()
+
+    def ranks_order(self, taxa: Iterable[str] = None) -> List:
+        """Obtain the rank order of the requested taxa names
+
+        Parameters
+        ----------
+        taxa : Iterable[str], optional
+            The taxa to request ordering for. If not specified, return the
+            order of all contained taxa
+
+        Raises
+        ------
+        UnknownID
+            If a requested taxa is not ranked or otherwise unknown
+
+        Returns
+        -------
+        list
+            The order of the taxa, where index 0 corresponds to the highest
+            ranked taxon, index 1 the next highest, etc
+        """
+        if taxa is None:
+            taxa = set(self._ranked_order.index)
+        else:
+            taxa = set(taxa)
+            known = set(self._ranked_order.index)
+
+            unk = taxa - known
+            if len(unk) > 0:
+                raise UnknownID("One or more unknown names: %s" %
+                                ",".join(unk))
+
+        return [t for t in self._ranked_order.index if t in taxa]
 
     def _get_sample_ids(self) -> np.ndarray:
         return self._table.ids()

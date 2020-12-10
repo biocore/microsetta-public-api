@@ -167,8 +167,13 @@ def ranks_sample(dataset, resource, sample_size):
     taxonomy_repo = _get_taxonomy_repo(dataset)
     taxonomy_ = taxonomy_repo.model(resource)
     summary = taxonomy_.ranks_sample(sample_size)
-    response = jsonify(summary.to_dict())
-    return response, 200
+    order = taxonomy_.ranks_order(summary['Taxon'])
+
+    payload = summary.to_dict('list')
+    payload.pop('Sample ID')
+    payload['Taxa-order'] = order
+
+    return jsonify(payload), 200
 
 
 def ranks_specific(dataset, resource, sample_id):
@@ -182,5 +187,10 @@ def ranks_specific(dataset, resource, sample_id):
 
     taxonomy_ = taxonomy_repo.model(resource)
     summary = taxonomy_.ranks_specific(sample_id)
-    response = jsonify(summary.to_dict())
-    return response, 200
+    order = taxonomy_.ranks_order(summary['Taxon'])
+
+    payload = summary.to_dict('list')
+    payload.pop('Sample ID')
+    payload['Taxa-order'] = order
+
+    return jsonify(payload), 200

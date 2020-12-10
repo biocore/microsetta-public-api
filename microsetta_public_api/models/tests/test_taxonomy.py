@@ -118,6 +118,10 @@ class TaxonomyTests(unittest.TestCase):
                                     "Table and variances are disjoint"):
             Taxonomy(self.table, self.taxonomy_df, bad)
 
+    def _clean_sort_df(self, df, cols):
+        df.sort_values(cols, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
     def test_init_rankdata(self):
         exp = pd.DataFrame([['c', 'sample-1', 1.],
                             ['c', 'sample-2', 1],
@@ -129,10 +133,8 @@ class TaxonomyTests(unittest.TestCase):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
 
         obs = taxonomy._ranked
-        obs.sort_values(['Taxon', 'Sample ID'], inplace=True)
-        exp.sort_values(['Taxon', 'Sample ID'], inplace=True)
-        obs.reset_index(drop=True, inplace=True)
-        exp.reset_index(drop=True, inplace=True)
+        self._clean_sort_df(obs, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp, ['Taxon', 'Sample ID'])
         pdt.assert_frame_equal(obs, exp, check_like=True)
 
     def test_init_rankdata_order(self):
@@ -140,6 +142,83 @@ class TaxonomyTests(unittest.TestCase):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
         obs = list(taxonomy._ranked_order.index)
         self.assertEqual(obs, exp)
+
+    def test_ranks_sample(self):
+        exp = pd.DataFrame([['c', 'sample-1', 1.],
+                            ['c', 'sample-2', 1],
+                            ['c', 'sample-3', 2],
+                            ['g', 'sample-1', 2],
+                            ['g', 'sample-3', 1]],
+                           columns=['Taxon', 'Sample ID', 'Rank'])
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        obs = taxonomy.ranks_sample(5)
+        self._clean_sort_df(obs, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp, ['Taxon', 'Sample ID'])
+        pdt.assert_frame_equal(obs, exp, check_like=True)
+
+        obs = taxonomy.ranks_sample(4)
+        self.assertIn(sorted(obs['Taxon'].values), [['c', 'c', 'c', 'g'],
+                                                    ['c', 'c', 'g', 'g']])
+
+        obs = taxonomy.ranks_sample(100)
+        self.assertEqual(sorted(obs['Taxon'].values),
+                         ['c', 'c', 'c', 'g', 'g'])
+
+    def test_ranks_specific(self):
+        exp_1 = pd.DataFrame([['c', 'sample-1', 1.],
+                              ['g', 'sample-1', 2]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+        exp_2 = pd.DataFrame([['c', 'sample-2', 1.]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+        exp_3 = pd.DataFrame([['c', 'sample-3', 2.],
+                              ['g', 'sample-3', 1]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        obs_1 = taxonomy.ranks_specific('sample-1')
+        obs_2 = taxonomy.ranks_specific('sample-2')
+        obs_3 = taxonomy.ranks_specific('sample-3')
+
+        self._clean_sort_df(obs_1, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(obs_2, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(obs_3, ['Taxon', 'Sample ID'])
+
+        self._clean_sort_df(exp_1, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp_2, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp_3, ['Taxon', 'Sample ID'])
+
+        pdt.assert_frame_equal(obs_1, exp_1, check_like=True)
+        pdt.assert_frame_equal(obs_2, exp_2, check_like=True)
+        pdt.assert_frame_equal(obs_3, exp_3, check_like=True)
+
+    def test_ranks_specific_missing_id(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        with self.assertRaisesRegex(UnknownID, 'foobar'):
+            taxonomy.ranks_specific('foobar')
+
+    def test_ranks_order(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        exp = ['g', 'c']
+        obs = taxonomy.ranks_order()
+        self.assertEqual(obs, exp)
+
+        exp = ['g', 'c']
+        obs = taxonomy.ranks_order(['c', 'g'])
+        self.assertEqual(obs, exp)
+
+        exp = ['c']
+        obs = taxonomy.ranks_order(['c', ])
+        self.assertEqual(obs, exp)
+
+    def test_ranks_order_unknown(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        with self.assertRaisesRegex(UnknownID, "foobar"):
+            taxonomy.ranks_order(["foobar", ])
+
+        with self.assertRaisesRegex(UnknownID, "foobar"):
+            taxonomy.ranks_order(["c", "foobar", ])
 
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)

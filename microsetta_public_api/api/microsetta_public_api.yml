@@ -1648,11 +1648,11 @@ components:
     taxonomyRanks:
       type: object
       required:
-        - taxa
-        - ranks
-        - taxa-order
+        - Taxon
+        - Rank
+        - Taxa-order
       properties:
-        genera:
+        Taxon:
           type: array
           items:
             type: string
@@ -1661,7 +1661,7 @@ components:
             - "Prevotella"
             - "Prevotella"
             - "Ruminococcus"
-        ranks:
+        Rank:
           type: array
           items:
             type: number
@@ -1670,7 +1670,7 @@ components:
             - 12
             - 12
             - 11
-        genera-order:
+        Taxa-order:
           type: array
           items:
             type: string
