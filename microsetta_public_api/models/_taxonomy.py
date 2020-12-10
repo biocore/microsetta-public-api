@@ -142,25 +142,25 @@ class Taxonomy(ModelBase):
                                       feature_taxons['Taxon'].items()}
 
     def _rankdata(self, rank_level) -> (pd.DataFrame, pd.Series):
-        index = {idx: v.split(';')[rank_level].strip()
-                 for idx, v in self._features['Taxon'].items()}
+        # it seems QIIME regressed and no longer produces stable taxonomy
+        # strings. Yay.
+        index = {}
+        for idx, v in self._features['Taxon'].items():
+            parts = v.split(';')
+            if len(parts) <= rank_level:
+                continue
+            else:
+                index[idx] = parts[rank_level].strip()
 
         def collapse(i, m):
-            return index[i]
+            return index.get(i, 'Non-specific')
 
         base = self._table.collapse(collapse, axis='observation', norm=False)
-
-        # test to see if there are greengenes style strings, and
-        # revise the names if needed
-        if base.ids(axis='observation')[0][:3].endswith('__'):
-            base.update_ids({i: i.split('__', 1)[1]
-                             for i in base.ids(axis='observation')},
-                            axis='observation', inplace=True)
 
         # 16S mitochondria reads report as g__human
         keep = {v for v in base.ids(axis='observation')
                 if 'human' not in v.lower()}
-        keep -= {None, ""}
+        keep -= {None, "", 'Non-specific'}
         base.filter(keep, axis='observation')
 
         # remove taxa not present in at least 10% of samples
