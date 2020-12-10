@@ -165,6 +165,13 @@ def _exists(resource, samples, taxonomy_repo):
 
 def ranks_sample(dataset, resource, sample_size):
     taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     [],
+                                                     resource)
+    if error_response:
+        return error_response
+
     taxonomy_ = taxonomy_repo.model(resource)
     summary = taxonomy_.ranks_sample(sample_size)
     order = taxonomy_.ranks_order(summary['Taxon'])
@@ -180,7 +187,7 @@ def ranks_specific(dataset, resource, sample_id):
     taxonomy_repo = _get_taxonomy_repo(dataset)
 
     error_response = _check_resource_and_missing_ids(taxonomy_repo,
-                                                     sample_id,
+                                                     [sample_id, ],
                                                      resource)
     if error_response:
         return error_response
