@@ -1272,6 +1272,64 @@ class TaxonomyDataTableTests(FlaskTests):
         self.assertEqual(404, response.status_code)
 
 
+class TaxonomyRanksSampleAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.ranks_sample')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_ranks_sample_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'Taxon': ['foo', 'bar'],
+                    'Taxa-order': ['bar', 'foo'],
+                    'Rank': [1, 2]
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'ranks/greengenes?sample_size=2')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_size=2)
+        self.assertEqual(200, response.status_code)
+
+
+class TaxonomyRanksSpecificAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.ranks_specific')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_ranks_specific_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'Taxon': ['foo', 'bar'],
+                    'Taxa-order': ['bar', 'foo'],
+                    'Rank': [1, 2]
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'ranks/greengenes/sample/foo')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_id='foo')
+        self.assertEqual(200, response.status_code)
+
+
 class BetaTests(FlaskTests):
 
     def setUp(self):
