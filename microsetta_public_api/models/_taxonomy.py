@@ -98,7 +98,8 @@ class Taxonomy(ModelBase):
         variances : biom.Table, optional
             Variation information about a taxon within a label.
         rank_level : int
-            The taxonomic level to compute ranked data over
+            The taxonomic level (depth) to compute ranks over. Level 0 is
+            domain, level 1 is phylum, etc.
         """
         self._table = table.norm(inplace=False)
         self._group_id_lookup = set(self._table.ids())
@@ -269,8 +270,8 @@ class Taxonomy(ModelBase):
 
             unk = taxa - known
             if len(unk) > 0:
-                raise UnknownID("One or more unknown names: %s" %
-                                ",".join(unk))
+                raise UnknownID("One or more names are not in the top "
+                                "ranks: %s" % ",".join(unk))
 
         return [t for t in self._ranked_order.index if t in taxa]
 
