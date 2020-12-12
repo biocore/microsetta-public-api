@@ -16,3 +16,11 @@ def available():
         resources[dataset_key].keys()
     ))
     return jsonify(datasets), 200
+
+
+def dataset_detail(dataset):
+    pass
+
+
+def dataset_contains(dataset, sample_id):
+    pass
