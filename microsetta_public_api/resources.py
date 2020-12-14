@@ -15,6 +15,11 @@ from q2_types.ordination import PCoAResults
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
+def _dict_of_literals_to_dict(dict_of_detail, resource_name):
+    # passthrough
+    return dict_of_detail
+
+
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     _validate_dict_of_paths(dict_of_qza_paths,
                             resource_name)

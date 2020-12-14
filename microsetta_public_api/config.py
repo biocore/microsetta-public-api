@@ -76,6 +76,25 @@ metadata_schema = {
 }
 
 
+detail_group_schema = {
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string",
+            "description": "A human readable name for the dataset"
+        },
+        "qiita-study-ids": {
+            "type": "array",
+            "description": "The list of Qiita study IDs"
+        },
+        "datatype": {
+            "type": "string",
+            "description": "The data preparation type"
+        },
+    }
+}
+
+
 class Element:
 
     # need args and kwargs for inheritance concerns
@@ -278,6 +297,12 @@ class BetaElement(DictElement):
         visitor.visit_beta(self)
 
 
+class DatasetDetailElement(DictElement):
+    def accept(self, visitor):
+        super().accept(visitor)
+        visitor.visit_dataset_detail(self)
+
+
 class ConfigElementVisitor:
 
     @abstractmethod
@@ -300,6 +325,10 @@ class ConfigElementVisitor:
     def visit_beta(self, element):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_dataset_detail(self, element):
+        raise NotImplementedError()
+
 
 class SchemaBase:
     def __init__(self):
@@ -308,6 +337,7 @@ class SchemaBase:
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
+        self.detail_kw = '__dataset_detail__'
 
     def element_map(self):
         map_ = {
@@ -316,6 +346,7 @@ class SchemaBase:
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
+            self.detail_kw: DatasetDetailElement,
         }
         return map_
 
@@ -359,6 +390,7 @@ class Schema(SchemaBase):
                                     self.beta_kw: beta_group_schema,
                                     self.taxonomy_kw: taxonomy_group_schema,
                                     self.pcoa_kw: pcoa_group_schema,
+                                    self.detail_kw: detail_group_schema,
                                 },
                                 "additionalProperties": False,
                             }

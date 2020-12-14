@@ -660,9 +660,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/datasetDetail'
+                $ref: '#/components/schemas/datasetDetail'
 
   '/dataset/{dataset}':
     parameters:
@@ -1376,24 +1374,24 @@ components:
       type: object
       properties:
         name:
-          type: string
-          example: "name-used-in-url"
-        title:
-          type: string
-          example: "Name intended for human consumption"
-        qiita-study-ids:
-          type: array
-          items:
-            type: number
-        datatype:
-          type: string
-          example: "16S"
-          enum:
-            - "16S"
-            - "Metagenomics"
-            - "18S"
-            - "Metabolomics"
-            - "Metatranscriptomics"
+          type: object
+          properties:
+            title:
+              type: string
+              example: "Name intended for human consumption"
+            qiita-study-ids:
+              type: array
+              items:
+                type: number
+            datatype:
+              type: string
+              example: "16S"
+              enum:
+                - "16S"
+                - "Metagenomics"
+                - "18S"
+                - "Metabolomics"
+                - "Metatranscriptomics"
     emperorDecomposition:
       type: object
       properties:

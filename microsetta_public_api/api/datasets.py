@@ -7,14 +7,17 @@ def available():
     resources = get_resources()
     escape = {schema.metadata_kw}
     dataset_key = 'datasets'
+    detail_key = '__dataset_detail__'
 
     if dataset_key not in resources:
         return jsonify([]), 200
 
-    datasets = list(filter(
-        lambda x: x not in escape,
-        resources[dataset_key].keys()
-    ))
+    datasets = {}
+    for k, v in resources[dataset_key].items():
+        if k in escape:
+            continue
+        datasets[k] = v.get(detail_key)
+
     return jsonify(datasets), 200
 
 

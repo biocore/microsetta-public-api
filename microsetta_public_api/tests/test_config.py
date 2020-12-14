@@ -10,6 +10,7 @@ from microsetta_public_api.config import (
     MetadataElement,
     DictElement,
     PCOAElement,
+    DatasetDetailElement,
     TaxonomyElement,
     ConfigElementVisitor,
     SchemaBase,
@@ -50,11 +51,21 @@ class TestConfigSchema(TestCase):
                     '__beta__': {
                         'unifrac': '/path/to/unifrac.qza',
                         'braycurtis': '/path/to/braycurtis.qza',
+                    },
+                    '__dataset_detail__': {
+                        'title': 'foobar',
+                        'qiita-study-ids': ['foo', 'bar'],
+                        'datatype': '16S'
                     }
                 },
                 'ShotgunMetagenomics': {
                     '__alpha__': {
                         'faith_pd': 'path/to/shotgun_faith_pd.qza',
+                    },
+                    '__dataset_detail__': {
+                        'title': 'baz',
+                        'qiita-study-ids': ['foo', 'bar'],
+                        'datatype': 'WGS'
                     }
 
                 },
@@ -272,6 +283,7 @@ class TestParsing(TestCase):
                 self.pcoa_kw = '__alpha__'
                 self.metadata_kw = '__qux__'
                 self.beta_kw = '__corge__'
+                self.detail_kw = '__okay__'
 
         self.assertDictEqual(AlternateSchema().element_map(),
                              {"__foo__": AlphaElement,
@@ -279,6 +291,7 @@ class TestParsing(TestCase):
                               "__alpha__": PCOAElement,
                               "__qux__": MetadataElement,
                               "__corge__": BetaElement,
+                              "__okay__": DatasetDetailElement,
                               })
 
         config = {

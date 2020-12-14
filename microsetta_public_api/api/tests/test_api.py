@@ -18,18 +18,23 @@ class DatasetsAvailableTests(FlaskTests):
 
     def test_datasets_available(self):
         with self.app_context():
-            self.mock_method.return_value = jsonify([
-                '16s',
-                'shotgun',
-            ])
+            self.mock_method.return_value = jsonify({
+                '16S': {'title': 'blah',
+                        'qiita-study-ids': ['foo'],
+                        'datatype': '16S'},
+                'Metagenomics': {'title': 'blar',
+                                 'qiita-study-ids': ['bar'],
+                                 'datatype': 'Metagenomics'}
+                }
+            )
         _, self.client = self.build_app_test_client()
-        exp = ['16s', 'shotgun']
+        exp = ['16S', 'Metagenomics']
         response = self.client.get(
             "/results-api/available/dataset"
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
-        self.assertListEqual(exp, obs)
+        self.assertListEqual(exp, sorted(obs.keys()))
         self.mock_method.assert_called_with()
 
 

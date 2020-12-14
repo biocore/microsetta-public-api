@@ -18,11 +18,13 @@ class DatasetsImplementationTests(MockedJsonifyTestCase):
                 'shotgun': {
                     '__taxonomy__': ['foo'],
                     '__alpha__': ['bar'],
+                    '__dataset_detail__': {'title': 'foo'}
                 },
                 '16S': {
                     '__pcoa__': {
                         'foo': 'bar',
-                    }
+                    },
+                    '__dataset_detail__': {'title': 'bar'}
                 },
                 '__metadata__': '/path/to/md.txt',
             }
@@ -32,9 +34,11 @@ class DatasetsImplementationTests(MockedJsonifyTestCase):
             mock_get_resources.return_value = mock_resources
             response, code = available()
 
+        exp = {'shotgun': {'title': 'foo'},
+               '16S': {'title': 'bar'}}
         self.assertEqual(code, 200)
         obs = json.loads(response)
-        self.assertCountEqual(['shotgun', '16S'], obs)
+        self.assertEqual(obs, exp)
 
     def test_datasets_available_none(self):
         mock_resources = {
