@@ -36,5 +36,5 @@ def dataset_detail(dataset):
     return jsonify({dataset: detail[detail_key]}), 200
 
 
-def dataset_contains(dataset, sample_id):
-    pass
+# def dataset_contains(dataset, sample_id):
+#     pass
