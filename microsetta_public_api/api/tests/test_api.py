@@ -6,7 +6,6 @@ from microsetta_public_api.exceptions import UnknownID
 
 
 class DatasetsAvailableTests(FlaskTests):
-
     def setUp(self):
         super().setUp()
         self.patcher = patch(
@@ -36,6 +35,36 @@ class DatasetsAvailableTests(FlaskTests):
         obs = json.loads(response.data)
         self.assertListEqual(exp, sorted(obs.keys()))
         self.mock_method.assert_called_with()
+
+
+class DatasetsSpecificTests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.datasets.dataset_detail')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_dataset_detail(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                '16S': {'title': 'blah',
+                        'qiita-study-ids': ['foo'],
+                        'datatype': '16S'},
+                }
+            )
+        _, self.client = self.build_app_test_client()
+        exp = ['16S']
+        response = self.client.get(
+            "/results-api/dataset/16S"
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, sorted(obs.keys()))
+        self.mock_method.assert_called_with(dataset='16S')
 
 
 class MetadataCategoriesTests(FlaskTests):
