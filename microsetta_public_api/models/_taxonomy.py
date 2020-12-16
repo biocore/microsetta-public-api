@@ -14,8 +14,8 @@ from microsetta_public_api.utils import DataTable
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',
-                                         'feature_values', 'feature_variances',
-                                         'feature_ranks'])
+                                         'feature_values',
+                                         'feature_variances'])
 
 
 class GroupTaxonomy(_gt_named):
@@ -38,11 +38,6 @@ class GroupTaxonomy(_gt_named):
         etc)
     feature_variances : list of float
         Values associated with the variance of the features
-    feature_ranks : list of float
-        Values associated with the rank of the features. For example, if
-        an instance represents multiple samples (e.g., all fecal samples), then
-        feature_ranks would describe the median rank for a corresponding
-        feature.
 
     Notes
     -----
@@ -53,9 +48,7 @@ class GroupTaxonomy(_gt_named):
     __slots__ = ()
 
     def __init__(self, *args, name=None, taxonomy=None, features=None,
-                 feature_values=None, feature_variances=None,
-                 feature_ranks=None,
-                 ):
+                 feature_values=None, feature_variances=None):
         if args:
             raise NotImplementedError("%s only supports kwargs" %
                                       str(self.__class__))
@@ -76,10 +69,6 @@ class GroupTaxonomy(_gt_named):
             raise ValueError("features and feature_variances have a length "
                              "mismatch")
 
-        if feature_ranks is not None and len(features) != len(feature_ranks):
-            raise ValueError("features and feature_ranks have a length "
-                             "mismatch")
-
         super().__init__()
 
     def to_dict(self) -> Dict:
@@ -94,7 +83,8 @@ class Taxonomy(ModelBase):
 
     def __init__(self, table: biom.Table, features: pd.DataFrame,
                  variances: biom.Table = None,
-                 formatter: Optional['Formatter'] = None
+                 formatter: Optional['Formatter'] = None,
+                 rank_level: int = 1
                  ):
         """Establish the taxonomy data
 
@@ -107,13 +97,15 @@ class Taxonomy(ModelBase):
             DataFrame relating an observation to a Taxon
         variances : biom.Table, optional
             Variation information about a taxon within a label.
+        rank_level : int
+            The taxonomic level (depth) to compute ranks over. Level 0 is
+            domain, level 1 is phylum, etc.
         """
         self._table = table.norm(inplace=False)
         self._group_id_lookup = set(self._table.ids())
         self._feature_id_lookup = set(self._table.ids(axis='observation'))
         self._feature_order = self._table.ids(axis='observation')
         self._features = features
-        self._ranks = table.rankdata(inplace=False)
 
         if variances is None:
             empty = ss.csr_matrix((len(self._table.ids(axis='observation')),
@@ -135,6 +127,8 @@ class Taxonomy(ModelBase):
             raise SubsetError("Table features are not a subset of the "
                               "taxonomy information")
 
+        self._ranked, self._ranked_order = self._rankdata(rank_level)
+
         self._features = self._features.loc[self._feature_order]
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
@@ -147,6 +141,139 @@ class Taxonomy(ModelBase):
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
+
+    def _rankdata(self, rank_level) -> (pd.DataFrame, pd.Series):
+        # it seems QIIME regressed and no longer produces stable taxonomy
+        # strings. Yay.
+        index = {}
+        for idx, v in self._features['Taxon'].items():
+            parts = v.split(';')
+            if len(parts) <= rank_level:
+                continue
+            else:
+                index[idx] = parts[rank_level].strip()
+
+        def collapse(i, m):
+            return index.get(i, 'Non-specific')
+
+        base = self._table.collapse(collapse, axis='observation', norm=False)
+
+        # 16S mitochondria reads report as g__human
+        keep = {v for v in base.ids(axis='observation')
+                if 'human' not in v.lower()}
+        keep -= {None, "", 'Non-specific'}
+        base.filter(keep, axis='observation')
+
+        # remove taxa not present in at least 10% of samples
+        min_ = len(base.ids()) * 0.1
+
+        base.filter(lambda v, i, m: (v > 0).sum() > min_, axis='observation')
+        base.rankdata(inplace=True)
+
+        median_order = self._rankdata_order(base)
+
+        # reduce to the top observed taxa
+        base.filter(set(median_order.index), axis='observation')
+
+        # convert to a melted dataframe
+        base_df = base.to_dataframe(dense=True)
+        base_df.index.name = 'Taxon'
+        base_df_melted = base_df.reset_index().melt(id_vars=['Taxon'],
+                                                    value_name='Rank')
+        base_df_melted = base_df_melted[base_df_melted['Rank'] > 0]
+        base_df_melted.rename(columns={'variable': 'Sample ID'}, inplace=True)
+
+        return base_df_melted, median_order
+
+    def _rankdata_order(self, table, top_n=50) -> pd.Series:
+        # rank by median
+        medians = []
+        for v in table.iter_data(axis='observation', dense=False):
+            medians.append(np.median(v.data))
+
+        medians = pd.Series(medians, index=table.ids(axis='observation'))
+        ordered = medians.sort_values(ascending=False).head(top_n)
+        ordered.loc[:] = np.arange(0, len(ordered), dtype=int)
+        return ordered
+
+    def ranks_sample(self, sample_size: int) -> pd.DataFrame:
+        """Randomly sample, without replacement, from ._ranked
+
+        Parameters
+        ----------
+        sample_size : int
+            The number of elements to obtain. If value is greater than the
+            total number of entries in .ranked, all entries of .ranked will
+            be returned. If the value is less than zero, no values will be
+            returned
+
+        Returns
+        -------
+        pd.DataFrame
+            The subset of .ranked
+        """
+        if sample_size < 0:
+            sample_size = 0
+
+        n_rows = len(self._ranked)
+        return self._ranked.sample(min(sample_size, n_rows), replace=False)
+
+    def ranks_specific(self, sample_id: str) -> pd.DataFrame:
+        """Obtain the taxonomy rank information for a specific sample
+
+        Parameters
+        ----------
+        sample_id : str
+            The sample identifier to obtain ranks for
+
+        Raises
+        ------
+        UnknownID
+            If the requested sample is not present
+
+        Returns
+        -------
+        pd.DataFrame
+            The subset of .ranked for the sample
+        """
+        subset = self._ranked[self._ranked['Sample ID'] == sample_id]
+        if len(subset) == 0:
+            raise UnknownID("%s not found" % sample_id)
+        else:
+            return subset.copy()
+
+    def ranks_order(self, taxa: Iterable[str] = None) -> List:
+        """Obtain the rank order of the requested taxa names
+
+        Parameters
+        ----------
+        taxa : Iterable[str], optional
+            The taxa to request ordering for. If not specified, return the
+            order of all contained taxa
+
+        Raises
+        ------
+        UnknownID
+            If a requested taxa is not ranked or otherwise unknown
+
+        Returns
+        -------
+        list
+            The order of the taxa, where index 0 corresponds to the highest
+            ranked taxon, index 1 the next highest, etc
+        """
+        if taxa is None:
+            taxa = set(self._ranked_order.index)
+        else:
+            taxa = set(taxa)
+            known = set(self._ranked_order.index)
+
+            unk = taxa - known
+            if len(unk) > 0:
+                raise UnknownID("One or more names are not in the top "
+                                "ranks: %s" % ",".join(unk))
+
+        return [t for t in self._ranked_order.index if t in taxa]
 
     def _get_sample_ids(self) -> np.ndarray:
         return self._table.ids()
@@ -221,7 +348,6 @@ class Taxonomy(ModelBase):
                              features=list(features),
                              feature_values=list(feature_values),
                              feature_variances=list(feature_variances),
-                             feature_ranks=None,
                              )
 
     def presence_data_table(self, ids: Iterable[str]) -> DataTable:

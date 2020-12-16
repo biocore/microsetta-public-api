@@ -116,7 +116,9 @@ def _transform_single_table(dict_, resource_name):
         table = new_resource['table']
         taxonomy = new_resource['feature-data-taxonomy']
         variances = new_resource.get('variances', None)
-        model = TaxonomyModel(table, taxonomy, variances)
+
+        # rank_level=5 -> genus
+        model = TaxonomyModel(table, taxonomy, variances, rank_level=5)
         new_resource['model'] = model
 
     return new_resource

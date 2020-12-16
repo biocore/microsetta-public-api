@@ -24,6 +24,8 @@ from microsetta_public_api.api.taxonomy import (
     group_taxa_present_alt,
     exists_single_alt,
     exists_group_alt,
+    ranks_sample,
+    ranks_specific
 )
 from microsetta_public_api.config import DictElement, TaxonomyElement
 
@@ -772,6 +774,59 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
                               'sample-baz-bat'])
         self.assertRegex(api_out['text'],
                          r'Sample ID\(s\) not found.')
+
+    def test_taxonomy_ranks_sample(self):
+        response, code = ranks_sample('dataset1', self.table_name,
+                                      5)
+        self.assertEqual(code, 200)
+        api_out = json.loads(response.data)
+        exp = {'b', 'f'}
+        self.assertTrue(set(api_out['Taxon']).issubset(exp))
+
+    def test_taxonomy_ranks_sample_unknown_dataset(self):
+        with self.assertRaises(UnknownResource):
+            ranks_sample('dataset-foo', self.table_name, 100)
+
+    def test_taxonomy_ranks_sample_unknown_resource(self):
+        response, code = ranks_sample('dataset1', 'some-other-table',
+                                      100)
+        self.assertEqual(code, 404)
+        api_out = json.loads(response.data)
+        self.assertRegex(api_out['text'],
+                         r"Requested resource: 'some-other-table' is "
+                         r"unavailable. "
+                         r"Available resource\(s\): \[(.*)\]")
+
+    def test_taxonomy_ranks_specific(self):
+        response, code = ranks_specific('dataset1', self.table_name,
+                                        'sample-1')
+        self.assertEqual(code, 200)
+        api_out = json.loads(response.data)
+        exp = {'Taxon': ['b', 'f'],
+               'Rank': [1.0, 2.0],
+               'Taxa-order': ['f', 'b']}
+        self.assertEqual(api_out, exp)
+
+    def test_taxonomy_ranks_specific_unknown_dataset(self):
+        with self.assertRaises(UnknownResource):
+            ranks_specific('dataset-foo', self.table_name, 'sample-1')
+
+    def test_taxonomy_ranks_specific_unknown_resource(self):
+        response, code = ranks_specific('dataset1', 'some-other-table',
+                                        'sample-1')
+        self.assertEqual(code, 404)
+        api_out = json.loads(response.data)
+        self.assertRegex(api_out['text'],
+                         r"Requested resource: 'some-other-table' is "
+                         r"unavailable. "
+                         r"Available resource\(s\): \[(.*)\]")
+        self.assertEqual(code, 404)
+
+    def test_taxonomy_ranks_specific_unknown_sample_id(self):
+        response, code = ranks_specific('dataset1', self.table_name, 'foobar')
+        self.assertEqual(code, 404)
+        response = json.loads(response.data)
+        self.assertListEqual(response['missing_ids'], ['foobar', ])
 
     def test_taxonomy_summarize_group_simple_alt(self):
         response, code = summarize_group_alt(self.post_body,
