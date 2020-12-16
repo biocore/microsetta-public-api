@@ -668,7 +668,7 @@ paths:
     get:
       operationId: microsetta_public_api.api.datasets.dataset_detail
       summary: Get detail on a particular dataset
-      description: Get detail on a particular daaset
+      description: Get detail on a particular dataset
       responses:
         '200':
           description: Successfully returned dataset details
