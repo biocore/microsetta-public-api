@@ -660,9 +660,43 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                $ref: '#/components/schemas/datasetDetail'
+
+  '/dataset/{dataset}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.datasets.dataset_detail
+      summary: Get detail on a particular dataset
+      description: Get detail on a particular dataset
+      responses:
+        '200':
+          description: Successfully returned dataset details
+          content:
+            application/json:
+             schema:
+                $ref: '#/components/schemas/datasetDetail'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  # NOTE: this check needs to be performed against metadata, and is dependent
+  # on #66
+  #
+  #'/dataset/{dataset}/contains/{sample_id}':
+  #  parameters:
+  #    - $ref: '#/components/parameters/namedDataset'
+  #    - $ref: '#/components/parameters/sampleIdPath'
+  #  get:
+  #    operationId: microsetta_public_api.api.datasets.dataset_contains
+  #    summary: Check if a sample is present in a dataset
+  #    description: Check if a sample is present in a dataset
+  #    responses:
+  #      '200':
+  #        description: True if the sample exists, False otherwise
+  #        content:
+  #          application/json:
+  #            schema:
+  #              type: boolean
 
   '/dataset/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
@@ -1339,6 +1373,28 @@ components:
       example:
         - [-0.1776, 0.6011, -0.2033, -0.3368]
         - [0.2561, 0.4013, -0.32037, 0.09316]
+    datasetDetail:
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            title:
+              type: string
+              example: "Name intended for human consumption"
+            qiita-study-ids:
+              type: array
+              items:
+                type: number
+            datatype:
+              type: string
+              example: "16S"
+              enum:
+                - "16S"
+                - "Metagenomics"
+                - "18S"
+                - "Metabolomics"
+                - "Metatranscriptomics"
     emperorDecomposition:
       type: object
       properties:
