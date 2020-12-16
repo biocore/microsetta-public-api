@@ -29,6 +29,7 @@ setup(
         'scikit-bio',
         'altair',
         'jsonschema',
+        'empress>=1.0.1',
     ],
     package_data={'microsetta_public_api':
                   [
