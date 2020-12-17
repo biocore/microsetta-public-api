@@ -1146,6 +1146,22 @@ class TaxonomyResourcesAPITests(FlaskTests):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_taxonomy_empress(self):
+        with patch('microsetta_public_api.api.taxonomy'
+                   '.get_empress'
+                   ) as mock_method, self.app_context():
+            mock_method.return_value = {'tree': [7], 'other_stuff': None}
+            _, self.client = self.build_app_test_client()
+            response = self.client.get(
+                '/results-api/dataset/datasetName/taxonomy/empress/groupName'
+            )
+            mock_method.assert_called_with(dataset='datasetName',
+                                           resource='groupName',
+                                           )
+        self.assertEqual(200, response.status_code)
+        obs = json.loads(response.data)
+        self.assertDictEqual({'tree': [7], 'other_stuff': None}, obs)
+
 
 class TaxonomyGroupAPITests(FlaskTests):
 

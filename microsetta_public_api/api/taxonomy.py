@@ -7,6 +7,7 @@ from microsetta_public_api.utils._utils import (
     check_missing_ids,
     stepwise_resource_getter,
 )
+from empress import Empress
 
 
 def _get_taxonomy_repo(dataset):
@@ -42,6 +43,13 @@ def summarize_group(body, resource):
     sample_ids = body['sample_ids']
     taxonomy_repo = TaxonomyRepo()
     return _summarize_group(sample_ids, resource, taxonomy_repo)
+
+
+def get_empress(dataset, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    taxonomy_model = taxonomy_repo.model(resource)
+    empress_model = Empress(taxonomy_model.bp_tree)
+    return empress_model._to_dict()
 
 
 def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):

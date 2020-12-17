@@ -1114,6 +1114,27 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/dataset/{dataset}/taxonomy/empress/{resource}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/taxonomyResource'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.get_empress
+      tags:
+        - Taxonomy
+        - Plotting
+      summary: Get the empress object corresponding to the taxonomy for a given dataset.
+      description: Get the empress object corresponding to the taxonomy for a given dataset.
+      responses:
+        '200':
+          description: An empress object.
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/dataset/{dataset}/taxonomy/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
