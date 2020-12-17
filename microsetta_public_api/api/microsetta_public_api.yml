@@ -1132,6 +1132,9 @@ paths:
             application/json:
               schema:
                 type: object
+                description: |
+                  An empress object that can be used to initailize an empress plot.
+                  Find more info [here](https://github.com/biocore/empress/blob/v1.0.1/empress/core.py).
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -1569,9 +1572,7 @@ components:
       $ref: '#/components/schemas/anyValue'
     namedDataset:
       type: string
-      example:
-        - '16SAmplicon'
-        - 'ShotgunMetagenomics'
+      example: '16S'
     namedSampleSet:
       type: string
       example: 'body-site'

@@ -142,7 +142,7 @@ class Taxonomy(ModelBase):
         tree_data = ((i, lineage.split('; '))
                      for i, lineage in self._features['Taxon'].items())
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
-        for node in self.taxonomy_tree:
+        for node in self.taxonomy_tree.traverse():
             node.length = 1
         self.bp_tree = parse_newick(str(self.taxonomy_tree))
 
