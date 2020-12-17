@@ -138,7 +138,7 @@ class TaxonomyTests(unittest.TestCase):
         pdt.assert_frame_equal(obs, exp, check_like=True)
 
     def test_init_rankdata_order(self):
-        exp = ['g', 'c']
+        exp = ['c', 'g']
         taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
         obs = list(taxonomy._ranked_order.index)
         self.assertEqual(obs, exp)
@@ -200,12 +200,12 @@ class TaxonomyTests(unittest.TestCase):
     def test_ranks_order(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
 
-        exp = ['g', 'c']
+        exp = ['c', 'g']
         obs = taxonomy.ranks_order()
         self.assertEqual(obs, exp)
 
-        exp = ['g', 'c']
-        obs = taxonomy.ranks_order(['c', 'g'])
+        exp = ['c', 'g']
+        obs = taxonomy.ranks_order(['g', 'c'])
         self.assertEqual(obs, exp)
 
         exp = ['c']
