@@ -804,7 +804,7 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
         api_out = json.loads(response.data)
         exp = {'Taxon': ['b', 'f'],
                'Rank': [1.0, 2.0],
-               'Taxa-order': ['f', 'b']}
+               'Taxa-order': ['b', 'f']}
         self.assertEqual(api_out, exp)
 
     def test_taxonomy_ranks_specific_unknown_dataset(self):

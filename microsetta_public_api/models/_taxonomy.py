@@ -161,19 +161,13 @@ class Taxonomy(ModelBase):
         # 16S mitochondria reads report as g__human
         keep = {v for v in base.ids(axis='observation')
                 if 'human' not in v.lower()}
-        keep -= {None, "", 'Non-specific'}
+        keep -= {None, "", 'Non-specific', 'g__'}
         base.filter(keep, axis='observation')
 
-        # remove taxa not present in at least 10% of samples
-        min_ = len(base.ids()) * 0.1
-
-        base.filter(lambda v, i, m: (v > 0).sum() > min_, axis='observation')
-        base.rankdata(inplace=True)
-
-        median_order = self._rankdata_order(base)
-
         # reduce to the top observed taxa
+        median_order = self._rankdata_order(base)
         base.filter(set(median_order.index), axis='observation')
+        base.rankdata(inplace=True)
 
         # convert to a melted dataframe
         base_df = base.to_dataframe(dense=True)
