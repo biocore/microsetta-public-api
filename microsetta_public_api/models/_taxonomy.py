@@ -7,6 +7,7 @@ import biom
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
+from bp import parse_newick
 
 from microsetta_public_api.exceptions import (DisjointError, UnknownID,
                                               SubsetError)
@@ -136,6 +137,14 @@ class Taxonomy(ModelBase):
         if formatter is None:
             formatter: Formatter = GreengenesFormatter()
         self._formatter = formatter
+
+        # initialize taxonomy tree
+        tree_data = ((i, lineage.split('; '))
+                     for i, lineage in self._features['Taxon'].items())
+        self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+        for node in self.taxonomy_tree.traverse():
+            node.length = 1
+        self.bp_tree = parse_newick(str(self.taxonomy_tree))
 
         feature_taxons = self._features
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)

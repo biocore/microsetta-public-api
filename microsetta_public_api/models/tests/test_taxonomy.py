@@ -220,6 +220,24 @@ class TaxonomyTests(unittest.TestCase):
         with self.assertRaisesRegex(UnknownID, "foobar"):
             taxonomy.ranks_order(["c", "foobar", ])
 
+    def test_bp_tree(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df)
+        bp_tree = taxonomy.bp_tree
+        exp_parens = [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+                      0, 0, 0, 0, 0, 0]
+        obs_parens = list(bp_tree.B)
+        self.assertListEqual(exp_parens, obs_parens)
+        exp_names = [
+            'a', 'b', 'c', 'feature-1', 'd', 'e', 'feature-2', 'f', 'g', 'h',
+            'feature-3',
+        ]
+        obs_names = []
+        for i in range(len(bp_tree.B)):
+            name = bp_tree.name(i)
+            if name is not None:
+                obs_names.append(name)
+        self.assertListEqual(exp_names, obs_names)
+
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
         exp = GroupTaxonomy(name='sample-2',

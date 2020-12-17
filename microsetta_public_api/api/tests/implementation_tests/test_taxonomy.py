@@ -25,7 +25,8 @@ from microsetta_public_api.api.taxonomy import (
     exists_single_alt,
     exists_group_alt,
     ranks_sample,
-    ranks_specific
+    ranks_specific,
+    get_empress,
 )
 from microsetta_public_api.config import DictElement, TaxonomyElement
 
@@ -705,6 +706,16 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
             'microsetta_public_api.api.taxonomy.get_resources')
         cls.mock_resources = cls.res_patcher.start()
         cls.mock_resources.return_value = cls.resources
+
+    def test_get_empress(self):
+        response = get_empress('dataset1', self.table_name)
+        tree_names = [
+            -1, 'feature-1', 'feature-2', 'e', 'd', 'c', 'b', 'feature-3', 'h',
+            'g', 'f', 'a', None
+        ]
+        self.assertListEqual(
+            tree_names, response['names']
+        )
 
     def test_single_sample_alt(self):
         response, code = single_sample_alt('dataset1', 'sample-1',

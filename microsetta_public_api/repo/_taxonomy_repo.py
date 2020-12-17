@@ -1,5 +1,6 @@
 from microsetta_public_api.resources import resources
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
+from microsetta_public_api.exceptions import UnknownResource
 
 
 class TaxonomyRepo:
@@ -19,7 +20,8 @@ class TaxonomyRepo:
 
     def _get_resource(self, name, component=None):
         if name not in self.tables:
-            raise ValueError(f'No table with taxonomy available for `{name}`')
+            raise UnknownResource(f'No table with taxonomy available '
+                                  f'for `{name}`')
         else:
             res = self.tables[name]
             if component is not None:
