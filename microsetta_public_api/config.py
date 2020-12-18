@@ -342,22 +342,24 @@ class SchemaBase:
 
 class Schema(SchemaBase):
     def schema(self):
-        return {
+        dataset_schema = {
             "type": "object",
             "properties": {
-                "datasets":
-                    {
-                        "type": "object",
-                        "properties": {
-                            self.metadata_kw: metadata_schema,
-                            self.alpha_kw: alpha_group_schema,
-                            self.beta_kw: beta_group_schema,
-                            self.taxonomy_kw: taxonomy_group_schema,
-                            self.pcoa_kw: pcoa_group_schema,
-                            }
-                    },
+                self.metadata_kw: metadata_schema,
+                self.alpha_kw: alpha_group_schema,
+                self.beta_kw: beta_group_schema,
+                self.taxonomy_kw: taxonomy_group_schema,
+                self.pcoa_kw: pcoa_group_schema,
             },
+            "additionalProperties": False,
         }
+
+        return {"type": "object",
+                "properties": {
+                    "datasets": {
+                        "type": "object",
+                        "additionallProperties": dataset_schema}
+                }}
 
 
 class LegacySchema(SchemaBase):
