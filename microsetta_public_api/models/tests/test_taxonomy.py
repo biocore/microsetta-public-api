@@ -118,14 +118,133 @@ class TaxonomyTests(unittest.TestCase):
                                     "Table and variances are disjoint"):
             Taxonomy(self.table, self.taxonomy_df, bad)
 
+    def _clean_sort_df(self, df, cols):
+        df.sort_values(cols, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+    def test_init_rankdata(self):
+        exp = pd.DataFrame([['c', 'sample-1', 1.],
+                            ['c', 'sample-2', 1],
+                            ['c', 'sample-3', 2],
+                            ['g', 'sample-1', 2],
+                            ['g', 'sample-3', 1]],
+                           columns=['Taxon', 'Sample ID', 'Rank'])
+
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        obs = taxonomy._ranked
+        self._clean_sort_df(obs, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp, ['Taxon', 'Sample ID'])
+        pdt.assert_frame_equal(obs, exp, check_like=True)
+
+    def test_init_rankdata_order(self):
+        exp = ['c', 'g']
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        obs = list(taxonomy._ranked_order.index)
+        self.assertEqual(obs, exp)
+
+    def test_ranks_sample(self):
+        exp = pd.DataFrame([['c', 'sample-1', 1.],
+                            ['c', 'sample-2', 1],
+                            ['c', 'sample-3', 2],
+                            ['g', 'sample-1', 2],
+                            ['g', 'sample-3', 1]],
+                           columns=['Taxon', 'Sample ID', 'Rank'])
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        obs = taxonomy.ranks_sample(5)
+        self._clean_sort_df(obs, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp, ['Taxon', 'Sample ID'])
+        pdt.assert_frame_equal(obs, exp, check_like=True)
+
+        obs = taxonomy.ranks_sample(4)
+        self.assertIn(sorted(obs['Taxon'].values), [['c', 'c', 'c', 'g'],
+                                                    ['c', 'c', 'g', 'g']])
+
+        obs = taxonomy.ranks_sample(100)
+        self.assertEqual(sorted(obs['Taxon'].values),
+                         ['c', 'c', 'c', 'g', 'g'])
+
+    def test_ranks_specific(self):
+        exp_1 = pd.DataFrame([['c', 'sample-1', 1.],
+                              ['g', 'sample-1', 2]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+        exp_2 = pd.DataFrame([['c', 'sample-2', 1.]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+        exp_3 = pd.DataFrame([['c', 'sample-3', 2.],
+                              ['g', 'sample-3', 1]],
+                             columns=['Taxon', 'Sample ID', 'Rank'])
+
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        obs_1 = taxonomy.ranks_specific('sample-1')
+        obs_2 = taxonomy.ranks_specific('sample-2')
+        obs_3 = taxonomy.ranks_specific('sample-3')
+
+        self._clean_sort_df(obs_1, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(obs_2, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(obs_3, ['Taxon', 'Sample ID'])
+
+        self._clean_sort_df(exp_1, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp_2, ['Taxon', 'Sample ID'])
+        self._clean_sort_df(exp_3, ['Taxon', 'Sample ID'])
+
+        pdt.assert_frame_equal(obs_1, exp_1, check_like=True)
+        pdt.assert_frame_equal(obs_2, exp_2, check_like=True)
+        pdt.assert_frame_equal(obs_3, exp_3, check_like=True)
+
+    def test_ranks_specific_missing_id(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        with self.assertRaisesRegex(UnknownID, 'foobar'):
+            taxonomy.ranks_specific('foobar')
+
+    def test_ranks_order(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+
+        exp = ['c', 'g']
+        obs = taxonomy.ranks_order()
+        self.assertEqual(obs, exp)
+
+        exp = ['c', 'g']
+        obs = taxonomy.ranks_order(['g', 'c'])
+        self.assertEqual(obs, exp)
+
+        exp = ['c']
+        obs = taxonomy.ranks_order(['c', ])
+        self.assertEqual(obs, exp)
+
+    def test_ranks_order_unknown(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
+        with self.assertRaisesRegex(UnknownID, "foobar"):
+            taxonomy.ranks_order(["foobar", ])
+
+        with self.assertRaisesRegex(UnknownID, "foobar"):
+            taxonomy.ranks_order(["c", "foobar", ])
+
+    def test_bp_tree(self):
+        taxonomy = Taxonomy(self.table, self.taxonomy_df)
+        bp_tree = taxonomy.bp_tree
+        exp_parens = [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+                      0, 0, 0, 0, 0, 0]
+        obs_parens = list(bp_tree.B)
+        self.assertListEqual(exp_parens, obs_parens)
+        exp_names = [
+            'a', 'b', 'c', 'feature-1', 'd', 'e', 'feature-2', 'f', 'g', 'h',
+            'feature-3',
+        ]
+        obs_names = []
+        for i in range(len(bp_tree.B)):
+            name = bp_tree.name(i)
+            if name is not None:
+                obs_names.append(name)
+        self.assertListEqual(exp_names, obs_names)
+
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
         exp = GroupTaxonomy(name='sample-2',
                             taxonomy='((((feature-1,((feature-2)e)d)c)b)a);',
                             features=['feature-1', 'feature-2'],
                             feature_values=[1. / 5, 4. / 5],
-                            feature_variances=[0.0, 0.0],
-                            feature_ranks=None)
+                            feature_variances=[0.0, 0.0])
         obs = taxonomy.get_group(['sample-2'])
         self.assertEqual(obs, exp)
 
@@ -135,8 +254,7 @@ class TaxonomyTests(unittest.TestCase):
                             taxonomy='((((feature-1,((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',  # noqa
                             features=['feature-1', 'feature-2', 'feature-3'],
                             feature_values=[1. / 10, 6. / 10, 3. / 10],
-                            feature_variances=[0.0, 0.0, 0.0],
-                            feature_ranks=None)
+                            feature_variances=[0.0, 0.0, 0.0])
         obs = taxonomy.get_group(['sample-1', 'sample-2'], 'foo')
         self.assertEqual(obs.name, exp.name)
         self.assertEqual(obs.taxonomy, exp.taxonomy)
@@ -150,8 +268,7 @@ class TaxonomyTests(unittest.TestCase):
                             taxonomy='((((((feature-2)e)d)c)b,(((feature-3)h)g)f)a);',  # noqa
                             features=['feature-2', 'feature-3'],
                             feature_values=[2. / 5, 3. / 5],
-                            feature_variances=[2.0, 3.0],
-                            feature_ranks=None,)
+                            feature_variances=[2.0, 3.0])
         obs = taxonomy.get_group(['sample-1'])
         self.assertEqual(obs, exp)
 
@@ -239,8 +356,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                                  taxonomy=self.tstr,
                                  features=['feature-1', 'feature-2'],
                                  feature_values=[1. / 5, 4. / 5],
-                                 feature_variances=[0.0, 0.0],
-                                 feature_ranks=[1.0, 2.0])
+                                 feature_variances=[0.0, 0.0])
 
     def test_init(self):
         self.assertEqual(self.obj.name, 'sample-2')
@@ -248,7 +364,6 @@ class GroupTaxonomyTests(unittest.TestCase):
         self.assertEqual(self.obj.features, ['feature-1', 'feature-2'])
         self.assertEqual(self.obj.feature_values, [1. / 5, 4. / 5])
         self.assertEqual(self.obj.feature_variances, [0.0, 0.0])
-        self.assertEqual(self.obj.feature_ranks, [1.0, 2.0])
 
     def test_init_tree_missing_feature(self):
         with self.assertRaisesRegex(UnknownID,
@@ -257,8 +372,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr,
                           features=['feature-1', 'feature-3'],
                           feature_values=[1. / 5, 4. / 5],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
     def test_init_feature_value_lengths(self):
         with self.assertRaisesRegex(ValueError,
@@ -267,8 +381,7 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr + 'feature-3',
                           features=['feature-1', 'feature-2', 'feature-3'],
                           feature_values=[1. / 5, 4. / 5],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
         with self.assertRaisesRegex(ValueError,
                                     "length mismatch"):
@@ -276,16 +389,14 @@ class GroupTaxonomyTests(unittest.TestCase):
                           taxonomy=self.tstr,
                           features=['feature-1', 'feature-2'],
                           feature_values=[1. / 5, ],
-                          feature_variances=[0.0, 0.0],
-                          feature_ranks=[1.0, 2.0])
+                          feature_variances=[0.0, 0.0])
 
     def test_to_dict(self):
         exp = {'name': 'sample-2',
                'taxonomy': self.tstr,
                'features': ['feature-1', 'feature-2'],
                'feature_values': [1. / 5, 4. / 5],
-               'feature_variances': [0.0, 0.0],
-               'feature_ranks': [1.0, 2.0]}
+               'feature_variances': [0.0, 0.0]}
         obs = self.obj.to_dict()
         self.assertEqual(obs, exp)
 

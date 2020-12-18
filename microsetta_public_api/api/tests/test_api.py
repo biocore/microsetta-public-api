@@ -6,7 +6,6 @@ from microsetta_public_api.exceptions import UnknownID
 
 
 class DatasetsAvailableTests(FlaskTests):
-
     def setUp(self):
         super().setUp()
         self.patcher = patch(
@@ -18,19 +17,54 @@ class DatasetsAvailableTests(FlaskTests):
 
     def test_datasets_available(self):
         with self.app_context():
-            self.mock_method.return_value = jsonify([
-                '16s',
-                'shotgun',
-            ])
+            self.mock_method.return_value = jsonify({
+                '16S': {'title': 'blah',
+                        'qiita-study-ids': ['foo'],
+                        'datatype': '16S'},
+                'Metagenomics': {'title': 'blar',
+                                 'qiita-study-ids': ['bar'],
+                                 'datatype': 'Metagenomics'}
+                }
+            )
         _, self.client = self.build_app_test_client()
-        exp = ['16s', 'shotgun']
+        exp = ['16S', 'Metagenomics']
         response = self.client.get(
             "/results-api/available/dataset"
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
-        self.assertListEqual(exp, obs)
+        self.assertListEqual(exp, sorted(obs.keys()))
         self.mock_method.assert_called_with()
+
+
+class DatasetsSpecificTests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.datasets.dataset_detail')
+        self.mock_method = self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_dataset_detail(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify({
+                '16S': {'title': 'blah',
+                        'qiita-study-ids': ['foo'],
+                        'datatype': '16S'},
+                }
+            )
+        _, self.client = self.build_app_test_client()
+        exp = ['16S']
+        response = self.client.get(
+            "/results-api/dataset/16S"
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, sorted(obs.keys()))
+        self.mock_method.assert_called_with(dataset='16S')
 
 
 class MetadataCategoriesTests(FlaskTests):
@@ -1112,6 +1146,22 @@ class TaxonomyResourcesAPITests(FlaskTests):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_taxonomy_empress(self):
+        with patch('microsetta_public_api.api.taxonomy'
+                   '.get_empress'
+                   ) as mock_method, self.app_context():
+            mock_method.return_value = {'tree': [7], 'other_stuff': None}
+            _, self.client = self.build_app_test_client()
+            response = self.client.get(
+                '/results-api/dataset/datasetName/taxonomy/empress/groupName'
+            )
+            mock_method.assert_called_with(dataset='datasetName',
+                                           resource='groupName',
+                                           )
+        self.assertEqual(200, response.status_code)
+        obs = json.loads(response.data)
+        self.assertDictEqual({'tree': [7], 'other_stuff': None}, obs)
+
 
 class TaxonomyGroupAPITests(FlaskTests):
 
@@ -1270,6 +1320,64 @@ class TaxonomyDataTableTests(FlaskTests):
             data=json.dumps({'sample_ids': ['sample1', 'sample2']})
         )
         self.assertEqual(404, response.status_code)
+
+
+class TaxonomyRanksSampleAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.ranks_sample')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_ranks_sample_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'Taxon': ['foo', 'bar'],
+                    'Taxa-order': ['bar', 'foo'],
+                    'Rank': [1, 2]
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'ranks/greengenes?sample_size=2')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_size=2)
+        self.assertEqual(200, response.status_code)
+
+
+class TaxonomyRanksSpecificAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.ranks_specific')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_ranks_specific_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'Taxon': ['foo', 'bar'],
+                    'Taxa-order': ['bar', 'foo'],
+                    'Rank': [1, 2]
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'ranks/greengenes/sample/foo')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_id='foo')
+        self.assertEqual(200, response.status_code)
 
 
 class BetaTests(FlaskTests):
