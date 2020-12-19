@@ -411,7 +411,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories:
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
             mock_categories.return_value = ['age_cat']
             response, code = filter_sample_ids_alt(
@@ -425,7 +425,8 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
     def test_metadata_filter_sample_ids_bmi(self):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
-                      'categories', new_callable=PropertyMock) as mock_categories:
+                      'categories', new_callable=PropertyMock) \
+                as mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
             mock_categories.return_value = ['bmi']
             response, code = filter_sample_ids_alt(
@@ -440,7 +441,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories:
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
             mock_categories.return_value = ['bmi', 'age_cat']
             response, code = filter_sample_ids_alt(
@@ -455,7 +456,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories:
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
             mock_categories.return_value = ['some_other_cat']
             response, code = filter_sample_ids_alt(
@@ -498,7 +499,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories, \
+                mock_categories, \
                 patch('microsetta_public_api.api.metadata'
                       '.TaxonomyRepo.exists') as mock_exists, \
                 patch('microsetta_public_api.api.metadata.validate_resource'
@@ -520,7 +521,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories, \
+                mock_categories, \
                 patch('microsetta_public_api.api.metadata'
                       '.AlphaRepo.exists') as mock_exists, \
                 patch('microsetta_public_api.api.metadata.validate_resource'
@@ -541,7 +542,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories:
+                mock_categories:
             mock_matches.return_value = ['sample-1', 'sample-3']
             mock_categories.return_value = ['age_cat']
             response, code = filter_sample_ids_query_builder_alt(
@@ -557,7 +558,7 @@ class MetadataAltImplementationTests(MockedJsonifyTestCase):
         with patch.object(MetadataRepo, 'sample_id_matches') as mock_matches, \
                 patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
                       'categories', new_callable=PropertyMock) as \
-                        mock_categories, \
+                mock_categories, \
                 patch('microsetta_public_api.api.metadata'
                       '.TaxonomyRepo.exists') as mock_exists, \
                 patch('microsetta_public_api.api.metadata'

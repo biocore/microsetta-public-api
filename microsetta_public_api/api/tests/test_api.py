@@ -630,7 +630,7 @@ class MetadataSampleIdsTests(FlaskTests):
         mock_method.assert_called_with(body=request_body)
 
 
-class MetadataSampleIdsTests(FlaskTests):
+class MetadataSampleIdsAltTests(FlaskTests):
 
     def setUp(self):
         super().setUp()
@@ -685,7 +685,6 @@ class MetadataSampleIdsTests(FlaskTests):
         mock_method.assert_called_with(body=request_body, taxonomy='gg',
                                        dataset='dataset_name',
                                        alpha_metric='faith-pd')
-
 
 
 class AlphaDiversityTestCase(FlaskTests):
