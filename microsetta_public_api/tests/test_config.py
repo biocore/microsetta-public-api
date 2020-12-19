@@ -107,6 +107,7 @@ class TestConfigSchema(TestCase):
                     '__alpha__': {
                         'faith_pd': 'path/to/shotgun_faith_pd.qza',
                     },
+                    '__metadata__': '/path/to/metadata.tsv',
                 },
                 '__metadata__': '/path/to/metadata.tsv',
             },
