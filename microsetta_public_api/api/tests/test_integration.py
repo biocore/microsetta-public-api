@@ -73,7 +73,7 @@ class MetadataIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '__metadata__': self.metadata_path,
-                '16S': {
+                '16SAmplicon': {
                     '__metadata__': self.metadata_path,
                 }
             }
@@ -83,7 +83,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_metadata_available_categories_with_dataset(self):
         exp = ['age_cat', 'bmi_cat', 'num_cat']
         response = self.client.get(
-            '/results-api/dataset/16S/metadata'
+            '/results-api/dataset/16SAmplicon/metadata'
             '/category/available'
         )
         self.assertStatusCode(200, response)
