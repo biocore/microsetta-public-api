@@ -73,9 +73,22 @@ class MetadataIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '__metadata__': self.metadata_path,
+                '16S': {
+                    '__metadata__': self.metadata_path,
+                }
             }
         }
         _update_resources_from_config(config_alt)
+
+    def test_metadata_available_categories_with_dataset(self):
+        exp = ['age_cat', 'bmi_cat', 'num_cat']
+        response = self.client.get(
+            '/results-api/dataset/16S/metadata'
+            '/category/available'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
 
     def test_metadata_available_categories(self):
         exp = ['age_cat', 'bmi_cat', 'num_cat']
