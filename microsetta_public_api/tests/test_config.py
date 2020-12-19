@@ -102,14 +102,13 @@ class TestConfigSchema(TestCase):
                             'unifrac': '/path/to/all_unifrac.qza',
                         }
                     },
-                    '__metadata__': '/path/to/metadata.tsv',
                 },
                 'ShotgunMetagenomics': {
                     '__alpha__': {
                         'faith_pd': 'path/to/shotgun_faith_pd.qza',
                     },
-                    '__metadata__': '/path/to/metadata.tsv',
                 },
+                '__metadata__': '/path/to/metadata.tsv',
             },
             'alpha_resources': {
                 'faith_pd': '/path/to/faith_pd.qza',

@@ -390,7 +390,7 @@ class Schema(SchemaBase):
                 "properties": {
                     "datasets": {
                         "type": "object",
-                        "additionallProperties": dataset_schema}
+                        "additionalProperties": dataset_schema}
                 }}
 
 
