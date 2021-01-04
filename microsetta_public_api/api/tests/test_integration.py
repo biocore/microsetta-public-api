@@ -72,10 +72,10 @@ class MetadataIntegrationTests(IntegrationTests):
         }
         config_alt = {
             'datasets': {
-                '__metadata__': self.metadata_path,
                 '16SAmplicon': {
                     '__metadata__': self.metadata_path,
-                }
+                },
+                '__metadata__': self.metadata_path,
             }
         }
         _update_resources_from_config(config_alt)
@@ -1473,12 +1473,12 @@ class PlottingAltIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
+                    '__metadata__': self.plotting_metadata_path,
                     '__alpha__': {
                         'observed_otus': self.plotting_series1_filename,
                         'chao1': self.plotting_series2_filename,
                     }
                 },
-                '__metadata__': self.plotting_metadata_path,
             },
         }
         _update_resources_from_config(config_alt)
@@ -1907,6 +1907,7 @@ class PCoAAltIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
+                    '__metadata__': self.metadata_path_pc,
                     '__pcoa__': {
                         'sample_set_name': {
                             'pcoa1': self.pcoa_path1,
@@ -1914,7 +1915,6 @@ class PCoAAltIntegrationTests(IntegrationTests):
                         }
                     }
                 },
-                '__metadata__': self.metadata_path_pc,
             },
         }
         _update_resources_from_config(config_alt)
