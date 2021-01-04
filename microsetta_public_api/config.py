@@ -95,6 +95,21 @@ detail_group_schema = {
 }
 
 
+def make_dataset_schema(schema):
+    return {
+        "type": "object",
+        "properties": {
+            schema.metadata_kw: metadata_schema,
+            schema.alpha_kw: alpha_group_schema,
+            schema.beta_kw: beta_group_schema,
+            schema.taxonomy_kw: taxonomy_group_schema,
+            schema.pcoa_kw: pcoa_group_schema,
+            schema.detail_kw: detail_group_schema,
+        },
+        "additionalProperties": False,
+    }
+
+
 class Element:
 
     # need args and kwargs for inheritance concerns
@@ -373,30 +388,14 @@ class SchemaBase:
 
 class Schema(SchemaBase):
     def schema(self):
-        return {
-            "type": "object",
-            "properties": {
-                "datasets":
-                    {
+        dataset_schema = make_dataset_schema(self)
+
+        return {"type": "object",
+                "properties": {
+                    "datasets": {
                         "type": "object",
-                        "properties": {
-                            self.metadata_kw: metadata_schema,
-                        },
-                        "additionalProperties":
-                            {
-                                "type": "object",
-                                "properties": {
-                                    self.alpha_kw: alpha_group_schema,
-                                    self.beta_kw: beta_group_schema,
-                                    self.taxonomy_kw: taxonomy_group_schema,
-                                    self.pcoa_kw: pcoa_group_schema,
-                                    self.detail_kw: detail_group_schema,
-                                },
-                                "additionalProperties": False,
-                            }
-                    },
-            },
-        }
+                        "additionalProperties": dataset_schema}
+                }}
 
 
 class LegacySchema(SchemaBase):
@@ -429,6 +428,7 @@ class CompatibilitySchema(SchemaBase):
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
+        self.detail_kw = '__dataset_detail__'
 
     def element_map(self):
         return {
@@ -444,6 +444,7 @@ class CompatibilitySchema(SchemaBase):
         }
 
     def schema(self):
+        dataset_schema = make_dataset_schema(self)
         return {
             "type": "object",
             "properties": {
@@ -457,18 +458,7 @@ class CompatibilitySchema(SchemaBase):
                         "properties": {
                             self.metadata_kw: metadata_schema,
                         },
-                        "additionalProperties":
-                            {
-                                "type": "object",
-                                "properties": {
-                                    self.alpha_kw: alpha_group_schema,
-                                    self.beta_kw: beta_group_schema,
-                                    self.taxonomy_kw:
-                                        taxonomy_group_schema,
-                                    self.pcoa_kw: pcoa_group_schema,
-                                },
-                                "additionalProperties": False,
-                            }
+                        "additionalProperties": dataset_schema
                     },
             }
         }
