@@ -28,10 +28,10 @@ In the activated conda environment, start the microservice using flask's built-i
 
 `python ./microsetta_public_api/server.py`
 
-which will start the server on http://localhost:8083 . Note that this usage is suitable for 
+which will start the server on http://localhost:8084 . Note that this usage is suitable for 
 **development ONLY**--real use of the service would require a production-level server. 
 
-The Swagger UI should now be available at http://localhost:8083/api/ui .
+The Swagger UI should now be available at http://localhost:8084/api/ui .
 
 ## Configuring data sources
 
@@ -60,29 +60,55 @@ that gives a path to a QIIME2 formatted metadata file.
 `sample_config.json`:
 ```json
 {
-  "alpha_resources": {
-    "faith_pd": "/path/to/faith_pd.qza",
-    "observed_otus": "/path/to/observed/otus/metric.qza",
-    "chao1": "/some/other/path/values.qza"
-  },
-  "table_resources": {
-    "taxonomy": {
-      "table": "/path/to/table.biom",
-      "table-format": "biom",
-      "feature-data-taxonomy": "/path/to/a/taxonomy-data.qza",
-      "cache-model": true
+  "resources":{
+    "datasets": {
+      "16S": { 
+        "__dataset_detail__": {
+            "title": "Microsetta 16S",
+            "qiita-study-ids": ["10317"],
+            "datatype": "16S"
+        },
+        "__metadata__": "/Users/microsetta-public-api/metadata/ag.txt",
+        "__beta__": {
+          "unweighted-unifrac": "/Users/microsetta-public-api/beta/unweighted_unifrac.qza",
+          "weighted-unifrac": "/Users/microsetta-public-api/beta/weighted_unifrac.qza"
+        },
+        "__alpha__": {
+          "faith_pd": "/Users/microsetta-public-api/alpha/faith_pd.qza",
+          "shannon": "/Users//microsetta-public-api/alpha/shannon.qza"
+        },
+        "__taxonomy__": {
+          "taxonomy": {
+            "table": "/Users/microsetta-public-api/feature-table/ag.biom.qza",
+            "feature-data-taxonomy": "/Users/microsetta-public-api/taxa/ag.fna.taxonomy.qza"
+          },
+          "alternate-taxonomy": {
+            "table": "/Users/microsetta-public-api/feature-table/ag.biom.alt.qza",
+            "feature-data-taxonomy": "/Users/microsetta-public-api/taxa/ag.fna.alt.taxonomy.qza"
+          }
+        },
+        "__pcoa__": {
+            "fecal": {
+                "unweighted-unifrac": "/Users/microsetta-public-api/pcoa/unweighted-unifrac/unweighted_unifrac.qza",
+                "weighted-unifrac": "/Users/microsetta-public-api/pcoa/weighted-unifrac/weighted_unifrac.qza"
+            }
+        }
+      },
+      "MG": { 
+        "__dataset_detail__": {
+            "title": "Microsetta Metagenomics",
+            "qiita-study-ids": ["10317"],
+            "datatype": "WGS"
+        },
+        "__metadata__": "/Users/microsetta-public-api/metadata/ag.wgs.txt",
+        "__beta__": {
+          "unweighted-unifrac": "/Users/microsetta-public-api/beta/unweighted_unifrac.wgs.qza",
+          "weighted-unifrac": "/Users/microsetta-public-api/beta/weighted_unifrac.wgs.qza"
+        }
+      }
     }
   },
-  "pcoa": {
-      "fecal": {
-          "unifrac": "/a/pcoa/path1.qza",
-          "jaccard": "/another/pcoa/path2.qza"
-      },
-      "all_samples": {
-          "unifrac": "/a/path/to/all_samples/pcoa.qza"
-      }
-  },
-  "metadata": "/path/to/some/metadata.txt"
+  "port": 8082
 }
 ```
 
@@ -91,5 +117,5 @@ This can then be provided to `microsetta_public_api.server.build_app`, e.g.,:
 ```python
 from microsetta_public_api.server import build_app
 app = build_app(resources_config_json='sample_config.json')
-app.run(port=8083, debug=True)
+app.run(port=8082, debug=True)
 ```
