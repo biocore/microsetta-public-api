@@ -12,8 +12,22 @@ def categories():
     return jsonify(repo.categories), 200
 
 
+def categories_alt(dataset):
+    repo = _get_repo_alt(dataset)
+    return jsonify(repo.categories), 200
+
+
 def category_values(category):
     repo = _get_repo()
+    return _category_values(category, repo)
+
+
+def category_values_alt(dataset, category):
+    repo = _get_repo_alt(dataset)
+    return _category_values(category, repo)
+
+
+def _category_values(category, repo):
     if category in repo.categories:
         values = repo.category_values(category)
         return jsonify(values), 200
@@ -25,6 +39,18 @@ def category_values(category):
 def get_metadata_values(body, cat):
     repo = _get_repo()
     # check all categories are valid
+    metadata = _get_metadata_values(body, cat, repo)
+    return jsonify(metadata.values.tolist()), 200
+
+
+def get_metadata_values_alt(body, dataset, cat):
+    repo = _get_repo_alt(dataset)
+    # check all categories are valid
+    metadata = _get_metadata_values(body, cat, repo)
+    return jsonify(metadata.values.tolist()), 200
+
+
+def _get_metadata_values(body, cat, repo):
     invalid_categories = list(filter(lambda x: not repo.has_category(x), cat))
     if invalid_categories:
         raise UnknownCategory(
@@ -38,12 +64,11 @@ def get_metadata_values(body, cat):
         raise UnknownID(
             f"Cannot find sample ID's corresponding to: {invalid_ids}"
         )
-
     metadata = repo.get_metadata(cat,
                                  sample_ids=sample_ids,
                                  fillna=None,
                                  )
-    return jsonify(metadata.values.tolist()), 200
+    return metadata
 
 
 def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
@@ -62,6 +87,15 @@ def _filter_sample_ids(query, repo, alpha_metric, taxonomy):
 
 def filter_sample_ids(taxonomy=None, alpha_metric=None, **kwargs):
     repo = _get_repo()
+    return _get_filtered_sample_ids(alpha_metric, kwargs, repo, taxonomy)
+
+
+def filter_sample_ids_alt(dataset, taxonomy=None, alpha_metric=None, **kwargs):
+    repo = _get_repo_alt(dataset)
+    return _get_filtered_sample_ids(alpha_metric, kwargs, repo, taxonomy)
+
+
+def _get_filtered_sample_ids(alpha_metric, kwargs, repo, taxonomy):
     query = _format_query(kwargs)
     is_invalid = _validate_query(kwargs, repo)
     if is_invalid:
@@ -83,9 +117,29 @@ def _get_repo(resource_getter=None):
     return repo
 
 
+def _get_repo_alt(dataset, resource_getter=None):
+    if resource_getter is None:
+        resource_getter = get_resources
+    resources = resource_getter()
+    if resources.has('datasets', dataset, schema.metadata_kw):
+        repo = MetadataRepo(resources.gets('datasets',
+                                           dataset,
+                                           schema.metadata_kw).data)
+    else:
+        repo = MetadataRepo()
+    return repo
+
+
 def filter_sample_ids_query_builder(body, taxonomy=None, alpha_metric=None):
     query = body
     repo = _get_repo()
+    return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
+
+
+def filter_sample_ids_query_builder_alt(body, dataset, taxonomy=None,
+                                        alpha_metric=None):
+    query = body
+    repo = _get_repo_alt(dataset)
     return _filter_sample_ids(query, repo, alpha_metric, taxonomy)
 
 

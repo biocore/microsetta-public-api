@@ -28,68 +28,136 @@ In the activated conda environment, start the microservice using flask's built-i
 
 `python ./microsetta_public_api/server.py`
 
-which will start the server on http://localhost:8083 . Note that this usage is suitable for 
+which will start the server on http://localhost:8084 . Note that this usage is suitable for 
 **development ONLY**--real use of the service would require a production-level server. 
 
-The Swagger UI should now be available at http://localhost:8083/api/ui .
+The Swagger UI should now be available at http://localhost:8084/api/ui .
 
 ## Configuring data sources
 
 You can use a JSON file to configure data resources for the server.
 
-### Alpha Diversity
-The Microsetta Public Server can be configured to serve [QIIME2](https://qiime2.org/)
-artifacts (`.qza` files) for artifacts by including an `"alpha_resources"` key
-in a configuration `JSON`. The value is expected to be a dictionary of `"<metric>": "</file/path/name.qza>"` pairs,
-where `"<metric>"` is the name of the metric stored by the QZA and `"</file/path/name.qza>"` is a path to the QZA
-on the host server.
+### Datasets
+The Microsetta Public Results API has the notion of a _dataset_. A dataset is a collection of artifacts 
+(such as metadata, alpha diversity, ordinations, etc.). In terms of the configuration file, a dataset is
+represented as a JSON object, with special keywords/attributes (e.g., `__metadata__`) for each of its constituent parts.
+Generally, the attributes of a dataset are optional.
 
-### Features tables (with taxonomy)
-The server can also be configured to serve information from feature tables with corresponding taxonomic
-feature data. Tables can either be QZA `FeatureTable`'s or biom tables. If a `biom` table is supplied,
-the `"table-format": "biom"` option must be specified. Taxonomy data is accepted with the
-`"feature-data-taxonomy"` keyword, which should correspond to the filepath to a QIIME2 `FeatureData[Taxonomy]`.
 
-For large datasets, creating a Taxonomy model can be slow. You can cache the model on server startup by adding the
-`"cache-taxonomy": true` keyword to your specific table. This should speed up the time for API calls.
+### Dataset attributes
+#### Metadata
+Attribute: `__metadata__`
 
-### Metadata
-The server can be configured to contain metadata, by adding a  `"metadata"` keyword to the config,
-that gives a path to a QIIME2 formatted metadata file.
+This provides the path to a metadata file, which should be formatted to be compatible with QIIME2. 
 
+#### Dataset Details
+Attribute: `__dataset_detail__`
+
+This object stores details about the dataset, including (but not limited to) a description, qiita study ID(s), and
+the data type of the study/studies.
+
+#### Features/Taxonomy
+Attribute: `__taxonomy__`
+
+This attribute contains arbitrarily-named attributes corresponding to taxonomic feature data.
+Each attribute of the object, keyed by some key `<taxonomy>`, has the following structure:
+* Tables can be paths to QZA `FeatureTable`. In the config, the table is keyed by `table`.
+* Taxonomy data associated with the table is accepted with the `feature-data-taxonomy` keyword,
+  which should correspond to the filepath to a QIIME2 `FeatureData[Taxonomy]`.
+
+
+#### Alpha Diversity
+Attribute: `__alpha__`
+
+This attribute contains arbitrarily-named attributes corresonding to alpha diversity series.
+Each attribute of the object, keyed by `<alpha-metric>`, contains a path that
+corresponds to a `SampleData[AlphaDiveristy]` QZA.
+
+
+#### Beta Diversity
+Attribute: `__beta__`
+
+Beta diversity is similar to alpha diversity, except each key/metric should correspond to a distance matrix QZA.
+
+#### Ordination
+Keyword: `__pcoa__`
+
+This attribute contains arbitrarily-named attributes corresponding to different sample sets with ordinations.
+Each sample set, keyed by `<sample-set-name>`, has an object with attributes corresponding to a beta metric, and the
+value of that attribute corresponds to a file path to the ordination.
+
+### Sample configuration file
+
+The following shows 
 `sample_config.json`:
 ```json
 {
-  "alpha_resources": {
-    "faith_pd": "/path/to/faith_pd.qza",
-    "observed_otus": "/path/to/observed/otus/metric.qza",
-    "chao1": "/some/other/path/values.qza"
-  },
-  "table_resources": {
-    "taxonomy": {
-      "table": "/path/to/table.biom",
-      "table-format": "biom",
-      "feature-data-taxonomy": "/path/to/a/taxonomy-data.qza",
-      "cache-model": true
+  "resources":{
+    "datasets": {
+      "16S": { 
+        "__dataset_detail__": {
+            "title": "Microsetta 16S",
+            "qiita-study-ids": ["10317"],
+            "datatype": "16S"
+        },
+        "__metadata__": "/Users/microsetta-public-api/metadata/ag.txt",
+        "__beta__": {
+          "unweighted-unifrac": "/Users/microsetta-public-api/beta/unweighted_unifrac.qza",
+          "weighted-unifrac": "/Users/microsetta-public-api/beta/weighted_unifrac.qza"
+        },
+        "__alpha__": {
+          "faith_pd": "/Users/microsetta-public-api/alpha/faith_pd.qza",
+          "shannon": "/Users//microsetta-public-api/alpha/shannon.qza"
+        },
+        "__taxonomy__": {
+          "taxonomy": {
+            "table": "/Users/microsetta-public-api/feature-table/ag.biom.qza",
+            "feature-data-taxonomy": "/Users/microsetta-public-api/taxa/ag.fna.taxonomy.qza"
+          },
+          "alternate-taxonomy": {
+            "table": "/Users/microsetta-public-api/feature-table/ag.biom.alt.qza",
+            "feature-data-taxonomy": "/Users/microsetta-public-api/taxa/ag.fna.alt.taxonomy.qza"
+          }
+        },
+        "__pcoa__": {
+            "fecal": {
+                "unweighted-unifrac": "/Users/microsetta-public-api/pcoa/unweighted-unifrac/unweighted_unifrac.qza",
+                "weighted-unifrac": "/Users/microsetta-public-api/pcoa/weighted-unifrac/weighted_unifrac.qza"
+            }
+        }
+      },
+      "MG": { 
+        "__dataset_detail__": {
+            "title": "Microsetta Metagenomics",
+            "qiita-study-ids": ["10317"],
+            "datatype": "WGS"
+        },
+        "__metadata__": "/Users/microsetta-public-api/metadata/ag.wgs.txt",
+        "__beta__": {
+          "unweighted-unifrac": "/Users/microsetta-public-api/beta/unweighted_unifrac.wgs.qza",
+          "weighted-unifrac": "/Users/microsetta-public-api/beta/weighted_unifrac.wgs.qza"
+        }
+      }
     }
   },
-  "pcoa": {
-      "fecal": {
-          "unifrac": "/a/pcoa/path1.qza",
-          "jaccard": "/another/pcoa/path2.qza"
-      },
-      "all_samples": {
-          "unifrac": "/a/path/to/all_samples/pcoa.qza"
-      }
-  },
-  "metadata": "/path/to/some/metadata.txt"
+  "port": 8082
 }
 ```
 
-This can then be provided to `microsetta_public_api.server.build_app`, e.g.,:
+This can then be provided to the API by setting the `MPUBAPI_CFG` environment variable:
 
+```bash
+export MPUBAPI_CFG=sample_config.json
+```
+
+and then started with the following python commands:
 ```python
-from microsetta_public_api.server import build_app
-app = build_app(resources_config_json='sample_config.json')
-app.run(port=8083, debug=True)
+from microsetta_public_api.server import build_app, run
+app = build_app()
+run(app)
+```
+
+Alternatively, you can simply run
+```bash
+python microsetta_public_api/server.py
 ```

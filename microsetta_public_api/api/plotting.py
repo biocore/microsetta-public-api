@@ -4,7 +4,7 @@ from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.models._alpha import Alpha
 from microsetta_public_api.api.metadata import _format_query, \
-    _validate_query, _get_repo as _get_metadata_repo
+    _validate_query, _get_repo_alt as _get_metadata_repo
 from microsetta_public_api.api.diversity.alpha import _validate_dataset_alpha
 from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.utils._utils import jsonify
@@ -29,7 +29,7 @@ def _alpha_repo_getter_alt(dataset):
 def plot_alpha_filtered_alt(dataset, alpha_metric=None, percentiles=None,
                             sample_id=None, **kwargs):
 
-    repo = _get_metadata_repo(get_resources)
+    repo = _get_metadata_repo(dataset, get_resources)
     query = _format_query(kwargs)
     is_invalid = _validate_query(kwargs, repo)
     if is_invalid:
@@ -59,7 +59,7 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
 def plot_alpha_filtered_json_query_alt(dataset, body, alpha_metric=None,
                                        percentiles=None,
                                        sample_id=None):
-    repo = _get_metadata_repo(get_resources)
+    repo = _get_metadata_repo(dataset, get_resources)
     alpha_repo_getter = _alpha_repo_getter_alt(dataset)
     return _plot_alpha_percentiles_querybuilder(alpha_metric, percentiles,
                                                 body, repo, sample_id,

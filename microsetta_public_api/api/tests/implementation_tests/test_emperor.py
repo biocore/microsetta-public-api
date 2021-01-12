@@ -157,14 +157,16 @@ class EmperorAltTests(MockedJsonifyTestCase):
         cls.resources = DictElement({
             'datasets': DictElement({
                 'dataset1': DictElement({
+                    '__metadata__': MockMetadataElement(cls.test_metadata),
                     '__pcoa__': PCOAElement({
                         'sample_set': DictElement({
                             'beta_metric': cls.pcoa1,
                         }),
                     })
                 }),
-                'dataset2': DictElement({}),
-                '__metadata__': MockMetadataElement(cls.test_metadata)
+                'dataset2': DictElement({
+                    '__metadata__': MockMetadataElement(cls.test_metadata),
+                }),
             }),
         })
         cls.resources.accept(TrivialVisitor())
