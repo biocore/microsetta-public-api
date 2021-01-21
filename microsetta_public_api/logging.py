@@ -19,7 +19,6 @@ class timeit:
             result = f(*args, **kwargs)
             end = time()
             total = end - start
-            # logger.info(f'{self.msg} Completed in: {total}')
             logger.info('%(message)s Elapsed: %(elapsed)s',
                         {'message': self.msg, 'elapsed': total})
             return result
