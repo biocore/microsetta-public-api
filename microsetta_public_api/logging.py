@@ -15,6 +15,9 @@ class timeit:
     def __call__(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+            logger.info('%(message)s Start.',
+                        {'message': self.msg}
+                        )
             start = time()
             result = f(*args, **kwargs)
             end = time()
