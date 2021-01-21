@@ -13,6 +13,7 @@ from microsetta_public_api.resources import (
 from microsetta_public_api._io import (
     _dict_of_paths_to_beta_data,
 )
+from microsetta_public_api.logging import timeit
 
 
 class Q2Visitor(ConfigElementVisitor):
@@ -22,25 +23,31 @@ class Q2Visitor(ConfigElementVisitor):
             schema = SchemaBase()
         self.schema = schema
 
+    @timeit('visit_alpha')
     def visit_alpha(self, element):
         element.data = _dict_of_paths_to_alpha_data(element,
                                                     self.schema.alpha_kw)
 
+    @timeit('vist_taxonomy')
     def visit_taxonomy(self, element):
         element.data = _transform_dict_of_table(element,
                                                 self.schema.taxonomy_kw)
 
+    @timeit('visit_pcoa')
     def visit_pcoa(self, element):
         element.data = _dict_of_dict_of_paths_to_pcoa(element,
                                                       self.schema.pcoa_kw)
 
+    @timeit('visit_metadata')
     def visit_metadata(self, element):
         element.data = _load_q2_metadata(element, self.schema.metadata_kw)
 
+    @timeit('visit_beta')
     def visit_beta(self, element):
         element.data = _dict_of_paths_to_beta_data(element,
                                                    self.schema.beta_kw)
 
+    @timeit('visit_dataset_detail')
     def visit_dataset_detail(self, element):
         element.data = _dict_of_literals_to_dict(element,
                                                  self.schema.detail_kw)
