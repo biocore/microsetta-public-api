@@ -1,4 +1,4 @@
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, Counter
 from typing import Iterable, Dict, Optional, List
 from abc import abstractmethod
 
@@ -223,6 +223,51 @@ class Taxonomy(ModelBase):
                              feature_variances=list(feature_variances),
                              feature_ranks=None,
                              )
+
+    def get_counts(self, level, samples=None) -> dict:
+        """Obtain the number of unique maximal specificity features
+
+        Parameters
+        ----------
+        level : int
+            The level to obtain feature counts for. A level of zero
+            indicates domain, one is phylum, etc.
+        samples : str or iterable of str, optional
+            The samples to collect data for. If not provided, counts are
+            derived from all samples.
+
+        Returns
+        -------
+        dict
+            The {taxon: count} observed. The count corresponds to the greatest
+            taxonomic specificity in the data. As an example, if counting at
+            the phylum level, and FOO had 2 classified genera and a classified
+            family without named genera, the count returned would be {FOO: 3}.
+        """
+        if samples is None:
+            table = self._table
+        elif isinstance(samples, str):
+            table = self._table.filter({samples, },
+                                       inplace=False).remove_empty()
+        else:
+            table = self._table.filter(set(samples),
+                                       inplace=False).remove_empty()
+
+        level_map = {0: 'Kingdom', 1: 'Phylum',
+                     2: 'Class', 3: 'Order',
+                     4: 'Family', 5: 'Genus',
+                     6: 'Species'}
+
+        if level not in level_map:
+            raise ValueError("Unknown level")
+
+        level = level_map[level]
+
+        feature_taxons = self._features.loc[table.ids(axis='observation')]
+        ftn = self._formatted_taxa_names
+        observed = Counter([ftn[i].get(level, 'Unidentified')
+                            for i in feature_taxons.index])
+        return observed
 
     def presence_data_table(self, ids: Iterable[str]) -> DataTable:
         table = self._table.filter(set(ids), inplace=False).remove_empty()

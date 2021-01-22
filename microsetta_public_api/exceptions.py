@@ -7,6 +7,10 @@ class UnknownMetric(ValueError):
     pass
 
 
+class UnknownLevel(ValueError):
+    pass
+
+
 class UnknownResource(ValueError):
     pass
 

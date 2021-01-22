@@ -2,6 +2,7 @@ from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
 from microsetta_public_api.resources_alt import get_resources
+from microsetta_public_api.exceptions import UnknownLevel
 from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
@@ -42,6 +43,37 @@ def summarize_group(body, resource):
     sample_ids = body['sample_ids']
     taxonomy_repo = TaxonomyRepo()
     return _summarize_group(sample_ids, resource, taxonomy_repo)
+
+
+def group_counts(body, dataset, resource, level):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = body['sample_ids']
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     sample_ids, resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+
+    counts = taxonomy_.get_counts(level, sample_ids)
+    response = jsonify(counts)
+    return response, 200
+
+
+def single_counts(dataset, resource, sample_id, level):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     None, resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+
+    counts = taxonomy_.get_counts(level, sample_id)
+    response = jsonify(counts)
+    return response, 200
 
 
 def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
