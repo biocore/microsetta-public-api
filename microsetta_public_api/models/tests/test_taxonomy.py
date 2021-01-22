@@ -160,6 +160,33 @@ class TaxonomyTests(unittest.TestCase):
         with self.assertRaisesRegex(UnknownID, "sample-X does not exist"):
             taxonomy.get_group(['sample-X'])
 
+    def test_get_counts(self):
+        taxonomy_df = pd.DataFrame([['feature-1', 'k__a; p__b; c__c', 0.123],
+                                    ['feature-2',
+                                     'k__a; p__b; c__c; o__d; f__e', 0.345],
+                                    ['feature-3', 'k__a; p__f; c__g; o__h',
+                                     0.678]],
+                                   columns=['Feature ID', 'Taxon',
+                                            'Confidence'])
+        taxonomy_df.set_index('Feature ID', inplace=True)
+        taxonomy = Taxonomy(self.table, taxonomy_df)
+        expected = [(0, {'a': 3}), (1, {'b': 2, 'f': 1})]
+
+        for level, exp in expected:
+            obs = taxonomy.get_counts(level)
+            self.assertEqual(obs, exp)
+            obs = taxonomy.get_counts(level, samples=['sample-1', 'sample-2',
+                                                      'sample-3'])
+            self.assertEqual(obs, exp)
+
+        expected_batch = [('sample-1', [(0, {'a': 2}), (1, {'b': 1, 'f': 1})]),
+                          ('sample-2', [(0, {'a': 2}), (1, {'b': 2})]),
+                          ('sample-3', [(0, {'a': 3}), (1, {'b': 2, 'f': 1})])]
+        for sample, expected in expected_batch:
+            for level, exp in expected:
+                obs = taxonomy.get_counts(level, samples=sample)
+                self.assertEqual(obs, exp)
+
     def test_presence_data_table(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_greengenes_df,
                             self.table_vars)
