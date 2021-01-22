@@ -4,7 +4,8 @@ from microsetta_public_api.repo._pcoa_repo import PCoARepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.config import schema
-from microsetta_public_api.api.metadata import _get_repo as _get_metadata_repo
+from microsetta_public_api.api.metadata import _get_repo_alt as \
+    _get_metadata_repo_alt
 from microsetta_public_api.exceptions import UnknownResource
 
 
@@ -22,7 +23,7 @@ def _get_pcoa_repo(dataset):
 def plot_pcoa_alt(dataset, beta_metric, named_sample_set, metadata_categories,
                   fillna='nan'):
     pcoa_repo = _get_pcoa_repo(dataset)
-    metadata_repo = _get_metadata_repo(get_resources)
+    metadata_repo = _get_metadata_repo_alt(dataset, get_resources)
 
     return _plot_pcoa(beta_metric, fillna, metadata_categories,
                       named_sample_set, metadata_repo, pcoa_repo)

@@ -7,6 +7,7 @@ from microsetta_public_api.resources import (
     _dict_of_paths_to_alpha_data,
     _transform_dict_of_table,
     _dict_of_dict_of_paths_to_pcoa,
+    _dict_of_literals_to_dict,
     _load_q2_metadata,
 )
 from microsetta_public_api._io import (
@@ -39,6 +40,10 @@ class Q2Visitor(ConfigElementVisitor):
     def visit_beta(self, element):
         element.data = _dict_of_paths_to_beta_data(element,
                                                    self.schema.beta_kw)
+
+    def visit_dataset_detail(self, element):
+        element.data = _dict_of_literals_to_dict(element,
+                                                 self.schema.detail_kw)
 
 
 resources_alt = DictElement()

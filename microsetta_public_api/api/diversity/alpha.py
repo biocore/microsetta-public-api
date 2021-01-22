@@ -6,6 +6,7 @@ from microsetta_public_api.utils._utils import (validate_resource_alt,
                                                 check_missing_ids_alt,
                                                 )
 from microsetta_public_api.resources_alt import get_resources
+from functools import partial
 from microsetta_public_api.exceptions import (
     UnknownID,
     UnknownResource,
@@ -62,7 +63,8 @@ def alpha_group_alt(body, dataset, alpha_metric, summary_statistics=True,
                     percentiles=None, return_raw=False):
     alpha_resource = _validate_dataset_alpha(dataset, get_resources)
     alpha_repo = AlphaRepo(alpha_resource.data)
-    alpha_data = _alpha_group(body, alpha_repo, _metadata_repo_getter_alt,
+    getter = partial(_metadata_repo_getter_alt, dataset=dataset)
+    alpha_data = _alpha_group(body, alpha_repo, getter,
                               alpha_metric, percentiles,
                               return_raw, summary_statistics)
 
@@ -84,10 +86,14 @@ def _metadata_repo_getter():
     return MetadataRepo()
 
 
-def _metadata_repo_getter_alt():
+def _metadata_repo_getter_alt(dataset=None):
+    if dataset is not None:
+        metadata_path = ('datasets', dataset, schema.metadata_kw)
+    else:
+        metadata_path = ('datasets', schema.metadata_kw)
+
     try:
-        return MetadataRepo(get_resources().gets('datasets',
-                            schema.metadata_kw).data)
+        return MetadataRepo(get_resources().gets(*metadata_path).data)
     except KeyError:
         raise UnknownResource(f"No metadata (kw: '{schema.metadata_kw}')")
 

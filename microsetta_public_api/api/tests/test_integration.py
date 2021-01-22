@@ -72,10 +72,23 @@ class MetadataIntegrationTests(IntegrationTests):
         }
         config_alt = {
             'datasets': {
+                '16SAmplicon': {
+                    '__metadata__': self.metadata_path,
+                },
                 '__metadata__': self.metadata_path,
             }
         }
         _update_resources_from_config(config_alt)
+
+    def test_metadata_available_categories_with_dataset(self):
+        exp = ['age_cat', 'bmi_cat', 'num_cat']
+        response = self.client.get(
+            '/results-api/dataset/16SAmplicon/metadata'
+            '/category/available'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
 
     def test_metadata_available_categories(self):
         exp = ['age_cat', 'bmi_cat', 'num_cat']
@@ -1460,12 +1473,12 @@ class PlottingAltIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
+                    '__metadata__': self.plotting_metadata_path,
                     '__alpha__': {
                         'observed_otus': self.plotting_series1_filename,
                         'chao1': self.plotting_series2_filename,
                     }
                 },
-                '__metadata__': self.plotting_metadata_path,
             },
         }
         _update_resources_from_config(config_alt)
@@ -1894,6 +1907,7 @@ class PCoAAltIntegrationTests(IntegrationTests):
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
+                    '__metadata__': self.metadata_path_pc,
                     '__pcoa__': {
                         'sample_set_name': {
                             'pcoa1': self.pcoa_path1,
@@ -1901,7 +1915,6 @@ class PCoAAltIntegrationTests(IntegrationTests):
                         }
                     }
                 },
-                '__metadata__': self.metadata_path_pc,
             },
         }
         _update_resources_from_config(config_alt)

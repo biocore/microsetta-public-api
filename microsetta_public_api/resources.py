@@ -15,6 +15,11 @@ from q2_types.ordination import PCoAResults
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
+def _dict_of_literals_to_dict(dict_of_detail, resource_name):
+    # passthrough
+    return dict_of_detail
+
+
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     _validate_dict_of_paths(dict_of_qza_paths,
                             resource_name)
@@ -111,7 +116,9 @@ def _transform_single_table(dict_, resource_name):
         table = new_resource['table']
         taxonomy = new_resource['feature-data-taxonomy']
         variances = new_resource.get('variances', None)
-        model = TaxonomyModel(table, taxonomy, variances)
+
+        # rank_level=5 -> genus
+        model = TaxonomyModel(table, taxonomy, variances, rank_level=5)
         new_resource['model'] = model
 
     return new_resource

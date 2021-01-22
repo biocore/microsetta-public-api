@@ -65,9 +65,14 @@ class AlphaPlottingAltTestCase(MockedJsonifyTestCase):
         faith_pd_index = ['s01', 's02', 's04', 's05']
         shannon_values = [7.24, 9.05, 8.25]
         shannon_index = ['s01', 's02', 'sOther']
+        metadata = MockMetadataElement(pd.DataFrame({
+            'age_cat': ['30s', '40s', '50s', '30s', '30s'],
+            'num_var': [3, 4, 5, 6, 7],
+        }, index=['s01', 's02', 's04', 's05', 'sOther']))
         self.resources = DictElement({
             'datasets': DictElement({
                 'dataset1': DictElement({
+                    '__metadata__': metadata,
                     '__alpha__': AlphaElement({
                         'faith_pd': pd.Series(faith_pd_values,
                                               index=faith_pd_index),
@@ -75,11 +80,9 @@ class AlphaPlottingAltTestCase(MockedJsonifyTestCase):
                                              index=shannon_index),
                     })
                 }),
-                'dataset2': DictElement({}),
-                '__metadata__': MockMetadataElement(pd.DataFrame({
-                    'age_cat': ['30s', '40s', '50s', '30s', '30s'],
-                    'num_var': [3, 4, 5, 6, 7],
-                }, index=['s01', 's02', 's04', 's05', 'sOther']))
+                'dataset2': DictElement({
+                    '__metadata__': metadata,
+                }),
             }),
         })
         self.resources.accept(TrivialVisitor())

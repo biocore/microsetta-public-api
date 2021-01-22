@@ -76,6 +76,40 @@ metadata_schema = {
 }
 
 
+detail_group_schema = {
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string",
+            "description": "A human readable name for the dataset"
+        },
+        "qiita-study-ids": {
+            "type": "array",
+            "description": "The list of Qiita study IDs"
+        },
+        "datatype": {
+            "type": "string",
+            "description": "The data preparation type"
+        },
+    }
+}
+
+
+def make_dataset_schema(schema):
+    return {
+        "type": "object",
+        "properties": {
+            schema.metadata_kw: metadata_schema,
+            schema.alpha_kw: alpha_group_schema,
+            schema.beta_kw: beta_group_schema,
+            schema.taxonomy_kw: taxonomy_group_schema,
+            schema.pcoa_kw: pcoa_group_schema,
+            schema.detail_kw: detail_group_schema,
+        },
+        "additionalProperties": False,
+    }
+
+
 class Element:
 
     # need args and kwargs for inheritance concerns
@@ -278,6 +312,12 @@ class BetaElement(DictElement):
         visitor.visit_beta(self)
 
 
+class DatasetDetailElement(DictElement):
+    def accept(self, visitor):
+        super().accept(visitor)
+        visitor.visit_dataset_detail(self)
+
+
 class ConfigElementVisitor:
 
     @abstractmethod
@@ -300,6 +340,10 @@ class ConfigElementVisitor:
     def visit_beta(self, element):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_dataset_detail(self, element):
+        raise NotImplementedError()
+
 
 class SchemaBase:
     def __init__(self):
@@ -308,6 +352,7 @@ class SchemaBase:
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
+        self.detail_kw = '__dataset_detail__'
 
     def element_map(self):
         map_ = {
@@ -316,6 +361,7 @@ class SchemaBase:
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
+            self.detail_kw: DatasetDetailElement,
         }
         return map_
 
@@ -342,29 +388,14 @@ class SchemaBase:
 
 class Schema(SchemaBase):
     def schema(self):
-        return {
-            "type": "object",
-            "properties": {
-                "datasets":
-                    {
+        dataset_schema = make_dataset_schema(self)
+
+        return {"type": "object",
+                "properties": {
+                    "datasets": {
                         "type": "object",
-                        "properties": {
-                            self.metadata_kw: metadata_schema,
-                        },
-                        "additionalProperties":
-                            {
-                                "type": "object",
-                                "properties": {
-                                    self.alpha_kw: alpha_group_schema,
-                                    self.beta_kw: beta_group_schema,
-                                    self.taxonomy_kw: taxonomy_group_schema,
-                                    self.pcoa_kw: pcoa_group_schema,
-                                },
-                                "additionalProperties": False,
-                            }
-                    },
-            },
-        }
+                        "additionalProperties": dataset_schema}
+                }}
 
 
 class LegacySchema(SchemaBase):
@@ -397,6 +428,7 @@ class CompatibilitySchema(SchemaBase):
         self.taxonomy_kw = '__taxonomy__'
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
+        self.detail_kw = '__dataset_detail__'
 
     def element_map(self):
         return {
@@ -412,6 +444,7 @@ class CompatibilitySchema(SchemaBase):
         }
 
     def schema(self):
+        dataset_schema = make_dataset_schema(self)
         return {
             "type": "object",
             "properties": {
@@ -425,18 +458,7 @@ class CompatibilitySchema(SchemaBase):
                         "properties": {
                             self.metadata_kw: metadata_schema,
                         },
-                        "additionalProperties":
-                            {
-                                "type": "object",
-                                "properties": {
-                                    self.alpha_kw: alpha_group_schema,
-                                    self.beta_kw: beta_group_schema,
-                                    self.taxonomy_kw:
-                                        taxonomy_group_schema,
-                                    self.pcoa_kw: pcoa_group_schema,
-                                },
-                                "additionalProperties": False,
-                            }
+                        "additionalProperties": dataset_schema
                     },
             }
         }

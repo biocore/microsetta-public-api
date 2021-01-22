@@ -8,6 +8,7 @@ from microsetta_public_api.utils._utils import (
     check_missing_ids,
     stepwise_resource_getter,
 )
+from empress import Empress
 
 
 def _get_taxonomy_repo(dataset):
@@ -75,6 +76,12 @@ def single_counts(dataset, resource, sample_id, level):
     response = jsonify(counts)
     return response, 200
 
+def get_empress(dataset, resource):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    taxonomy_model = taxonomy_repo.model(resource)
+    empress_model = Empress(taxonomy_model.bp_tree)
+    return empress_model._to_dict()
+
 
 def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
     available_resources = taxonomy_repo.resources()
@@ -103,7 +110,6 @@ def _summarize_group(sample_ids, table_name, taxonomy_repo):
 
     taxonomy_data = taxonomy_.get_group(sample_ids, '').to_dict()
     del taxonomy_data['name']
-    del taxonomy_data['feature_ranks']
     response = jsonify(taxonomy_data)
     return response, 200
 
@@ -194,3 +200,43 @@ def _exists(resource, samples, taxonomy_repo):
         return missing_resource
 
     return jsonify(taxonomy_repo.exists(samples, resource)), 200
+
+
+def ranks_sample(dataset, resource, sample_size):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     [],
+                                                     resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+    summary = taxonomy_.ranks_sample(sample_size)
+    order = taxonomy_.ranks_order(summary['Taxon'])
+
+    payload = summary.to_dict('list')
+    payload.pop('Sample ID')
+    payload['Taxa-order'] = order
+
+    return jsonify(payload), 200
+
+
+def ranks_specific(dataset, resource, sample_id):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     [sample_id, ],
+                                                     resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+    summary = taxonomy_.ranks_specific(sample_id)
+    order = taxonomy_.ranks_order(summary['Taxon'])
+
+    payload = summary.to_dict('list')
+    payload.pop('Sample ID')
+    payload['Taxa-order'] = order
+
+    return jsonify(payload), 200

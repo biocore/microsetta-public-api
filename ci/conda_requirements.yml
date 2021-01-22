@@ -13,6 +13,7 @@ dependencies:
   - numpy
   - pyyaml
   - qiime2
+  - q2templates
   - q2-types
   - altair
   - jsonschema
