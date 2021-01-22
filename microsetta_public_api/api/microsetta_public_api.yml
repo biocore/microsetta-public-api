@@ -1162,6 +1162,7 @@ paths:
       summary: Get counts of taxa at a particular level for a sample
       description: Get counts of taxa at a particular level for a sample
       parameters:
+        - $ref: '#/components/parameters/sampleIdPath'
         - $ref: '#/components/parameters/namedDataset'
         - $ref: '#/components/parameters/taxonomyResource'
         - $ref: '#/components/parameters/taxonomyLevelQuery'
