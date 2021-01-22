@@ -135,7 +135,7 @@ def _transform_single_table(dict_, resource_name):
 def _parse_q2_data(filepath, semantic_type, view_type=None,
                    ignore_predicate=True):
     try:
-        data = Artifact.load(filepath)
+        data = _q2_load(filepath)
     except ValueError as e:
         raise ConfigurationError(*e.args)
 
@@ -148,8 +148,20 @@ def _parse_q2_data(filepath, semantic_type, view_type=None,
                                  f"'{semantic_type}'. "
                                  f"Received '{data.type}'.")
     if view_type is not None:
-        data = data.view(view_type=view_type)
+        data = _q2_view(data, view_type)
 
+    return data
+
+
+@timeit('_q2_view')
+def _q2_view(data, view_type):
+    data = data.view(view_type=view_type)
+    return data
+
+
+@timeit('_q2_load')
+def _q2_load(filepath):
+    data = Artifact.load(filepath)
     return data
 
 
