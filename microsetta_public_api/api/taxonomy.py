@@ -2,7 +2,6 @@ from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
 from microsetta_public_api.resources_alt import get_resources
-from microsetta_public_api.exceptions import UnknownLevel
 from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
@@ -75,6 +74,7 @@ def single_counts(dataset, resource, sample_id, level):
     counts = taxonomy_.get_counts(level, sample_id)
     response = jsonify(counts)
     return response, 200
+
 
 def get_empress(dataset, resource):
     taxonomy_repo = _get_taxonomy_repo(dataset)
