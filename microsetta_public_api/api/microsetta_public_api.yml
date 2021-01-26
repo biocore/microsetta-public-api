@@ -1352,7 +1352,7 @@ paths:
           $ref: '#/components/responses/404NotFound'
 
   '/dataset/{dataset}/taxonomy/single/{resource}/{sample_id}/counts':
-    post:
+    get:
       operationId: microsetta_public_api.api.taxonomy.single_counts
       tags:
         - Taxonomy
