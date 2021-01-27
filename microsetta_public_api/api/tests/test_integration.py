@@ -986,6 +986,39 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertListEqual(obs, [False, False, True])
 
+    def test_group_counts(self):
+        self.table = biom.Table(np.array([[0, 1, 2],
+                                          [2, 4, 6],
+                                          [3, 0, 1]]),
+                                ['feature-1', 'feature-2', 'feature-3'],
+                                ['sample-1', 'sample-2', 'sample-3'])
+
+        self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
+                                         ['feature-2', 'a; b; c; d; e', 0.345],
+                                         ['feature-3', 'a; f; g; h', 0.678]],
+                                        columns=['Feature ID', 'Taxon',
+                                                 'Confidence'])
+        response = self.client.post(
+            '/results-api/dataset/ShotgunMetagenomics/taxonomy/group/'
+            'table2-greengenes/counts?level=phylum',
+            data=json.dumps({'sample_ids': []}),
+            content_type='application/json',
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertEqual(obs, {'b': 2, 'f': 1})
+
+    def test_specific_counts(self):
+        response = self.client.get(
+            '/results-api/dataset/ShotgunMetagenomics/taxonomy/single/'
+            'table2-greengenes/sample-1/counts?level=phylum'
+        )
+
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertEqual(obs, {'b': 1, 'f': 1})
+
     def test_summarize_group(self):
         response = self.client.post('/results-api/dataset/ShotgunMetagenomics/'
                                     'taxonomy/group/table2',

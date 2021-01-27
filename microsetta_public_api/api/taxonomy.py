@@ -2,6 +2,7 @@ from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
 from microsetta_public_api.resources_alt import get_resources
+from microsetta_public_api.exceptions import UnknownLevel
 from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
@@ -45,6 +46,17 @@ def summarize_group(body, resource):
     return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
+LEVEL_MAP = {
+    'domain': 0,
+    'phylum': 1,
+    'class': 2,
+    'order': 3,
+    'family': 4,
+    'genus': 5,
+    'species': 6
+}
+
+
 def group_counts(body, dataset, resource, level):
     taxonomy_repo = _get_taxonomy_repo(dataset)
     sample_ids = body['sample_ids']
@@ -53,6 +65,13 @@ def group_counts(body, dataset, resource, level):
                                                      sample_ids, resource)
     if error_response:
         return error_response
+
+    if sample_ids == []:
+        sample_ids = None
+
+    level = LEVEL_MAP.get(level)
+    if level is None:
+        raise UnknownLevel("Level must be one of: %s" % list(LEVEL_MAP.keys()))
 
     taxonomy_ = taxonomy_repo.model(resource)
 
@@ -65,9 +84,13 @@ def single_counts(dataset, resource, sample_id, level):
     taxonomy_repo = _get_taxonomy_repo(dataset)
 
     error_response = _check_resource_and_missing_ids(taxonomy_repo,
-                                                     None, resource)
+                                                     [sample_id], resource)
     if error_response:
         return error_response
+
+    level = LEVEL_MAP.get(level)
+    if level is None:
+        raise UnknownLevel("Level must be one of: %s" % list(LEVEL_MAP.keys()))
 
     taxonomy_ = taxonomy_repo.model(resource)
 
