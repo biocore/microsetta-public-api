@@ -1606,7 +1606,6 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/taxonomyLevel'
-        
     taxonomyResource:
       name: resource
       in: path
@@ -1888,7 +1887,6 @@ components:
                   - "Kingdom"
                   - "Genus"
                   - "relativeAbundance"
-    
     taxaCounts:
       # leaving the schema undefined as we're returning
       # {taxonomic-level: count}, and oneOf acts funny
