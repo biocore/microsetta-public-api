@@ -2,5 +2,5 @@ connexion[swagger-ui]
 pytest
 pytest-cov
 flake8
-empress>=1.0.1
+empress>=1.1.0
 iow
