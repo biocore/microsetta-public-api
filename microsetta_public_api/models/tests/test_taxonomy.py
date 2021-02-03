@@ -287,7 +287,7 @@ class TaxonomyTests(unittest.TestCase):
                                             'Confidence'])
         taxonomy_df.set_index('Feature ID', inplace=True)
         taxonomy = Taxonomy(self.table, taxonomy_df)
-        expected = [(0, {'a': 3}), (1, {'b': 2, 'f': 1})]
+        expected = [('Domain', {'a': 3}), ('Phylum', {'b': 2, 'f': 1})]
 
         for level, exp in expected:
             obs = taxonomy.get_counts(level)
@@ -296,9 +296,12 @@ class TaxonomyTests(unittest.TestCase):
                                                       'sample-3'])
             self.assertEqual(obs, exp)
 
-        expected_batch = [('sample-1', [(0, {'a': 2}), (1, {'b': 1, 'f': 1})]),
-                          ('sample-2', [(0, {'a': 2}), (1, {'b': 2})]),
-                          ('sample-3', [(0, {'a': 3}), (1, {'b': 2, 'f': 1})])]
+        expected_batch = [('sample-1', [('Domain', {'a': 2}),
+                                        ('Phylum', {'b': 1, 'f': 1})]),
+                          ('sample-2', [('Domain', {'a': 2}),
+                                        ('Phylum', {'b': 2})]),
+                          ('sample-3', [('Domain', {'a': 3}),
+                                        ('Phylum', {'b': 2, 'f': 1})])]
         for sample, expected in expected_batch:
             for level, exp in expected:
                 obs = taxonomy.get_counts(level, samples=sample)

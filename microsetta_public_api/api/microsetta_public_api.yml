@@ -1798,7 +1798,14 @@ components:
       maximum: 1
     taxonomyLevel:
       type: string
-      example: "genus"
+      enum:
+        - Domain
+        - Phylum
+        - Class
+        - Order
+        - Family
+        - Genus
+        - Species
     sampleId:
       type: string
       example: "sample_15"

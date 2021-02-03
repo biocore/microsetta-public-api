@@ -358,9 +358,8 @@ class Taxonomy(ModelBase):
 
         Parameters
         ----------
-        level : int
-            The level to obtain feature counts for. A level of zero
-            indicates domain, one is phylum, etc.
+        level : str
+            The level to obtain feature counts for.
         samples : str or iterable of str, optional
             The samples to collect data for. If not provided, counts are
             derived from all samples.
@@ -372,6 +371,8 @@ class Taxonomy(ModelBase):
             taxonomic specificity in the data. As an example, if counting at
             the phylum level, and FOO had 2 classified genera and a classified
             family without named genera, the count returned would be {FOO: 3}.
+            The count is the number of features corresponding to the given
+            taxon that are present in any of the given samples.
         """
         if samples is None:
             table = self._table
@@ -381,16 +382,6 @@ class Taxonomy(ModelBase):
         else:
             table = self._table.filter(set(samples),
                                        inplace=False).remove_empty()
-
-        level_map = {0: 'Kingdom', 1: 'Phylum',
-                     2: 'Class', 3: 'Order',
-                     4: 'Family', 5: 'Genus',
-                     6: 'Species'}
-
-        if level not in level_map:
-            raise ValueError("Unknown level")
-
-        level = level_map[level]
 
         feature_taxons = self._features.loc[table.ids(axis='observation')]
         ftn = self._formatted_taxa_names

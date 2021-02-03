@@ -2,11 +2,12 @@ from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
 from microsetta_public_api.resources_alt import get_resources
-from microsetta_public_api.exceptions import UnknownLevel
 from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
     stepwise_resource_getter,
+    validate_resource_alt,
+    check_missing_ids_alt
 )
 from empress import Empress
 
@@ -46,32 +47,18 @@ def summarize_group(body, resource):
     return _summarize_group(sample_ids, resource, taxonomy_repo)
 
 
-LEVEL_MAP = {
-    'domain': 0,
-    'phylum': 1,
-    'class': 2,
-    'order': 3,
-    'family': 4,
-    'genus': 5,
-    'species': 6
-}
+def _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource):
+    available_resources = taxonomy_repo.resources()
+    type_ = 'resource'
+    validate_resource_alt(available_resources, resource, type_)
+    missing_ids = [id_ for id_ in sample_ids if
+                   not taxonomy_repo.exists(id_, resource)]
+    check_missing_ids_alt(missing_ids, resource, type_)
 
 
-def group_counts(body, dataset, resource, level):
-    taxonomy_repo = _get_taxonomy_repo(dataset)
-    sample_ids = body['sample_ids']
-
-    error_response = _check_resource_and_missing_ids(taxonomy_repo,
-                                                     sample_ids, resource)
-    if error_response:
-        return error_response
-
+def _taxonomy_counts(resource, taxonomy_repo, level, sample_ids):
     if sample_ids == []:
         sample_ids = None
-
-    level = LEVEL_MAP.get(level)
-    if level is None:
-        raise UnknownLevel("Level must be one of: %s" % list(LEVEL_MAP.keys()))
 
     taxonomy_ = taxonomy_repo.model(resource)
 
@@ -80,22 +67,19 @@ def group_counts(body, dataset, resource, level):
     return response, 200
 
 
+def group_counts(body, dataset, resource, level):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = body['sample_ids']
+    _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource)
+    response = _taxonomy_counts(resource, taxonomy_repo, level, sample_ids)
+    return response, 200
+
+
 def single_counts(dataset, resource, sample_id, level):
     taxonomy_repo = _get_taxonomy_repo(dataset)
-
-    error_response = _check_resource_and_missing_ids(taxonomy_repo,
-                                                     [sample_id], resource)
-    if error_response:
-        return error_response
-
-    level = LEVEL_MAP.get(level)
-    if level is None:
-        raise UnknownLevel("Level must be one of: %s" % list(LEVEL_MAP.keys()))
-
-    taxonomy_ = taxonomy_repo.model(resource)
-
-    counts = taxonomy_.get_counts(level, sample_id)
-    response = jsonify(counts)
+    sample_ids = [sample_id]
+    _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource)
+    response = _taxonomy_counts(resource, taxonomy_repo, level, sample_ids)
     return response, 200
 
 
