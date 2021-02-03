@@ -16,6 +16,7 @@ from microsetta_public_api.exceptions import (UnknownMetric,
                                               IncompatibleOptions,
                                               )
 from flask import jsonify
+from concurrent.futures import ThreadPoolExecutor
 
 import connexion
 from flask_cors import CORS
@@ -33,6 +34,9 @@ class ErrorHandlerFactory:
 handle_400 = ErrorHandlerFactory.get_method(400)
 handle_404 = ErrorHandlerFactory.get_method(404)
 
+_pool = ThreadPoolExecutor()
+futures = set()
+
 
 def build_app():
     app = connexion.FlaskApp(__name__)
@@ -47,7 +51,9 @@ def build_app():
     resource = copy.deepcopy(config_resources)
     resource = schema.make_elements(resource)
     resources_alt.update(resource)
-    resources_alt.accept(Q2Visitor())
+    load_data = _pool.submit(resources_alt.accept, Q2Visitor())
+    futures.add(load_data)
+    load_data.add_done_callback(lambda fut: futures.remove(load_data))
 
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
