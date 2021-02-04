@@ -40,10 +40,15 @@ futures = set()
 
 
 def atomic_update_resources(resource):
+    # create a new element to store the data in
     element = DictElement()
     element.update(resource)
     visitor = Q2Visitor()
     element.accept(visitor)
+    # after data has been loaded by the q2 visitor, update resources_alt
+    #  so that it is accessible.
+    # Updating resources_alt from another element means the server will
+    #  not show the skeleton of any unloaded data to the client
     resources_alt.update(element)
 
 
