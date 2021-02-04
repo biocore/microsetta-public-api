@@ -10,7 +10,7 @@ def available():
     detail_key = '__dataset_detail__'
 
     if dataset_key not in resources:
-        return jsonify([]), 200
+        return jsonify({}), 200
 
     datasets = {}
     for k, v in resources[dataset_key].items():
