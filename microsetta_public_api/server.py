@@ -39,8 +39,9 @@ _pool = ThreadPoolExecutor()
 futures = set()
 
 
-def atomic_update_resources():
+def atomic_update_resources(resource):
     element = DictElement()
+    element.update(resource)
     visitor = Q2Visitor()
     element.accept(visitor)
     resources_alt.update(element)
@@ -58,8 +59,7 @@ def build_app():
     resources.update(config_resources)
     resource = copy.deepcopy(config_resources)
     resource = schema.make_elements(resource)
-    resources_alt.update(resource)
-    load_data = _pool.submit(atomic_update_resources)
+    load_data = _pool.submit(atomic_update_resources, resource)
     futures.add(load_data)
     load_data.add_done_callback(lambda fut: futures.remove(load_data))
 
