@@ -12,14 +12,17 @@ from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.ordination import PCoAResults
 
+from microsetta_public_api.logging import timeit
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
+@timeit('_dict_of_literals_to_dict')
 def _dict_of_literals_to_dict(dict_of_detail, resource_name):
     # passthrough
     return dict_of_detail
 
 
+@timeit('_dict_of_paths_to_alpha_data')
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     _validate_dict_of_paths(dict_of_qza_paths,
                             resource_name)
@@ -29,6 +32,7 @@ def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     return new_resource
 
 
+@timeit('_dict_of_paths_to_pcoa')
 def _dict_of_paths_to_pcoa(dict_of_qza_paths, resource_name):
     _validate_dict_of_paths(dict_of_qza_paths,
                             resource_name)
@@ -38,6 +42,7 @@ def _dict_of_paths_to_pcoa(dict_of_qza_paths, resource_name):
     return new_resource
 
 
+@timeit('_dict_of_dict_of_paths_to_pcoa')
 def _dict_of_dict_of_paths_to_pcoa(dict_of_dict_of_qza_paths, resource_name):
     new_resource = dict()
     for key, value in dict_of_dict_of_qza_paths.items():
@@ -45,6 +50,7 @@ def _dict_of_dict_of_paths_to_pcoa(dict_of_dict_of_qza_paths, resource_name):
     return new_resource
 
 
+@timeit('_transform_dict_of_table')
 def _transform_dict_of_table(dict_, resource_name):
     if not isinstance(dict_, dict):
         raise TypeError(f"Expected field '{resource_name}' to contain a "
@@ -56,6 +62,7 @@ def _transform_dict_of_table(dict_, resource_name):
     return new_resource
 
 
+@timeit('_transform_single_table')
 def _transform_single_table(dict_, resource_name):
     taxonomy = {'feature-data-taxonomy': dict_.pop('feature-data-taxonomy',
                                                    None)}
@@ -124,10 +131,11 @@ def _transform_single_table(dict_, resource_name):
     return new_resource
 
 
+@timeit('_parse_q2_data')
 def _parse_q2_data(filepath, semantic_type, view_type=None,
                    ignore_predicate=True):
     try:
-        data = Artifact.load(filepath)
+        data = _q2_load(filepath)
     except ValueError as e:
         raise ConfigurationError(*e.args)
 
@@ -140,11 +148,24 @@ def _parse_q2_data(filepath, semantic_type, view_type=None,
                                  f"'{semantic_type}'. "
                                  f"Received '{data.type}'.")
     if view_type is not None:
-        data = data.view(view_type=view_type)
+        data = _q2_view(data, view_type)
 
     return data
 
 
+@timeit('_q2_view')
+def _q2_view(data, view_type):
+    data = data.view(view_type=view_type)
+    return data
+
+
+@timeit('_q2_load')
+def _q2_load(filepath):
+    data = Artifact.load(filepath)
+    return data
+
+
+@timeit('_validate_dict_of_paths')
 def _validate_dict_of_paths(dict_of_paths, name, allow_none=False,
                             required_fields=None, allow_extras=False,
                             non_ext_entries=None, extensions=None,
@@ -182,6 +203,7 @@ def _validate_dict_of_paths(dict_of_paths, name, allow_none=False,
                              'extension. Got: {}'.format(exp_ext, value))
 
 
+@timeit('_replace_paths_with_qza')
 def _replace_paths_with_qza(dict_of_qza_paths, semantic_type, view_type=None):
     new_resource = dict()
     for key, value in dict_of_qza_paths.items():
@@ -192,6 +214,7 @@ def _replace_paths_with_qza(dict_of_qza_paths, semantic_type, view_type=None):
     return new_resource
 
 
+@timeit('_load_q2_metadata')
 def _load_q2_metadata(metadata_path, name):
     try:
         new_resource = Metadata.load(metadata_path)
