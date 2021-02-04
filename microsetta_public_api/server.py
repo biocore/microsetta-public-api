@@ -4,6 +4,7 @@ from microsetta_public_api.config import (
     SERVER_CONFIG,
     resources as config_resources,
     schema,
+    DictElement,
 )
 from microsetta_public_api.resources import resources
 from microsetta_public_api.resources_alt import resources_alt
@@ -38,6 +39,13 @@ _pool = ThreadPoolExecutor()
 futures = set()
 
 
+def atomic_update_resources():
+    element = DictElement()
+    visitor = Q2Visitor()
+    element.accept(visitor)
+    resources_alt.update(element)
+
+
 def build_app():
     app = connexion.FlaskApp(__name__)
 
@@ -51,7 +59,7 @@ def build_app():
     resource = copy.deepcopy(config_resources)
     resource = schema.make_elements(resource)
     resources_alt.update(resource)
-    load_data = _pool.submit(resources_alt.accept, Q2Visitor())
+    load_data = _pool.submit(atomic_update_resources)
     futures.add(load_data)
     load_data.add_done_callback(lambda fut: futures.remove(load_data))
 
