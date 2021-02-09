@@ -4,6 +4,7 @@ from microsetta_public_api.config import (
     SERVER_CONFIG,
     resources as config_resources,
     schema,
+    DictElement,
 )
 from microsetta_public_api.resources import resources
 from microsetta_public_api.resources_alt import resources_alt
@@ -16,6 +17,7 @@ from microsetta_public_api.exceptions import (UnknownMetric,
                                               IncompatibleOptions,
                                               )
 from flask import jsonify
+from concurrent.futures import ThreadPoolExecutor
 
 import connexion
 from flask_cors import CORS
@@ -33,6 +35,22 @@ class ErrorHandlerFactory:
 handle_400 = ErrorHandlerFactory.get_method(400)
 handle_404 = ErrorHandlerFactory.get_method(404)
 
+_pool = ThreadPoolExecutor()
+futures = set()
+
+
+def atomic_update_resources(resource):
+    # create a new element to store the data in
+    element = DictElement()
+    element.update(resource)
+    visitor = Q2Visitor()
+    element.accept(visitor)
+    # after data has been loaded by the q2 visitor, update resources_alt
+    #  so that it is accessible.
+    # Updating resources_alt from another element means the server will
+    #  not show the skeleton of any unloaded data to the client
+    resources_alt.update(element)
+
 
 def build_app():
     app = connexion.FlaskApp(__name__)
@@ -46,8 +64,9 @@ def build_app():
     resources.update(config_resources)
     resource = copy.deepcopy(config_resources)
     resource = schema.make_elements(resource)
-    resources_alt.update(resource)
-    resources_alt.accept(Q2Visitor())
+    load_data = _pool.submit(atomic_update_resources, resource)
+    futures.add(load_data)
+    load_data.add_done_callback(lambda fut: futures.remove(load_data))
 
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
