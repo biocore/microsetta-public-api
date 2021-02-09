@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Public Microsetta RESTful API
-  version: "2020.04.10-1"
+  version: "2021.01"
   title: Public Microsetta RESTful API (OAS 3.0)
 servers:
   - url: '/results-api'
@@ -1303,6 +1303,32 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/dataset/{dataset}/taxonomy/group/{resource}/counts':
+    post:
+      operationId: microsetta_public_api.api.taxonomy.group_counts
+      tags:
+        - Taxonomy
+      summary: Get counts of taxa at a particular level for a group of samples
+      description: Get counts of taxa at a particular level for a group of samples
+      parameters:
+        - $ref: '#/components/parameters/namedDataset'
+        - $ref: '#/components/parameters/taxonomyResource'
+        - $ref: '#/components/parameters/taxonomyLevelQuery'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/sampleIdList"
+      responses:
+        '200':
+          description: Successfuly return taxa counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxaCounts'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/dataset/{dataset}/taxonomy/single/{resource}/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
@@ -1322,6 +1348,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonomyFeatures'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/dataset/{dataset}/taxonomy/single/{resource}/{sample_id}/counts':
+    get:
+      operationId: microsetta_public_api.api.taxonomy.single_counts
+      tags:
+        - Taxonomy
+      summary: Get counts of taxa at a particular level for a sample
+      description: Get counts of taxa at a particular level for a sample
+      parameters:
+        - $ref: '#/components/parameters/sampleIdPath'
+        - $ref: '#/components/parameters/namedDataset'
+        - $ref: '#/components/parameters/taxonomyResource'
+        - $ref: '#/components/parameters/taxonomyLevelQuery'
+      responses:
+        '200':
+          description: Successfuly return taxa counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxaCounts'
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -1551,6 +1599,13 @@ components:
       schema:
         $ref: '#/components/schemas/sampleId'
       required: false
+    taxonomyLevelQuery:
+      name: level
+      in: query
+      description: The taxonomic level to count over
+      required: true
+      schema:
+        $ref: '#/components/schemas/taxonomyLevel'
     taxonomyResource:
       name: resource
       in: path
@@ -1741,6 +1796,16 @@ components:
       type: number
       minimum: 0
       maximum: 1
+    taxonomyLevel:
+      type: string
+      enum:
+        - Kingdom
+        - Phylum
+        - Class
+        - Order
+        - Family
+        - Genus
+        - Species
     sampleId:
       type: string
       example: "sample_15"
@@ -1829,6 +1894,11 @@ components:
                   - "Kingdom"
                   - "Genus"
                   - "relativeAbundance"
+    taxaCounts:
+      # leaving the schema undefined as we're returning
+      # {taxonomic-level: count}, and oneOf acts funny
+      type:
+        object
 
     taxonomyFeatures:
       type: object

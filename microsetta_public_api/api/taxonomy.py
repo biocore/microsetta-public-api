@@ -6,6 +6,8 @@ from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
     stepwise_resource_getter,
+    validate_resource_alt,
+    check_missing_ids_alt
 )
 from empress import Empress
 
@@ -43,6 +45,42 @@ def summarize_group(body, resource):
     sample_ids = body['sample_ids']
     taxonomy_repo = TaxonomyRepo()
     return _summarize_group(sample_ids, resource, taxonomy_repo)
+
+
+def _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource):
+    available_resources = taxonomy_repo.resources()
+    type_ = 'resource'
+    validate_resource_alt(available_resources, resource, type_)
+    missing_ids = [id_ for id_ in sample_ids if
+                   not taxonomy_repo.exists(id_, resource)]
+    check_missing_ids_alt(missing_ids, resource, type_)
+
+
+def _taxonomy_counts(resource, taxonomy_repo, level, sample_ids):
+    if sample_ids == []:
+        sample_ids = None
+
+    taxonomy_ = taxonomy_repo.model(resource)
+
+    counts = taxonomy_.get_counts(level, sample_ids)
+    response = jsonify(counts)
+    return response
+
+
+def group_counts(body, dataset, resource, level):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = body['sample_ids']
+    _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource)
+    response = _taxonomy_counts(resource, taxonomy_repo, level, sample_ids)
+    return response, 200
+
+
+def single_counts(dataset, resource, sample_id, level):
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+    sample_ids = [sample_id]
+    _check_resource_and_missing_ids_alt(taxonomy_repo, sample_ids, resource)
+    response = _taxonomy_counts(resource, taxonomy_repo, level, sample_ids)
+    return response, 200
 
 
 def get_empress(dataset, resource):

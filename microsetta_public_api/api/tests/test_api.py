@@ -1554,6 +1554,68 @@ class TaxonomyRanksSampleAPITests(FlaskTests):
         self.assertEqual(200, response.status_code)
 
 
+class TaxonomyCountsSpecificAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.single_counts')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_specific_counts_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'foo': 1,
+                    'bar': 2
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'single/greengenes/s1/counts?level=Phylum')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', level='Phylum',
+            sample_id='s1')
+        self.assertEqual(200, response.status_code)
+
+
+class TaxonomyCountsGroupAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.group_counts')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_group_counts_valid(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                    'foo': 1,
+                    'bar': 2
+                }
+            ), 200
+
+        response = self.client.post('/results-api/dataset/d1/taxonomy/'
+                                    'group/greengenes/counts?level=Genus',
+                                    content_type='application/json',
+                                    data=json.dumps(
+                                        {'sample_ids': ['a', 'b', 'c']})
+                                    )
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', level='Genus',
+            body={'sample_ids': ['a', 'b', 'c']})
+        self.assertEqual(200, response.status_code)
+
+
 class TaxonomyRanksSpecificAPITests(FlaskTests):
     def setUp(self):
         super().setUp()
