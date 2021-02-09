@@ -64,7 +64,7 @@ def _taxonomy_counts(resource, taxonomy_repo, level, sample_ids):
 
     counts = taxonomy_.get_counts(level, sample_ids)
     response = jsonify(counts)
-    return response, 200
+    return response
 
 
 def group_counts(body, dataset, resource, level):

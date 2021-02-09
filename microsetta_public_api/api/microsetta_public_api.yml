@@ -1799,7 +1799,7 @@ components:
     taxonomyLevel:
       type: string
       enum:
-        - Domain
+        - Kingdom
         - Phylum
         - Class
         - Order

@@ -1576,9 +1576,9 @@ class TaxonomyCountsSpecificAPITests(FlaskTests):
             ), 200
 
         response = self.client.get('/results-api/dataset/d1/taxonomy/'
-                                   'single/greengenes/s1/counts?level=phylum')
+                                   'single/greengenes/s1/counts?level=Phylum')
         self.mock_method.assert_called_with(
-            dataset='d1', resource='greengenes', level='phylum',
+            dataset='d1', resource='greengenes', level='Phylum',
             sample_id='s1')
         self.assertEqual(200, response.status_code)
 
@@ -1605,13 +1605,13 @@ class TaxonomyCountsGroupAPITests(FlaskTests):
             ), 200
 
         response = self.client.post('/results-api/dataset/d1/taxonomy/'
-                                    'group/greengenes/counts?level=genus',
+                                    'group/greengenes/counts?level=Genus',
                                     content_type='application/json',
                                     data=json.dumps(
                                         {'sample_ids': ['a', 'b', 'c']})
                                     )
         self.mock_method.assert_called_with(
-            dataset='d1', resource='greengenes', level='genus',
+            dataset='d1', resource='greengenes', level='Genus',
             body={'sample_ids': ['a', 'b', 'c']})
         self.assertEqual(200, response.status_code)
 

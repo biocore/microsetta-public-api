@@ -1000,7 +1000,7 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
                                                  'Confidence'])
         response = self.client.post(
             '/results-api/dataset/ShotgunMetagenomics/taxonomy/group/'
-            'table2-greengenes/counts?level=phylum',
+            'table2-greengenes/counts?level=Phylum',
             data=json.dumps({'sample_ids': []}),
             content_type='application/json',
         )
@@ -1012,9 +1012,8 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
     def test_specific_counts(self):
         response = self.client.get(
             '/results-api/dataset/ShotgunMetagenomics/taxonomy/single/'
-            'table2-greengenes/sample-1/counts?level=phylum'
+            'table2-greengenes/sample-1/counts?level=Phylum'
         )
-
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertEqual(obs, {'b': 1, 'f': 1})
