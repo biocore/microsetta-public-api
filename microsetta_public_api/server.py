@@ -17,10 +17,20 @@ from microsetta_public_api.exceptions import (UnknownMetric,
                                               IncompatibleOptions,
                                               )
 from flask import jsonify
+from flask.json import JSONEncoder
 from concurrent.futures import ThreadPoolExecutor
+import numpy as np
 
 import connexion
 from flask_cors import CORS
+
+
+class NumPySafeJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        else:
+            return super().default(obj)
 
 
 class ErrorHandlerFactory:
@@ -54,6 +64,7 @@ def atomic_update_resources(resource):
 
 def build_app():
     app = connexion.FlaskApp(__name__)
+    app.app.json_encoder = NumPySafeJSONEncoder
 
     resource_config = SERVER_CONFIG.get('resources', {})
 
