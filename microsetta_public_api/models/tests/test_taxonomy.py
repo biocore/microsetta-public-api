@@ -220,6 +220,22 @@ class TaxonomyTests(unittest.TestCase):
         with self.assertRaisesRegex(UnknownID, "foobar"):
             taxonomy.ranks_order(["c", "foobar", ])
 
+    def test_index_taxa_prevalence(self):
+        tax = Taxonomy(self.table, self.taxonomy_df)
+        exp = {'a': 3,
+               'b': 3,
+               'f': 2,
+               'c': 3,
+               'g': 2,
+               'd': 3,
+               'h': 2,
+               'e': 3,
+               'feature-1': 2,
+               'feature-2': 3,
+               'feature-3': 2}
+        for node in tax.taxonomy_tree.traverse(include_self=False):
+            self.assertEqual(node.sample_count, exp[node.name])
+
     def test_bp_tree(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
         bp_tree = taxonomy.bp_tree

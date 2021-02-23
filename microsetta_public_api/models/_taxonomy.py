@@ -142,6 +142,7 @@ class Taxonomy(ModelBase):
         tree_data = ((i, lineage.split('; '))
                      for i, lineage in self._features['Taxon'].items())
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+        self._index_taxa_prevalence()
         for node in self.taxonomy_tree.traverse():
             node.length = 1
         self.bp_tree = parse_newick(str(self.taxonomy_tree))
@@ -198,6 +199,23 @@ class Taxonomy(ModelBase):
         ordered = medians.sort_values(ascending=False).head(top_n)
         ordered.loc[:] = np.arange(0, len(ordered), dtype=int)
         return ordered
+
+    def _index_taxa_prevalence(self):
+        """Cache the number of samples each taxon was observed in"""
+        # create the sample_count attribute on all nodes
+        for dataset_node in self.taxonomy_tree.traverse():
+            dataset_node.sample_count = 0
+
+        # construct per-sample taxonomy trees
+        features = self._table.ids(axis='observation')
+        for data, sample, _ in self._table.iter(dense=False):
+            sample_features = features[data.indices]
+            sample_tree = self._taxonomy_tree_from_features(sample_features)
+
+            # update the dataset tree a single time for each taxon
+            for sample_node in sample_tree.traverse(include_self=False):
+                dataset_node = self.taxonomy_tree.find(sample_node.name)
+                dataset_node.sample_count += 1
 
     def ranks_sample(self, sample_size: int) -> pd.DataFrame:
         """Randomly sample, without replacement, from ._ranked
@@ -341,10 +359,7 @@ class Taxonomy(ModelBase):
             feature_variances = feature_variances[group_vec.indices]
 
         # construct the group specific taxonomy
-        feature_taxons = self._features.loc[features]
-        tree_data = ((i, lineage.split('; '))
-                     for i, lineage in feature_taxons['Taxon'].items())
-        taxonomy = skbio.TreeNode.from_taxonomy(tree_data)
+        taxonomy = self._taxonomy_tree_from_features(features)
 
         return GroupTaxonomy(name=name,
                              taxonomy=str(taxonomy).strip(),
@@ -352,6 +367,14 @@ class Taxonomy(ModelBase):
                              feature_values=list(feature_values),
                              feature_variances=list(feature_variances),
                              )
+
+    def _taxonomy_tree_from_features(self, features):
+        """Construct a skbio.TreeNode based on the provided features"""
+        feature_taxons = self._features.loc[features]
+        tree_data = ((i, lineage.split('; '))
+                     for i, lineage in feature_taxons['Taxon'].items())
+        return skbio.TreeNode.from_taxonomy(tree_data)
+
 
     def get_counts(self, level, samples=None) -> dict:
         """Obtain the number of unique maximal specificity features
