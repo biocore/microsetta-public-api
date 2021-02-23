@@ -267,7 +267,6 @@ class TaxonomyTests(unittest.TestCase):
 
         for k, e in exp.items():
             obs = tax.rare_unique(k, rare_threshold=0.51)
-            print(k, e, obs)
             self.assertEqual(obs, e)
 
     def test_bp_tree(self):
