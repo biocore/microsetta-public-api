@@ -126,6 +126,8 @@ def create_tree_node_from_lineages(lineages):
 
     Returns
     -------
+    TreeNode
+        Built on the given lineages
 
     """
     root = TreeNode(length=1)
@@ -134,14 +136,17 @@ def create_tree_node_from_lineages(lineages):
         for i, taxon in enumerate(lineage):
             child_matches = False
             # see if any children of root match name of this taxon
+            parts = (current_root.name, taxon) if current_root.name else (
+                taxon,)
+            node_name = '; '.join(parts)
             for child in current_root.children:
-                if child.name == taxon:
+                if child.name == node_name:
                     child_matches = True
                     current_root = child
                     break
 
             if not child_matches:
-                new_node = TreeNode(name=taxon, length=1)
+                new_node = TreeNode(name=node_name, length=1)
                 current_root.append(new_node)
                 current_root = new_node
 
