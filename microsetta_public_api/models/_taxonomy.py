@@ -375,7 +375,6 @@ class Taxonomy(ModelBase):
                      for i, lineage in feature_taxons['Taxon'].items())
         return skbio.TreeNode.from_taxonomy(tree_data)
 
-
     def get_counts(self, level, samples=None) -> dict:
         """Obtain the number of unique maximal specificity features
 
