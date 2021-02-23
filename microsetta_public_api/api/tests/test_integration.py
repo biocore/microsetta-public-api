@@ -298,15 +298,15 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                 ['feature-1', 'feature-2', 'feature-3'],
                                 ['sample-1', 'sample-2', 'sample-3'])
 
-        self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                         ['feature-2', 'a; b; c; d; e', 0.345],
-                                         ['feature-3', 'a; f; g; h', 0.678]],
+        self.taxonomy_df = pd.DataFrame([['feature-1', 'a;  b;  c', 0.123],
+                                         ['feature-2', 'a;  b;  c;  d;  e', 0.345],
+                                         ['feature-3', 'a;  f;  g;  h', 0.678]],
                                         columns=['Feature ID', 'Taxon',
                                                  'Confidence'])
         self.taxonomy_greengenes_df = pd.DataFrame(
-            [['feature-1', 'k__a;p__b; o__c', 0.123],
-             ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
-             ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
+            [['feature-1', 'k__a;  p__b;  o__c', 0.123],
+             ['feature-2', 'k__a;  p__b;  o__c;  f__d;  g__e', 0.34],
+             ['feature-3', 'k__a;  p__f;  o__g;  f__h', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
 
@@ -317,11 +317,11 @@ class TaxonomyIntegrationTests(IntegrationTests):
                                            [3, 0, 1]]),
                                  ['feature-1', 'feature-X', 'feature-3'],
                                  ['sample-1', 'sample-2', 'sample-3'])
-        self.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                          ['feature-X', 'a; b; c; d; e', 0.34],
-                                          ['feature-3', 'a; f; g; h', 0.678]],
-                                         columns=['Feature ID', 'Taxon',
-                                                  'Confidence'])
+        self.taxonomy2_df = pd.DataFrame(
+            [['feature-1', 'a;  b;  c', 0.123],
+             ['feature-X', 'a;  b;  c;  d;  e', 0.34],
+             ['feature-3', 'a;  f;  g;  h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy2_df.set_index('Feature ID', inplace=True)
 
         self.table3 = biom.Table(np.array([[1, 2],
@@ -838,15 +838,15 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
                                 ['feature-1', 'feature-2', 'feature-3'],
                                 ['sample-1', 'sample-2', 'sample-3'])
 
-        self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                         ['feature-2', 'a; b; c; d; e', 0.345],
-                                         ['feature-3', 'a; f; g; h', 0.678]],
-                                        columns=['Feature ID', 'Taxon',
-                                                 'Confidence'])
+        self.taxonomy_df = pd.DataFrame(
+            [['feature-1', 'a;  b;  c', 0.123],
+             ['feature-2', 'a;  b;  c;  d;  e', 0.345],
+             ['feature-3', 'a;  f;  g;  h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy_greengenes_df = pd.DataFrame(
-            [['feature-1', 'k__a;p__b; o__c', 0.123],
-             ['feature-2', 'k__a; p__b; o__c; f__d; g__e', 0.34],
-             ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
+            [['feature-1', 'k__a;  p__b;  o__c', 0.123],
+             ['feature-2', 'k__a;  p__b;  o__c;  f__d;  g__e', 0.34],
+             ['feature-3', 'k__a;  p__f;  o__g;  f__h', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
 
@@ -857,11 +857,11 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
                                            [3, 0, 1]]),
                                  ['feature-1', 'feature-X', 'feature-3'],
                                  ['sample-1', 'sample-2', 'sample-3'])
-        self.taxonomy2_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                          ['feature-X', 'a; b; c; d; e', 0.34],
-                                          ['feature-3', 'a; f; g; h', 0.678]],
-                                         columns=['Feature ID', 'Taxon',
-                                                  'Confidence'])
+        self.taxonomy2_df = pd.DataFrame(
+            [['feature-1', 'a;  b;  c', 0.123],
+             ['feature-X', 'a;  b;  c;  d;  e', 0.34],
+             ['feature-3', 'a;  f;  g;  h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy2_df.set_index('Feature ID', inplace=True)
 
         self.table3 = biom.Table(np.array([[1, 2],
@@ -993,11 +993,11 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
                                 ['feature-1', 'feature-2', 'feature-3'],
                                 ['sample-1', 'sample-2', 'sample-3'])
 
-        self.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                         ['feature-2', 'a; b; c; d; e', 0.345],
-                                         ['feature-3', 'a; f; g; h', 0.678]],
-                                        columns=['Feature ID', 'Taxon',
-                                                 'Confidence'])
+        self.taxonomy_df = pd.DataFrame(
+            [['feature-1', 'a;  b;  c', 0.123],
+             ['feature-2', 'a;  b;  c;  d;  e', 0.345],
+             ['feature-3', 'a;  f;  g;  h', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
         response = self.client.post(
             '/results-api/dataset/ShotgunMetagenomics/taxonomy/group/'
             'table2-greengenes/counts?level=Phylum',
