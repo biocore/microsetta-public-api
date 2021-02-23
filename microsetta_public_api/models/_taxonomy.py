@@ -212,7 +212,7 @@ class Taxonomy(ModelBase):
         self.feature_uniques = sample_counts == 1
         self.feature_prevalence = (sample_counts / n_samples)
 
-    def rare_unique(self, id_, rare_threshold=None):
+    def rare_unique(self, id_, rare_threshold=0.1):
         """Obtain the rare and unique features for an ID
 
         Parameters
@@ -220,7 +220,8 @@ class Taxonomy(ModelBase):
         id_ : str
             The identifier to obtain rare/unique information for
         rare_threshold : float
-            The threshold to consider a feature rare. If none, use the cached
+            The threshold to consider a feature rare. Defaults to 0.1,
+            which is the historical rare value from the AGP
 
         Raises
         ------
