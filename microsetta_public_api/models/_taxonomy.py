@@ -409,7 +409,7 @@ class Taxonomy(ModelBase):
     def _taxonomy_tree_from_features(self, features):
         """Construct a skbio.TreeNode based on the provided features"""
         feature_taxons = self._features.loc[features]
-        tree_data = ((i, lineage.split('; '))
+        tree_data = ((i, [taxon.lstrip() for taxon in lineage.split(';')])
                      for i, lineage in feature_taxons['Taxon'].items())
         return skbio.TreeNode.from_taxonomy(tree_data)
 
