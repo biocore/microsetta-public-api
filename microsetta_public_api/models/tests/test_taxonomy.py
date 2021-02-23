@@ -221,20 +221,54 @@ class TaxonomyTests(unittest.TestCase):
             taxonomy.ranks_order(["c", "foobar", ])
 
     def test_index_taxa_prevalence(self):
-        tax = Taxonomy(self.table, self.taxonomy_df)
-        exp = {'a': 3,
-               'b': 3,
-               'f': 2,
-               'c': 3,
-               'g': 2,
-               'd': 3,
-               'h': 2,
-               'e': 3,
-               'feature-1': 2,
-               'feature-2': 3,
-               'feature-3': 2}
-        for node in tax.taxonomy_tree.traverse(include_self=False):
-            self.assertEqual(node.sample_count, exp[node.name])
+        table = biom.Table(np.array([[0, 1, 2, 0],
+                                     [2, 4, 6, 1],
+                                     [3, 0, 0, 0]]),
+                           ['feature-1', 'feature-2', 'feature-3'],
+                           ['sample-1', 'sample-2', 'sample-3', 'sample-4'])
+        taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
+                                    ['feature-2', 'a; b; c; d; e', 0.345],
+                                    ['feature-3', 'a; f; g; h', 0.678]],
+                                   columns=['Feature ID', 'Taxon',
+                                            'Confidence'])
+        taxonomy_df.set_index('Feature ID', inplace=True)
+        tax = Taxonomy(table, taxonomy_df)
+
+        exp_unique = pd.Series([False, False, True],
+                               index=['feature-1', 'feature-2', 'feature-3'])
+        exp_prev = pd.Series([0.5, 1., 0.25],
+                             index=['feature-1', 'feature-2', 'feature-3'])
+        pdt.assert_series_equal(exp_unique, tax.feature_uniques)
+        pdt.assert_series_equal(exp_prev, tax.feature_prevalence)
+
+    def test_rare_unique(self):
+        # feature 1 is "rare" for samples 2 and 3 at a theshold of <= 50%
+        # feature 3 is "unique" to sample 1
+        table = biom.Table(np.array([[0, 1, 2, 0],
+                                     [2, 4, 6, 1],
+                                     [3, 0, 0, 0]]),
+                           ['feature-1', 'feature-2', 'feature-3'],
+                           ['sample-1', 'sample-2', 'sample-3', 'sample-4'])
+        taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
+                                    ['feature-2', 'a; b; c; d; e', 0.345],
+                                    ['feature-3', 'a; f; g; h', 0.678]],
+                                   columns=['Feature ID', 'Taxon',
+                                            'Confidence'])
+        taxonomy_df.set_index('Feature ID', inplace=True)
+        tax = Taxonomy(table, taxonomy_df)
+
+        exp = {'sample-1': {'rare': {'feature-3': 0.25},
+                            'unique': ['feature-3', ]},
+               'sample-2': {'rare': {'feature-1': 0.5},
+                            'unique': None},
+               'sample-3': {'rare': {'feature-1': 0.5},
+                            'unique': None},
+               'sample-4': {'rare': None, 'unique': None}}
+
+        for k, e in exp.items():
+            obs = tax.rare_unique(k, rare_threshold=0.51)
+            print(k, e, obs)
+            self.assertEqual(obs, e)
 
     def test_bp_tree(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)

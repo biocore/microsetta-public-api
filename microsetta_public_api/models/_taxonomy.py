@@ -202,20 +202,58 @@ class Taxonomy(ModelBase):
 
     def _index_taxa_prevalence(self):
         """Cache the number of samples each taxon was observed in"""
-        # create the sample_count attribute on all nodes
-        for dataset_node in self.taxonomy_tree.traverse():
-            dataset_node.sample_count = 0
-
-        # construct per-sample taxonomy trees
         features = self._table.ids(axis='observation')
-        for data, sample, _ in self._table.iter(dense=False):
-            sample_features = features[data.indices]
-            sample_tree = self._taxonomy_tree_from_features(sample_features)
+        n_samples = len(self._table.ids())
+        table_pa = self._table.pa(inplace=False)
 
-            # update the dataset tree a single time for each taxon
-            for sample_node in sample_tree.traverse(include_self=False):
-                dataset_node = self.taxonomy_tree.find(sample_node.name)
-                dataset_node.sample_count += 1
+        # how many samples a feature was observed in
+        sample_counts = pd.Series(table_pa.sum('observation'),
+                                  index=features)
+        self.feature_uniques = sample_counts == 1
+        self.feature_prevalence = (sample_counts / n_samples)
+
+    def rare_unique(self, id_, rare_threshold=None):
+        """Obtain the rare and unique features for an ID
+
+        Parameters
+        ----------
+        id_ : str
+            The identifier to obtain rare/unique information for
+        rare_threshold : float
+            The threshold to consider a feature rare. If none, use the cached
+
+        Raises
+        ------
+        UnknownID
+            If the requested sample is not present
+
+        Returns
+        -------
+        dict
+            {'rare': {feature: prevalence}, 'unique': [feature, ]}
+        """
+        if id_ not in self._group_id_lookup:
+            raise UnknownID('%s does not exist' % id_)
+
+        sample_data = self._table.data(id_, dense=False)
+
+        # self.feature_prevalence and self.feature_uniques are derived from
+        # self._table so the ordering of features is consistent
+        sample_prevalences = self.feature_prevalence.iloc[sample_data.indices]
+        sample_uniques = self.feature_uniques.iloc[sample_data.indices]
+
+        rare_at_threshold = sample_prevalences < rare_threshold
+        if rare_at_threshold.sum() == 0:
+            rares = None
+        else:
+            rares = sample_prevalences[rare_at_threshold].to_dict()
+
+        if sample_uniques.sum() == 0:
+            uniques = None
+        else:
+            uniques = list(sample_uniques[sample_uniques].index)
+
+        return {'rare': rares, 'unique': uniques}
 
     def ranks_sample(self, sample_size: int) -> pd.DataFrame:
         """Randomly sample, without replacement, from ._ranked
