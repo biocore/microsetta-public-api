@@ -142,6 +142,7 @@ class Taxonomy(ModelBase):
         tree_data = ((i, lineage.split('; '))
                      for i, lineage in self._features['Taxon'].items())
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+        self._index_taxa_prevalence()
         for node in self.taxonomy_tree.traverse():
             node.length = 1
         self.bp_tree = parse_newick(str(self.taxonomy_tree))
@@ -198,6 +199,62 @@ class Taxonomy(ModelBase):
         ordered = medians.sort_values(ascending=False).head(top_n)
         ordered.loc[:] = np.arange(0, len(ordered), dtype=int)
         return ordered
+
+    def _index_taxa_prevalence(self):
+        """Cache the number of samples each taxon was observed in"""
+        features = self._table.ids(axis='observation')
+        n_samples = len(self._table.ids())
+        table_pa = self._table.pa(inplace=False)
+
+        # how many samples a feature was observed in
+        sample_counts = pd.Series(table_pa.sum('observation'),
+                                  index=features)
+        self.feature_uniques = sample_counts == 1
+        self.feature_prevalence = (sample_counts / n_samples)
+
+    def rare_unique(self, id_, rare_threshold=0.1):
+        """Obtain the rare and unique features for an ID
+
+        Parameters
+        ----------
+        id_ : str
+            The identifier to obtain rare/unique information for
+        rare_threshold : float
+            The threshold to consider a feature rare. Defaults to 0.1,
+            which is the historical rare value from the AGP
+
+        Raises
+        ------
+        UnknownID
+            If the requested sample is not present
+
+        Returns
+        -------
+        dict
+            {'rare': {feature: prevalence}, 'unique': [feature, ]}
+        """
+        if id_ not in self._group_id_lookup:
+            raise UnknownID('%s does not exist' % id_)
+
+        sample_data = self._table.data(id_, dense=False)
+
+        # self.feature_prevalence and self.feature_uniques are derived from
+        # self._table so the ordering of features is consistent
+        sample_prevalences = self.feature_prevalence.iloc[sample_data.indices]
+        sample_uniques = self.feature_uniques.iloc[sample_data.indices]
+
+        rare_at_threshold = sample_prevalences < rare_threshold
+        if rare_at_threshold.sum() == 0:
+            rares = None
+        else:
+            rares = sample_prevalences[rare_at_threshold].to_dict()
+
+        if sample_uniques.sum() == 0:
+            uniques = None
+        else:
+            uniques = list(sample_uniques[sample_uniques].index)
+
+        return {'rare': rares, 'unique': uniques}
 
     def ranks_sample(self, sample_size: int) -> pd.DataFrame:
         """Randomly sample, without replacement, from ._ranked
@@ -341,10 +398,7 @@ class Taxonomy(ModelBase):
             feature_variances = feature_variances[group_vec.indices]
 
         # construct the group specific taxonomy
-        feature_taxons = self._features.loc[features]
-        tree_data = ((i, lineage.split('; '))
-                     for i, lineage in feature_taxons['Taxon'].items())
-        taxonomy = skbio.TreeNode.from_taxonomy(tree_data)
+        taxonomy = self._taxonomy_tree_from_features(features)
 
         return GroupTaxonomy(name=name,
                              taxonomy=str(taxonomy).strip(),
@@ -352,6 +406,13 @@ class Taxonomy(ModelBase):
                              feature_values=list(feature_values),
                              feature_variances=list(feature_variances),
                              )
+
+    def _taxonomy_tree_from_features(self, features):
+        """Construct a skbio.TreeNode based on the provided features"""
+        feature_taxons = self._features.loc[features]
+        tree_data = ((i, [taxon.lstrip() for taxon in lineage.split(';')])
+                     for i, lineage in feature_taxons['Taxon'].items())
+        return skbio.TreeNode.from_taxonomy(tree_data)
 
     def get_counts(self, level, samples=None) -> dict:
         """Obtain the number of unique maximal specificity features
