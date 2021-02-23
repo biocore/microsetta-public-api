@@ -662,9 +662,10 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
                                          [3, 0, 1]]),
                                ['feature-1', 'feature-2', 'feature-3'],
                                ['sample-1', 'sample-2', 'sample-3'])
-        cls.taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                        ['feature-2', 'a; b; c; d; e', 0.345],
-                                        ['feature-3', 'a; f; g; h', 0.678]],
+        cls.taxonomy_df = pd.DataFrame([['feature-1', 'a;  b;  c', 0.123],
+                                        ['feature-2', 'a;  b;  c;  d;  e',
+                                         0.345],
+                                        ['feature-3', 'a;  f;  g;  h', 0.678]],
                                        columns=['Feature ID', 'Taxon',
                                                 'Confidence'])
         cls.taxonomy_df.set_index('Feature ID', inplace=True)
@@ -710,7 +711,7 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
     def test_get_empress(self):
         response = get_empress('dataset1', self.table_name)
         tree_names = [
-            -1, 'feature-1', 'feature-2', 'e', 'd', 'c', 'b', 'feature-3', 'h',
+            -1, 'e', 'd', 'c', 'b', 'h',
             'g', 'f', 'a', None
         ]
         self.assertListEqual(

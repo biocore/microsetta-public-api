@@ -103,7 +103,7 @@ def get_lineage_max_level(features, max_level):
         for i, level in enumerate(lineage):
             # ensure ambiguous taxa like 'g__' are not added
             split_lineage = level.split('__')
-            if (len(split_lineage) <= 1) or (len(split_lineage[1]) < 1):
+            if (len(split_lineage) > 1) and (len(split_lineage[1]) < 1):
                 lineage = lineage[0:i]
                 break
 
