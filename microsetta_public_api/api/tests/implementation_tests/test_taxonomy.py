@@ -714,7 +714,7 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
             -1, 'e', 'd', 'c', 'b', 'h',
             'g', 'f', 'a', None
         ]
-        self.assertListEqual(
+        self.assertCountEqual(
             tree_names, response['names']
         )
 

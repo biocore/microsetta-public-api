@@ -98,7 +98,7 @@ def get_lineage_max_level(features, max_level):
     # set ensures there are not duplicate lineages
     lineages = set()
     for lineage in features:
-        lineage = lineage.split(';  ')
+        lineage = [taxon.lstrip() for taxon in lineage.split(';')]
 
         for i, level in enumerate(lineage):
             # ensure ambiguous taxa like 'g__' are not added
@@ -208,7 +208,7 @@ class Taxonomy(ModelBase):
         self._formatter = formatter
 
         # initialize taxonomy tree
-        tree_data = ((i, lineage.split('; '))
+        tree_data = ((i, [taxon.lstrip() for taxon in lineage.split(';')])
                      for i, lineage in self._features['Taxon'].items())
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
 
@@ -419,7 +419,7 @@ class Taxonomy(ModelBase):
 
         # construct the group specific taxonomy
         feature_taxons = self._features.loc[features]
-        tree_data = ((i, lineage.split('; '))
+        tree_data = ((i, [taxon.lstrip() for taxon in lineage.split(';')])
                      for i, lineage in feature_taxons['Taxon'].items())
         taxonomy = skbio.TreeNode.from_taxonomy(tree_data)
 
