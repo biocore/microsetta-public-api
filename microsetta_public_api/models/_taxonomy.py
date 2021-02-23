@@ -3,6 +3,7 @@ from typing import Iterable, Dict, Optional, List
 from abc import abstractmethod
 
 import skbio
+from skbio import TreeNode
 import biom
 import numpy as np
 import pandas as pd
@@ -79,6 +80,74 @@ class GroupTaxonomy(_gt_named):
         return str(self.to_dict())
 
 
+def get_lineage_max_level(features, max_level):
+    """
+
+    Parameters
+    ----------
+    features : iterable of str
+        Contains taxonomy strings to create lineage tuples for (see also
+        skbio.TreeNode.from_taxonomy)
+    max_level : int
+        Maximum number of levels to include in the lineage tuples
+
+    Returns
+    -------
+
+    """
+    # set ensures there are not duplicate lineages
+    lineages = set()
+    for lineage in features:
+        lineage = lineage.split(';  ')
+
+        for i, level in enumerate(lineage):
+            # ensure ambiguous taxa like 'g__' are not added
+            split_lineage = level.split('__')
+            if (len(split_lineage) <= 1) or (len(split_lineage[1]) < 1):
+                lineage = lineage[0:i]
+                break
+
+        # take out anything that is below max level
+        lineage = lineage[:max_level]
+
+        # lineages.add((lineage.pop(), tuple(lineage)))
+        lineages.add(tuple(lineage))
+    return lineages
+
+
+def create_tree_node_from_lineages(lineages):
+    """
+
+    Parameters
+    ----------
+    lineages : iterable of str
+
+    length : callable
+
+    Returns
+    -------
+
+    """
+    root = TreeNode(length=1)
+    for lineage in lineages:
+        current_root = root
+        for i, taxon in enumerate(lineage):
+            child_matches = False
+            # see if any children of root match name of this taxon
+            for child in current_root.children:
+                if child.name == taxon:
+                    child_matches = True
+                    current_root = child
+                    break
+
+            if not child_matches:
+                new_node = TreeNode(name=taxon, length=1)
+                current_root.append(new_node)
+                current_root = new_node
+
+    return root
+
+
 class Taxonomy(ModelBase):
     """Represent the full taxonomy and facilitate table oriented retrieval"""
 
@@ -142,9 +211,17 @@ class Taxonomy(ModelBase):
         tree_data = ((i, lineage.split('; '))
                      for i, lineage in self._features['Taxon'].items())
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+
+        max_level = 6
+        lineage = get_lineage_max_level(self._features['Taxon'], max_level)
+        genus_tree = create_tree_node_from_lineages(lineage)
+
         for node in self.taxonomy_tree.traverse():
             node.length = 1
-        self.bp_tree = parse_newick(str(self.taxonomy_tree))
+        if genus_tree.children:
+            self.bp_tree = parse_newick(str(genus_tree))
+        else:
+            self.bp_tree = None
 
         feature_taxons = self._features
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)

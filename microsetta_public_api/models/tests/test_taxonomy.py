@@ -6,10 +6,50 @@ import numpy as np
 import numpy.testing as npt
 
 from qiime2 import Artifact
-from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
+from microsetta_public_api.models._taxonomy import (
+    GroupTaxonomy, Taxonomy, get_lineage_max_level,
+    create_tree_node_from_lineages,
+)
+
 from microsetta_public_api.exceptions import (DisjointError, UnknownID,
                                               SubsetError)
 from microsetta_public_api.utils import DataTable, create_data_entry
+
+
+class UtilityTests(unittest.TestCase):
+
+    def test_get_lineage_max_level(self):
+        lineages = [
+            'k__a;  p__b;  c__d',
+            'k__a;  p__b;  c__c;  o__d;  f__e',
+            'k__a;  p__b;  c__c;  o__',
+            'k__a;  p__f;  c__g;  o__h',
+        ]
+        formatted_lineages = get_lineage_max_level(lineages, 4)
+        exp = [('k__a', 'p__b', 'c__d'),
+               ('k__a', 'p__b', 'c__c'),
+               ('k__a', 'p__b', 'c__c', 'o__d'),
+               ('k__a', 'p__f', 'c__g', 'o__h'),
+               ]
+        self.assertCountEqual(exp, formatted_lineages)
+
+    def test_create_tree_from_lineages(self):
+        lineages = [
+            ('k__a', 'p__b', 'c__d'),
+            ('k__a', 'p__b', 'c__c'),
+            ('k__a', 'p__b', 'c__c', 'o__d'),
+            ('k__a', 'p__f', 'c__g', 'o__h'),
+            ]
+        expected_tip_names = ['c__d', 'o__d', 'o__h']
+        observed_tree = create_tree_node_from_lineages(lineages)
+        observed_tip_names = [tip.name for tip in observed_tree.tips()]
+        self.assertCountEqual(observed_tip_names, expected_tip_names)
+        t_array = observed_tree.to_array()
+        expected_names = ['k__a', 'p__b', 'p__f', 'c__c', 'c__d', 'c__g',
+                          'o__d', 'o__h', None
+                          ]
+        observed_names = t_array['name']
+        self.assertCountEqual(expected_names, observed_names)
 
 
 class TaxonomyTests(unittest.TestCase):
@@ -44,9 +84,9 @@ class TaxonomyTests(unittest.TestCase):
             self.taxonomy_df.loc['feature-2']
 
         self.taxonomy_greengenes_df = pd.DataFrame(
-            [['feature-1', 'k__a; p__b; o__c', 0.123],
-             ['feature-2', 'k__a; p__b; o__c;f__d;g__e', 0.34],
-             ['feature-3', 'k__a; p__f; o__g; f__h', 0.678]],
+            [['feature-1', 'k__a;  p__b;  o__c', 0.123],
+             ['feature-2', 'k__a;  p__b;  o__c;  f__d;  g__e', 0.34],
+             ['feature-3', 'k__a;  p__f;  o__g;  f__h', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
         self.taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
         self.table2_ranks = self.table2.rankdata(inplace=False)
@@ -221,22 +261,26 @@ class TaxonomyTests(unittest.TestCase):
             taxonomy.ranks_order(["c", "foobar", ])
 
     def test_bp_tree(self):
-        taxonomy = Taxonomy(self.table, self.taxonomy_df)
+        taxonomy_greengenes_df = pd.DataFrame(
+            [['feature-1', 'k__a;  p__b;  o__c', 0.123],
+             ['feature-2', 'k__a;  p__b;  o__c;  f__d;  g__e', 0.34],
+             ['feature-3', 'k__a;  p__f;  o__g;  f__h;  g__', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
+        taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
+        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df)
         bp_tree = taxonomy.bp_tree
-        exp_parens = [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-                      0, 0, 0, 0, 0, 0]
-        obs_parens = list(bp_tree.B)
-        self.assertListEqual(exp_parens, obs_parens)
+        exp_parens = 9
+        obs_parens = sum(bp_tree.B)
+        self.assertEqual(exp_parens, obs_parens)
         exp_names = [
-            'a', 'b', 'c', 'feature-1', 'd', 'e', 'feature-2', 'f', 'g', 'h',
-            'feature-3',
+            'k__a', 'p__b', 'o__c', 'f__d', 'g__e', 'p__f', 'o__g', 'f__h'
         ]
         obs_names = []
         for i in range(len(bp_tree.B)):
             name = bp_tree.name(i)
             if name is not None:
                 obs_names.append(name)
-        self.assertListEqual(exp_names, obs_names)
+        self.assertCountEqual(exp_names, obs_names)
 
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
