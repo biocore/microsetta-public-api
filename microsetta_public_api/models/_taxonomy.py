@@ -139,9 +139,8 @@ class Taxonomy(ModelBase):
         self._formatter = formatter
 
         # initialize taxonomy tree
-        tree_data = ((i, lineage.split('; '))
-                     for i, lineage in self._features['Taxon'].items())
-        self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+        self.taxonomy_tree = self._taxonomy_tree_from_features(
+            self._features.index)
         self._index_taxa_prevalence()
         for node in self.taxonomy_tree.traverse():
             node.length = 1
