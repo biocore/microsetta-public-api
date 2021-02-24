@@ -247,3 +247,7 @@ def ranks_specific(dataset, resource, sample_id):
     payload['Taxa-order'] = order
 
     return jsonify(payload), 200
+
+
+def rare_unique(dataset, resource, sample_id, rare_threshold=0.1):
+    return jsonify({'message': [dataset, resource, sample_id, rare_threshold]}), 200
