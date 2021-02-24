@@ -40,13 +40,21 @@ class UtilityTests(unittest.TestCase):
             ('k__a', 'p__b', 'c__c', 'o__d'),
             ('k__a', 'p__f', 'c__g', 'o__h'),
             ]
-        expected_tip_names = ['c__d', 'o__d', 'o__h']
+        expected_tip_names = ['k__a; p__b; c__d', 'k__a; p__b; c__c; o__d',
+                              'k__a; p__f; c__g; o__h']
         observed_tree = create_tree_node_from_lineages(lineages)
         observed_tip_names = [tip.name for tip in observed_tree.tips()]
         self.assertCountEqual(observed_tip_names, expected_tip_names)
         t_array = observed_tree.to_array()
-        expected_names = ['k__a', 'p__b', 'p__f', 'c__c', 'c__d', 'c__g',
-                          'o__d', 'o__h', None
+        expected_names = ['k__a',
+                          'k__a; p__b',
+                          'k__a; p__f',
+                          'k__a; p__b; c__c',
+                          'k__a; p__b; c__d',
+                          'k__a; p__f; c__g',
+                          'k__a; p__b; c__c; o__d',
+                          'k__a; p__f; c__g; o__h',
+                          None
                           ]
         observed_names = t_array['name']
         self.assertCountEqual(expected_names, observed_names)
@@ -273,7 +281,14 @@ class TaxonomyTests(unittest.TestCase):
         obs_parens = sum(bp_tree.B)
         self.assertEqual(exp_parens, obs_parens)
         exp_names = [
-            'k__a', 'p__b', 'o__c', 'f__d', 'g__e', 'p__f', 'o__g', 'f__h'
+            'k__a',
+            'k__a; p__b',
+            'k__a; p__b; o__c',
+            'k__a; p__b; o__c; f__d',
+            'k__a; p__b; o__c; f__d; g__e',
+            'k__a; p__f',
+            'k__a; p__f; o__g',
+            'k__a; p__f; o__g; f__h'
         ]
         obs_names = []
         for i in range(len(bp_tree.B)):
