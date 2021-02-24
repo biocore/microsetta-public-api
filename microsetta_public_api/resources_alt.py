@@ -13,7 +13,7 @@ from microsetta_public_api.resources import (
 from microsetta_public_api._io import (
     _dict_of_paths_to_beta_data,
 )
-from microsetta_public_api.logging import timeit
+from microsetta_public_api._logging import timeit
 
 
 class Q2Visitor(ConfigElementVisitor):
