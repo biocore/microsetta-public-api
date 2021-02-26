@@ -1616,6 +1616,70 @@ class TaxonomyCountsGroupAPITests(FlaskTests):
         self.assertEqual(200, response.status_code)
 
 
+class TaxonomyRareUniqueAPITests(FlaskTests):
+    def setUp(self):
+        super().setUp()
+        self.patcher = patch(
+            'microsetta_public_api.api.taxonomy.rare_unique')
+        self.mock_method = self.patcher.start()
+        _, self.client = self.build_app_test_client()
+
+    def tearDown(self):
+        self.patcher.stop()
+        super().tearDown()
+
+    def test_rare_unique_no_unique(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                 'rare': [{
+                     'feature_id': 'foo',
+                     'prevalence': 0.12,
+                     'lineage': ['a', 'b', 'c']}],
+                 'unique': None
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'rare-unique/greengenes/sample/a')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_id='a')
+        self.assertEqual(200, response.status_code)
+
+    def test_rare_unique_unique(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                 'rare': [{
+                     'feature_id': 'foo',
+                     'prevalence': 0.12,
+                     'lineage': ['a', 'b', 'c']}],
+                 'unique': ['foo', ]
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'rare-unique/greengenes/sample/a')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_id='a')
+        self.assertEqual(200, response.status_code)
+
+    def test_rare_unique_nothing(self):
+        with self.app_context():
+            self.mock_method.return_value = jsonify(
+                {
+                 'rare': None,
+                 'unique': None
+                }
+            ), 200
+
+        response = self.client.get('/results-api/dataset/d1/taxonomy/'
+                                   'rare-unique/greengenes/sample/a')
+        self.mock_method.assert_called_with(
+            dataset='d1', resource='greengenes', sample_id='a')
+        self.assertEqual(200, response.status_code)
+
+
 class TaxonomyRanksSpecificAPITests(FlaskTests):
     def setUp(self):
         super().setUp()

@@ -1849,6 +1849,7 @@ components:
       type: object
       required:
         - rare
+        - unique
       additionalProperties: false
       properties:
         rare:
@@ -1856,13 +1857,17 @@ components:
           items:
             $ref: '#/components/schemas/rareFeature'
           nullable: true
+        unique:
+          type: array
+          items:
+            type: string
+            description: A feature identifier
+          nullable: true
     rareFeature:
       type: object
       required:
         - feature_id
         - prevalence
-        - relativeAbundance
-        - is_unique
         - lineage
       additionalProperties: false
       properties:
@@ -1870,13 +1875,8 @@ components:
           type: string
           description: A feature identifier
         prevalence:
-          type: float
+          type: number
           description: The fraction of samples the feature was observed in
-        relativeAbundance:
-          $ref: '#/components/schemas/relativeAbundance'
-        is_unique:
-          type: boolean
-          description: True if the feature was only observed in this sample
         lineage:
           $ref: '#/components/schemas/lineage'
 

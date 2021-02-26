@@ -250,4 +250,15 @@ def ranks_specific(dataset, resource, sample_id):
 
 
 def rare_unique(dataset, resource, sample_id, rare_threshold=0.1):
-    return jsonify({'message': [dataset, resource, sample_id, rare_threshold]}), 200
+    taxonomy_repo = _get_taxonomy_repo(dataset)
+
+    error_response = _check_resource_and_missing_ids(taxonomy_repo,
+                                                     [sample_id, ],
+                                                     resource)
+    if error_response:
+        return error_response
+
+    taxonomy_ = taxonomy_repo.model(resource)
+    rare_unique = taxonomy_.rare_unique(sample_id, rare_threshold)
+
+    return jsonify(rare_unique), 200

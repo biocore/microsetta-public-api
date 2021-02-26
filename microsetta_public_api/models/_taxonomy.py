@@ -246,7 +246,18 @@ class Taxonomy(ModelBase):
         if rare_at_threshold.sum() == 0:
             rares = None
         else:
-            rares = sample_prevalences[rare_at_threshold].to_dict()
+            rares = []
+
+            # obtain prevalence information
+            prevalence = sample_prevalences[rare_at_threshold]
+
+            # integrate prevalence with lineage information
+            for id_, prev in prevalence.items():
+                lineage = list(self._formatted_taxa_names[id_].values())
+                detail = {'feature_id': id_,
+                          'lineage': lineage,
+                          'prevalence': prev}
+                rares.append(detail)
 
         if sample_uniques.sum() == 0:
             uniques = None
