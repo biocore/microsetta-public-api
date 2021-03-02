@@ -26,7 +26,9 @@ def available():
 def datasets_for_sample(sample_id):
     resources = get_resources()
     datasets_with_sample_id = []
-    datasets = resources['datasets']
+    datasets = list(resources['datasets'].keys())
+    # remove this so the __metadata__ key, which is not a dataset, is not
+    # checked for sample ID membership
     if '__metadata__' in datasets:
         datasets.remove('__metadata__')
     for dataset in datasets:
