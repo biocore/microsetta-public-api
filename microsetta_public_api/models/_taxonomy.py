@@ -242,12 +242,9 @@ class Taxonomy(ModelBase):
         sample_prevalences = self.feature_prevalence.iloc[sample_data.indices]
         sample_uniques = self.feature_uniques.iloc[sample_data.indices]
 
+        rares = []
         rare_at_threshold = sample_prevalences < rare_threshold
-        if rare_at_threshold.sum() == 0:
-            rares = None
-        else:
-            rares = []
-
+        if rare_at_threshold.sum() > 0:
             # obtain prevalence information
             prevalence = sample_prevalences[rare_at_threshold]
 
@@ -259,9 +256,8 @@ class Taxonomy(ModelBase):
                           'prevalence': prev}
                 rares.append(detail)
 
-        if sample_uniques.sum() == 0:
-            uniques = None
-        else:
+        uniques = []
+        if sample_uniques.sum() > 0:
             uniques = list(sample_uniques[sample_uniques].index)
 
         return {'rare': rares, 'unique': uniques}

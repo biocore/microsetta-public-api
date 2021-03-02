@@ -272,16 +272,16 @@ class TaxonomyTests(unittest.TestCase):
                    'feature_id': 'feature-1',
                    'prevalence': 0.5,
                    'lineage': ['a', 'b', 'c']}],
-                 'unique': None,
+                 'unique': [],
                 },
                'sample-3': {
                  'rare': [{
                    'feature_id': 'feature-1',
                    'prevalence': 0.5,
                    'lineage': ['a', 'b', 'c']}],
-                 'unique': None,
+                 'unique': [],
                 },
-               'sample-4': {'rare': None, 'unique': None}}
+               'sample-4': {'rare': [], 'unique': []}}
 
         for k, e in exp.items():
             obs = tax.rare_unique(k, rare_threshold=0.51)

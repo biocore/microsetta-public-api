@@ -17,9 +17,9 @@ from microsetta_public_api.utils.testing import FlaskTests, \
     TempfileTestCase, ConfigTestCase
 from microsetta_public_api.utils import create_data_entry, DataTable
 from microsetta_public_api.resources_alt import resources_alt, Q2Visitor
+from microsetta_public_api._logging import logger
 
 
-logger = logging.getLogger()
 logger.setLevel(logging.WARNING)
 
 
@@ -952,7 +952,7 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
         obs = json.loads(response.data)
         self.assertIn('rare', obs)
         self.assertIn('unique', obs)
-        self.assertEqual(obs['unique'], None)
+        self.assertEqual(obs['unique'], [])
         self.assertEqual(len(obs['rare']), 1)
 
     def test_resources(self):
