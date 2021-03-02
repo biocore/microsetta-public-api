@@ -818,7 +818,7 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  '/dataset/{dataset}/contains/{sample_id}':
+  '/sample/dataset/{dataset}/contains/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
       - $ref: '#/components/parameters/sampleIdPath'
@@ -834,7 +834,7 @@ paths:
               schema:
                 type: boolean
 
-  '/dataset/list/sample/{sample_id}':
+  '/sample/list/dataset/{sample_id}':
     parameters:
       - $ref: '#/components/parameters/sampleIdPath'
     get:

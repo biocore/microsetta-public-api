@@ -83,7 +83,7 @@ class MetadataIntegrationTests(IntegrationTests):
     def test_dataset_available(self):
         exp = ['16SAmplicon']
         response = self.client.get(
-            '/results-api/dataset/list/sample/sample-3'
+            '/results-api/sample/list/dataset/sample-3'
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -91,7 +91,7 @@ class MetadataIntegrationTests(IntegrationTests):
 
         exp = []
         response = self.client.get(
-            '/results-api/dataset/list/sample/sample-dne'
+            '/results-api/sample/list/dataset/sample-dne'
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
@@ -99,14 +99,14 @@ class MetadataIntegrationTests(IntegrationTests):
 
     def test_dataset_contains(self):
         response = self.client.get(
-            '/results-api/dataset/16SAmplicon/contains/sample-3'
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-3'
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
         self.assertTrue(obs)
 
         response = self.client.get(
-            '/results-api/dataset/16SAmplicon/contains/sample-dne'
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-dne'
         )
         self.assertStatusCode(200, response)
         obs = json.loads(response.data)
