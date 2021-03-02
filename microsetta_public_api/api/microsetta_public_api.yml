@@ -1441,7 +1441,7 @@ paths:
         - Taxonomy
       summary: Obtain rare/unique features and their lineages
       description: |
-        Obtain features and their lineages which appear to be rare or unique
+        Obtain features and their lineages that appear to be rare or unique
         to the sample within the dataset. A unique feature is one that was observed
         only within the queried sample. A rare feature is one that was observed in
         fewer samples than the specified rare threshold (defaults to 10%).
