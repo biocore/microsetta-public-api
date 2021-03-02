@@ -1447,7 +1447,7 @@ paths:
         fewer samples than the specified rare threshold (defaults to 10%).
       responses:
         '200':
-          description: Successfully obtained rare and uniquedata for a specific sample
+          description: Successfully obtained rare and unique data for a specific sample
           content:
             application/json:
               schema:
