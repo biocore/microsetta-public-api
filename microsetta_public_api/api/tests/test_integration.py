@@ -80,6 +80,38 @@ class MetadataIntegrationTests(IntegrationTests):
         }
         _update_resources_from_config(config_alt)
 
+    def test_dataset_available(self):
+        exp = ['16SAmplicon']
+        response = self.client.get(
+            '/results-api/sample/list/dataset/sample-3'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+        exp = []
+        response = self.client.get(
+            '/results-api/sample/list/dataset/sample-dne'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+    def test_dataset_contains(self):
+        response = self.client.get(
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-3'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertTrue(obs)
+
+        response = self.client.get(
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-dne'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertFalse(obs)
+
     def test_metadata_available_categories_with_dataset(self):
         exp = ['age_cat', 'bmi_cat', 'num_cat']
         response = self.client.get(
