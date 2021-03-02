@@ -26,7 +26,10 @@ def available():
 def datasets_for_sample(sample_id):
     resources = get_resources()
     datasets_with_sample_id = []
-    for dataset in resources['datasets']:
+    datasets = resources['datasets']
+    if '__metadata__' in datasets:
+        datasets.remove('__metadata__')
+    for dataset in datasets:
         if dataset_sample_exists(dataset, sample_id):
             datasets_with_sample_id.append(dataset)
 
