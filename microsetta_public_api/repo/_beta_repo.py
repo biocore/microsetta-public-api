@@ -1,6 +1,5 @@
 from microsetta_public_api.repo._base import DiversityRepo
 from microsetta_public_api.exceptions import UnknownID, InvalidParameter
-import numpy as np
 
 
 class BetaRepo(DiversityRepo):
