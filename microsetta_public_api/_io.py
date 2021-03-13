@@ -58,6 +58,7 @@ def _dict_of_paths_to_beta_data(dict_of_qza_paths, resource_name) -> \
                                            )
     key = list(new_resource.keys())[0]
     dm = new_resource[key]
-    k = min(len(dm.ids) - 1, 100)
+    max_n_neighbors = 100
+    k = min(len(dm.ids) - 1, max_n_neighbors)
     new_resource[key] = _closest_k_from_distance_matrix(dm, k)
     return new_resource
