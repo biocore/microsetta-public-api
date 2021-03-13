@@ -52,6 +52,10 @@ class TestConfigSchema(TestCase):
                         'unifrac': '/path/to/unifrac.qza',
                         'braycurtis': '/path/to/braycurtis.qza',
                     },
+                    '__neighbors__': {
+                        'unifrac': '/path/to/unifrac.qza',
+                        'braycurtis': '/path/to/braycurtis.qza',
+                    },
                     '__metadata__': '/path/to/metadata.tsv',
                     '__dataset_detail__': {
                         'title': 'foobar',
@@ -106,6 +110,10 @@ class TestConfigSchema(TestCase):
                 'ShotgunMetagenomics': {
                     '__alpha__': {
                         'faith_pd': 'path/to/shotgun_faith_pd.qza',
+                    },
+                    '__neighbors__': {
+                        'unifrac': '/path/to/unifrac.qza',
+                        'braycurtis': '/path/to/braycurtis.qza',
                     },
                     '__metadata__': '/path/to/metadata.tsv',
                 },
