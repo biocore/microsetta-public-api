@@ -29,6 +29,18 @@ beta_group_schema = {
     "description": "A group of related beta diversity objects.",
 }
 
+neighbors_schema = {
+    "type": "string",
+    "description":
+        "Filepath to a neighbors file"
+}
+
+neighbors_group_schema = {
+    "type": "object",
+    "additionalProperties": beta_schema,
+    "description": "A group of related neighbors objects.",
+}
+
 taxonomy_schema = {
     "type": "object",
     "properties": {
@@ -102,6 +114,7 @@ def make_dataset_schema(schema):
             schema.metadata_kw: metadata_schema,
             schema.alpha_kw: alpha_group_schema,
             schema.beta_kw: beta_group_schema,
+            schema.neighbors_kw: neighbors_group_schema,
             schema.taxonomy_kw: taxonomy_group_schema,
             schema.pcoa_kw: pcoa_group_schema,
             schema.detail_kw: detail_group_schema,
@@ -353,6 +366,7 @@ class SchemaBase:
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
         self.detail_kw = '__dataset_detail__'
+        self.neighbors_kw = '__neighbors__'
 
     def element_map(self):
         map_ = {
@@ -429,6 +443,7 @@ class CompatibilitySchema(SchemaBase):
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
         self.detail_kw = '__dataset_detail__'
+        self.neighbors_kw = '__neighbors__'
 
     def element_map(self):
         return {
