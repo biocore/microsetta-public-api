@@ -21,7 +21,7 @@ class BetaRepo(DiversityRepo):
         n_neighbors = len(distance_matrix.columns)
         if k > n_neighbors:
             raise InvalidParameter(
-                f"k={k} is greater than the maximum."
+                f"k={k} is greater than the maximum ({n_neighbors})."
             )
 
         nearest = distance_matrix.loc[sample_id]
