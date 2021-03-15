@@ -36,7 +36,7 @@ class BetaTests(MockedJsonifyTestCase):
         self.resources = DictElement({
             'datasets': DictElement({
                 'dataset1': DictElement({
-                    '__beta__': BetaElement({
+                    '__neighbors__': BetaElement({
                         'unifrac': neighbors
                     })
                 }),

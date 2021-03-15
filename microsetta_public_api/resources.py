@@ -226,6 +226,15 @@ def _load_q2_metadata(metadata_path, name):
     return new_resource.to_dataframe()
 
 
+@timeit('_load_neighbors_tsv')
+def _load_neighbors_tsv(dict_of_paths, name):
+    new_resource = dict()
+    for key, value in dict_of_paths.items():
+        new_resource[key] = pd.read_csv(value, sep='\t',
+                                        dtype=str).set_index('sample_id')
+    return new_resource
+
+
 class ResourceManager(dict):
 
     transformers = {

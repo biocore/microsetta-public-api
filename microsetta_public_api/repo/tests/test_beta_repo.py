@@ -3,10 +3,10 @@ from microsetta_public_api.exceptions import (
     UnknownID, InvalidParameter, UnknownMetric,
 )
 import pandas as pd
-from microsetta_public_api.repo._beta_repo import BetaRepo
+from microsetta_public_api.repo._beta_repo import NeighborsRepo
 
 
-class BetaRepoTestCase(TestCase):
+class NeighborsRepoTestCase(TestCase):
 
     def setUp(self) -> None:
         self.neighbors = pd.DataFrame([['s2', 's3', 's4', 's5', 's6'],
@@ -18,7 +18,7 @@ class BetaRepoTestCase(TestCase):
                                       index=['s1', 's2', 's3', 's4', 's5',
                                              's6'])
         self.neighbors.index.name = 'sample_id'
-        self.repo = BetaRepo({'unifrac': self.neighbors})
+        self.repo = NeighborsRepo({'unifrac': self.neighbors})
 
     def test_exists(self):
         exp = [True, False, True]

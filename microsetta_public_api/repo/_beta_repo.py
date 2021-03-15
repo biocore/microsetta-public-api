@@ -2,7 +2,7 @@ from microsetta_public_api.repo._base import DiversityRepo
 from microsetta_public_api.exceptions import UnknownID, InvalidParameter
 
 
-class BetaRepo(DiversityRepo):
+class NeighborsRepo(DiversityRepo):
 
     def __init__(self, resources):
         super().__init__(resources)
