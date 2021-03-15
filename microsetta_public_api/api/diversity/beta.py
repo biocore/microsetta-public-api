@@ -32,8 +32,6 @@ def pcoa_contains(named_sample_set, sample_id):
 def k_nearest(dataset, beta_metric, k, sample_id):
     beta_resource = _validate_dataset_neighbors(dataset,
                                                 resource_getter=get_resources)
-    print(beta_resource)
-    print(dir(beta_resource))
     neigh_repo = NeighborsRepo(beta_resource.data)
     k_nearest_ids = neigh_repo.k_nearest(sample_id=sample_id,
                                          metric=beta_metric,
