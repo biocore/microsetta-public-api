@@ -12,7 +12,7 @@ from microsetta_public_api.utils.testing import (
     MockedJsonifyTestCase,
     TrivialVisitor,
 )
-from skbio import DistanceMatrix
+import pandas as pd
 from unittest.mock import patch
 
 
@@ -25,22 +25,19 @@ class BetaTests(MockedJsonifyTestCase):
 
     def setUp(self):
         super().setUp()
-        dm_values = [
-            [0, 1, 2, 3],
-            [1, 0, 3, 4],
-            [2, 3, 0, 5],
-            [3, 4, 5, 0]
-        ]
-        ids = ['s1', 's2', 's3', 's4']
-        dm = DistanceMatrix(
-            dm_values,
-            ids=ids,
-        )
+        neighbors = pd.DataFrame([['s2', 's3', 's4'],
+                                  ['s1', 's3', 's4'],
+                                  ['s1', 's2', 's4'],
+                                  ['s1', 's2', 's3']],
+                                 columns=['k0', 'k1', 'k2'],
+                                 index=['s1', 's2', 's3', 's4'])
+        neighbors.index.name = 'sample_id'
+
         self.resources = DictElement({
             'datasets': DictElement({
                 'dataset1': DictElement({
-                    '__beta__': BetaElement({
-                        'unifrac': dm
+                    '__neighbors__': BetaElement({
+                        'unifrac': neighbors
                     })
                 }),
             }),

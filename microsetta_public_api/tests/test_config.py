@@ -7,6 +7,7 @@ from microsetta_public_api.config import (
     Element,
     AlphaElement,
     BetaElement,
+    NeighborsElement,
     MetadataElement,
     DictElement,
     PCOAElement,
@@ -293,6 +294,7 @@ class TestParsing(TestCase):
                 self.metadata_kw = '__qux__'
                 self.beta_kw = '__corge__'
                 self.detail_kw = '__okay__'
+                self.neighbors_kw = '__whatisthis__'
 
         self.assertDictEqual(AlternateSchema().element_map(),
                              {"__foo__": AlphaElement,
@@ -301,6 +303,7 @@ class TestParsing(TestCase):
                               "__qux__": MetadataElement,
                               "__corge__": BetaElement,
                               "__okay__": DatasetDetailElement,
+                              '__whatisthis__': NeighborsElement
                               })
 
         config = {

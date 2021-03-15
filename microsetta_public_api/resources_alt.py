@@ -9,6 +9,7 @@ from microsetta_public_api.resources import (
     _dict_of_dict_of_paths_to_pcoa,
     _dict_of_literals_to_dict,
     _load_q2_metadata,
+    _load_neighbors_tsv
 )
 from microsetta_public_api._io import (
     _dict_of_paths_to_beta_data,
@@ -51,6 +52,10 @@ class Q2Visitor(ConfigElementVisitor):
     def visit_dataset_detail(self, element):
         element.data = _dict_of_literals_to_dict(element,
                                                  self.schema.detail_kw)
+
+    @timeit('visit_neighbors')
+    def visit_neighbors(self, element):
+        element.data = _load_neighbors_tsv(element, self.schema.neighbors_kw)
 
 
 resources_alt = DictElement()

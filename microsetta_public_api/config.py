@@ -331,6 +331,12 @@ class DatasetDetailElement(DictElement):
         visitor.visit_dataset_detail(self)
 
 
+class NeighborsElement(DictElement):
+    def accept(self, visitor):
+        super().accept(visitor)
+        visitor.visit_neighbors(self)
+
+
 class ConfigElementVisitor:
 
     @abstractmethod
@@ -357,6 +363,10 @@ class ConfigElementVisitor:
     def visit_dataset_detail(self, element):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_neighbors(self, element):
+        raise NotImplementedError()
+
 
 class SchemaBase:
     def __init__(self):
@@ -376,6 +386,7 @@ class SchemaBase:
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
             self.detail_kw: DatasetDetailElement,
+            self.neighbors_kw: NeighborsElement
         }
         return map_
 
@@ -456,6 +467,7 @@ class CompatibilitySchema(SchemaBase):
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
+            self.neighbors_kw: NeighborsElement,
         }
 
     def schema(self):

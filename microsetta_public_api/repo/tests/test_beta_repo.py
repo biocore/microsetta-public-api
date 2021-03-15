@@ -1,26 +1,24 @@
 from unittest import TestCase
-from skbio import DistanceMatrix
 from microsetta_public_api.exceptions import (
     UnknownID, InvalidParameter, UnknownMetric,
 )
-from microsetta_public_api.repo._beta_repo import BetaRepo
+import pandas as pd
+from microsetta_public_api.repo._beta_repo import NeighborsRepo
 
 
-class BetaRepoTestCase(TestCase):
+class NeighborsRepoTestCase(TestCase):
 
     def setUp(self) -> None:
-        self.dm = DistanceMatrix(
-            [
-                [0, 1, 2, 4, 5, 6],
-                [1, 0, 3, 4, 5, 6],
-                [2, 3, 0, 1, 1, 1],
-                [4, 4, 1, 0, 2, 1],
-                [5, 5, 1, 2, 0, 3],
-                [6, 6, 1, 1, 3, 0],
-            ], ids=['s1', 's2', 's3', 's4', 's5', 's6'],
-        )
-
-        self.repo = BetaRepo({'unifrac': self.dm})
+        self.neighbors = pd.DataFrame([['s2', 's3', 's4', 's5', 's6'],
+                                       ['s1', 's3', 's4', 's5', 's6'],
+                                       ['s4', 's5', 's6', 's1', 's2'],
+                                       ['s3', 's6', 's5', 's1', 's2'],
+                                       ['s3', 's4', 's6', 's1', 's2'],
+                                       ['s3', 's4', 's5', 's1', 's2']],
+                                      index=['s1', 's2', 's3', 's4', 's5',
+                                             's6'])
+        self.neighbors.index.name = 'sample_id'
+        self.repo = NeighborsRepo({'unifrac': self.neighbors})
 
     def test_exists(self):
         exp = [True, False, True]
