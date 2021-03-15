@@ -45,7 +45,6 @@ class Q2Visitor(ConfigElementVisitor):
 
     @timeit('visit_beta')
     def visit_beta(self, element):
-        # This will directly cache neighbors
         element.data = _dict_of_paths_to_beta_data(element,
                                                    self.schema.beta_kw)
 
