@@ -6,7 +6,6 @@ from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 from skbio.stats.ordination import OrdinationResults
-from skbio import DistanceMatrix
 from copy import deepcopy
 
 from microsetta_public_api import config
