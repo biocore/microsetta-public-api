@@ -12,13 +12,12 @@ def _validate_dataset_neighbors(dataset, resource_getter):
         dataset_resource = resource_getter().gets('datasets', dataset)
     except KeyError:
         raise UnknownResource(f"Unknown dataset: '{dataset}'")
-    try:
-        neighbors_resource = dataset_resource.gets(schema.neighbors_kw)
-    except KeyError:
+
+    if not dataset_resource.has(schema.neighbors_kw):
         raise UnknownResource(f"No neighbors data (kw: "
                               f"'{schema.neighbors_kw}') "
                               f"for dataset='{dataset}'.")
-    return neighbors_resource
+    return dataset_resource.gets(schema.neighbors_kw)
 
 
 def pcoa_contains_alt(named_sample_set, sample_id):
