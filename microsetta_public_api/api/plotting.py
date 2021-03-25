@@ -1,6 +1,6 @@
 import pandas as pd
 import altair as alt
-from flask import Response, send_file
+from flask import send_file
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.models._alpha import Alpha
@@ -269,4 +269,5 @@ def plot_beta_alt_mpl(dataset, beta_metric, named_sample_set, sample_id=None,
     y = pcoa.samples[1]
     response = _make_mpl_fig(metadata, x, y, sample_id)
 
-    return send_file(response, mimetype='image/png', as_attachment=True, attachment_filename='pcoa.png', conditional=True)
+    return send_file(response, mimetype='image/png', as_attachment=True,
+                     attachment_filename='pcoa.png', conditional=True)
