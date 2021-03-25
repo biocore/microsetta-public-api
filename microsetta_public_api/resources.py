@@ -12,7 +12,7 @@ from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.ordination import PCoAResults
 
-from microsetta_public_api.logging import timeit
+from microsetta_public_api._logging import timeit
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 

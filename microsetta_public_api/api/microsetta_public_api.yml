@@ -1195,6 +1195,27 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+  '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/png':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta_alt_mpl
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a rasterized PNG
+      description: Get a rasterized PNG
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+        - $ref: '#/components/parameters/categoryQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/200PNGSchema'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/dataset/{dataset}/taxonomy/available':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
@@ -1599,6 +1620,12 @@ components:
       schema:
         $ref: '#/components/schemas/sampleId'
       required: true
+    categoryQuery:
+      name: category
+      in: query
+      schema:
+        type: string
+        example: 'age_cat'
     sampleIdQuery:
       name: sample_id
       in: query
@@ -1981,6 +2008,14 @@ components:
             - "Ruminococcus"
 
   responses:
+    200PNGSchema:
+      description: Successfully returned PNG
+      content:
+        image/png:
+          schema:
+            type: string
+            format: binary
+
     200VegaSchema:
       description: Successfully returned Vega JSON
       content:
