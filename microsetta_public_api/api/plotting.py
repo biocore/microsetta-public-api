@@ -175,8 +175,8 @@ def _get_pcoa_repo(dataset):
         schema.pcoa_kw,
         'pcoa',
     )
-    taxonomy_repo = PCoARepo(pcoas.data)
-    return taxonomy_repo
+    pcoa_repo = PCoARepo(pcoas.data)
+    return pcoa_repo
 
 
 def _plot_ids(ax, x, y, size, marker='.', color=None, **kwargs):
