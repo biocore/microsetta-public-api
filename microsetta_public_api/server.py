@@ -62,7 +62,7 @@ def atomic_update_resources(resource):
     resources_alt.update(element)
 
 
-def build_app():
+def build_app(validate_responses=True):
     app = connexion.FlaskApp(__name__)
     app.app.json_encoder = NumPySafeJSONEncoder
 
@@ -84,7 +84,7 @@ def build_app():
 
     # validate_responses needs to be False to support sending binary
     # files it seems, see https://github.com/zalando/connexion/issues/401
-    app.add_api(app_file, validate_responses=False)
+    app.add_api(app_file, validate_responses=validate_responses)
 
     app.app.register_error_handler(UnknownMetric, handle_404)
     app.app.register_error_handler(UnknownResource, handle_404)
@@ -114,9 +114,9 @@ if __name__ == "__main__":
         tdb = TestDatabase()
         tdb.start()
         atexit.register(tdb.stop)
-        app = build_app()
+        app = build_app(validate_responses=False)
         run(app)
         tdb.stop()
     else:
-        app = build_app()
+        app = build_app(validate_responses=True)
         run(app)
