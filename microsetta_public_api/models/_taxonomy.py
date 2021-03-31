@@ -161,7 +161,7 @@ class Taxonomy(ModelBase):
             if len(parts) <= rank_level:
                 continue
             else:
-                index[idx] = parts[rank_level].strip()
+                index[idx] = parts[rank_level].split('__')[-1].strip()
 
         def collapse(i, m):
             return index.get(i, 'Non-specific')
