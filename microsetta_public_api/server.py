@@ -85,7 +85,7 @@ def build_app():
     # validate_responses needs to be False to support sending binary
     # files it seems, see https://github.com/zalando/connexion/issues/401
     app.add_api(app_file, validate_responses=SERVER_CONFIG.get('validate',
-                                                               False))
+                                                               True))
 
     app.app.register_error_handler(UnknownMetric, handle_404)
     app.app.register_error_handler(UnknownResource, handle_404)
