@@ -208,10 +208,10 @@ def _make_mpl_fig(series, x, y, target):
     n = len(series)
     if n < 5000:
         background_size = 5
-    elif n < 30000:
+    elif n < 50000:
         background_size = 1
     else:
-        background_size = 0.1
+        background_size = 0.5
 
     # plot each group, keep the name and color for the legend
     names = []
