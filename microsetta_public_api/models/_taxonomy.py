@@ -159,7 +159,8 @@ class Taxonomy(ModelBase):
     def __init__(self, table: biom.Table, features: pd.DataFrame,
                  variances: biom.Table = None,
                  formatter: Optional['Formatter'] = None,
-                 rank_level: int = 1
+                 rank_level: int = 1,
+                 collapse_level: int = 6,
                  ):
         """Establish the taxonomy data
 
@@ -175,6 +176,9 @@ class Taxonomy(ModelBase):
         rank_level : int
             The taxonomic level (depth) to compute ranks over. Level 0 is
             domain, level 1 is phylum, etc.
+        collapse_level : int
+            The taxonomic level to collapse for additional tree
+            representations.
         """
         self._table = table.norm(inplace=False)
         self._group_id_lookup = set(self._table.ids())
@@ -218,21 +222,54 @@ class Taxonomy(ModelBase):
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
         self._index_taxa_prevalence()
 
-        max_level = 6
-        lineage = get_lineage_max_level(self._features['Taxon'], max_level)
-        genus_tree = create_tree_node_from_lineages(lineage)
+        feature_metadata = dict()
+        for feature, taxonomy in self._features.to_dict()['Taxon'].items():
+            taxonomy_list = [clade.strip() for clade in taxonomy.split(';')]
 
-        for node in self.taxonomy_tree.traverse():
-            node.length = 1
-        if genus_tree.children:
-            self.bp_tree = parse_newick(str(genus_tree))
-        else:
-            self.bp_tree = None
+            feature_metadata[feature] = {
+                'taxonomy': taxonomy_list,
+            }
+
+        self.bp_tree = self._construct_bp_tree(feature_metadata,
+                                               collapse_level=collapse_level)
 
         feature_taxons = self._features
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
+
+    def _construct_bp_tree(self, feature_metadata, collapse_level):
+        self._table.add_metadata(feature_metadata,
+                                 axis='observation')
+
+        def partition_f(id_, metadata):
+            return '; '.join(metadata['taxonomy'][:collapse_level])
+
+        self._collapsed_table = self._table.collapse(partition_f,
+                                                     axis='observation')
+        collapsed_taxonomy = []
+        for lineage_str in self._collapsed_table.ids('observation'):
+            clades = lineage_str.split('; ')
+            lineage_list = []
+            current_clade = clades[0]
+            for internal_node in clades[1:]:
+                # by convention, all non-leaf nodes should end wiht ';'
+                # so that the same label can be applied to both one internal
+                # node and one external node and still have 'unique' ids,
+                # e.g.: ((('a; b; c')'a; b;',('a; f; g')'a; f;')'a;',a);
+                # this should also allow us to identify the tips present in
+                # a sample by directly taking the ids from the table
+                current_clade += ';'
+                lineage_list.append(current_clade)
+                current_clade += (' ' + internal_node)
+            collapsed_taxonomy.append((current_clade, lineage_list))
+        self._collapsed_taxonomy = collapsed_taxonomy
+        self._collapsed_taxonomy_tree = TreeNode.from_taxonomy(
+            collapsed_taxonomy)
+        for node in self._collapsed_taxonomy_tree.traverse():
+            node.length = 1
+
+        return parse_newick(str(self._collapsed_taxonomy_tree))
 
     def _rankdata(self, rank_level) -> (pd.DataFrame, pd.Series):
         # it seems QIIME regressed and no longer produces stable taxonomy
@@ -243,7 +280,7 @@ class Taxonomy(ModelBase):
             if len(parts) <= rank_level:
                 continue
             else:
-                index[idx] = parts[rank_level].strip()
+                index[idx] = parts[rank_level].split('__')[-1].strip()
 
         def collapse(i, m):
             return index.get(i, 'Non-specific')

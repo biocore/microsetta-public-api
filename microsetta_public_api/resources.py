@@ -12,7 +12,7 @@ from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.ordination import PCoAResults
 
-from microsetta_public_api.logging import timeit
+from microsetta_public_api._logging import timeit
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 
 
@@ -224,6 +224,15 @@ def _load_q2_metadata(metadata_path, name):
         #  error and give a MetadataFileError, which is more informative
         raise MetadataFileError(str(metadata_path))
     return new_resource.to_dataframe()
+
+
+@timeit('_load_neighbors_tsv')
+def _load_neighbors_tsv(dict_of_paths, name):
+    new_resource = dict()
+    for key, value in dict_of_paths.items():
+        new_resource[key] = pd.read_csv(value, sep='\t',
+                                        dtype=str).set_index('sample_id')
+    return new_resource
 
 
 class ResourceManager(dict):

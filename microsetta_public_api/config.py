@@ -29,6 +29,18 @@ beta_group_schema = {
     "description": "A group of related beta diversity objects.",
 }
 
+neighbors_schema = {
+    "type": "string",
+    "description":
+        "Filepath to a neighbors file"
+}
+
+neighbors_group_schema = {
+    "type": "object",
+    "additionalProperties": beta_schema,
+    "description": "A group of related neighbors objects.",
+}
+
 taxonomy_schema = {
     "type": "object",
     "properties": {
@@ -102,6 +114,7 @@ def make_dataset_schema(schema):
             schema.metadata_kw: metadata_schema,
             schema.alpha_kw: alpha_group_schema,
             schema.beta_kw: beta_group_schema,
+            schema.neighbors_kw: neighbors_group_schema,
             schema.taxonomy_kw: taxonomy_group_schema,
             schema.pcoa_kw: pcoa_group_schema,
             schema.detail_kw: detail_group_schema,
@@ -318,6 +331,12 @@ class DatasetDetailElement(DictElement):
         visitor.visit_dataset_detail(self)
 
 
+class NeighborsElement(DictElement):
+    def accept(self, visitor):
+        super().accept(visitor)
+        visitor.visit_neighbors(self)
+
+
 class ConfigElementVisitor:
 
     @abstractmethod
@@ -344,6 +363,10 @@ class ConfigElementVisitor:
     def visit_dataset_detail(self, element):
         raise NotImplementedError()
 
+    @abstractmethod
+    def visit_neighbors(self, element):
+        raise NotImplementedError()
+
 
 class SchemaBase:
     def __init__(self):
@@ -353,6 +376,7 @@ class SchemaBase:
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
         self.detail_kw = '__dataset_detail__'
+        self.neighbors_kw = '__neighbors__'
 
     def element_map(self):
         map_ = {
@@ -362,6 +386,7 @@ class SchemaBase:
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
             self.detail_kw: DatasetDetailElement,
+            self.neighbors_kw: NeighborsElement
         }
         return map_
 
@@ -429,6 +454,7 @@ class CompatibilitySchema(SchemaBase):
         self.pcoa_kw = '__pcoa__'
         self.metadata_kw = '__metadata__'
         self.detail_kw = '__dataset_detail__'
+        self.neighbors_kw = '__neighbors__'
 
     def element_map(self):
         return {
@@ -441,6 +467,7 @@ class CompatibilitySchema(SchemaBase):
             self.taxonomy_kw: TaxonomyElement,
             self.pcoa_kw: PCOAElement,
             self.metadata_kw: MetadataElement,
+            self.neighbors_kw: NeighborsElement,
         }
 
     def schema(self):

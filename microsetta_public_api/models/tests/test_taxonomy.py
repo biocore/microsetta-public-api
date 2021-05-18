@@ -73,6 +73,27 @@ class TaxonomyTests(unittest.TestCase):
                                         columns=['Feature ID', 'Taxon',
                                                  'Confidence'])
         self.taxonomy_df.set_index('Feature ID', inplace=True)
+        self.collapse_table = biom.Table(
+            np.array(
+                [[0, 1, 2],
+                 [2, 4, 6],
+                 [3, 0, 1],
+                 [2, 0, 0],
+                 ]
+            ),
+            ['feature-1', 'feature-2', 'feature-3', 'feature-4'],
+            ['sample-1', 'sample-2', 'sample-3']
+        )
+        self.collapse_taxonomy_df = pd.DataFrame(
+            [['feature-1', 'a; b; c', 0.123],
+             ['feature-2', 'a; b; c; d; e', 0.345],
+             ['feature-3', 'a; f; g; h', 0.478],
+             ['feature-4', 'a', 0.200],
+             ],
+            columns=['Feature ID', 'Taxon', 'Confidence']
+        )
+        self.collapse_taxonomy_df.set_index('Feature ID', inplace=True)
+
         self.table_ranks = self.table.rankdata(inplace=False)
 
         self.table2 = biom.Table(np.array([[0, 1, 2],
@@ -133,14 +154,24 @@ class TaxonomyTests(unittest.TestCase):
 
     def test_init_no_variances(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
-        self.assertEqual(taxonomy._table, self.table.copy().norm())
-        self.assertEqual(taxonomy._variances, self.no_variances)
+        npt.assert_array_almost_equal(
+            taxonomy._table.matrix_data.todense(),
+            self.table.copy().norm().matrix_data.todense())
+        npt.assert_array_almost_equal(
+            taxonomy._variances.matrix_data.todense(),
+            self.no_variances.matrix_data.todense(),
+        )
         pdt.assert_frame_equal(taxonomy._features, self.taxonomy_df)
 
     def test_init_variances(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, self.table_vars)
-        self.assertEqual(taxonomy._table, self.table.copy().norm())
-        self.assertEqual(taxonomy._variances, self.table_vars)
+        npt.assert_array_almost_equal(
+            taxonomy._table.matrix_data.todense(),
+            self.table.copy().norm().matrix_data.todense())
+        npt.assert_array_almost_equal(
+            taxonomy._variances.matrix_data.todense(),
+            self.table_vars.matrix_data.todense(),
+        )
         pdt.assert_frame_equal(taxonomy._features, self.taxonomy_df)
         self.assertEqual(list(taxonomy._table.ids(axis='observation')),
                          list(taxonomy._features.index))
@@ -190,6 +221,13 @@ class TaxonomyTests(unittest.TestCase):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, rank_level=2)
         obs = list(taxonomy._ranked_order.index)
         self.assertEqual(obs, exp)
+
+    def test_create_collapsed_table(self):
+        taxonomy = Taxonomy(self.collapse_table, self.collapse_taxonomy_df,
+                            collapse_level=3)
+        obs_ids = taxonomy._collapsed_table.ids('observation')
+        exp_ids = ['a; b; c', 'a; f; g', 'a']
+        self.assertCountEqual(obs_ids, exp_ids)
 
     def test_ranks_sample(self):
         exp = pd.DataFrame([['c', 'sample-1', 1.],
@@ -324,21 +362,25 @@ class TaxonomyTests(unittest.TestCase):
              ['feature-3', 'k__a;  p__f;  o__g;  f__h;  g__', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
         taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
-        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df)
+        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df,
+                            collapse_level=6)
         bp_tree = taxonomy.bp_tree
-        exp_parens = 9
+        exp_parens = 11
         obs_parens = sum(bp_tree.B)
         self.assertEqual(exp_parens, obs_parens)
         exp_names = [
-            'k__a',
-            'k__a; p__b',
+            'k__a;',
+            'k__a; p__b;',
+            'k__a; p__b; o__c;',
             'k__a; p__b; o__c',
-            'k__a; p__b; o__c; f__d',
+            'k__a; p__b; o__c; f__d;',
             'k__a; p__b; o__c; f__d; g__e',
-            'k__a; p__f',
-            'k__a; p__f; o__g',
-            'k__a; p__f; o__g; f__h'
+            'k__a; p__f;',
+            'k__a; p__f; o__g;',
+            'k__a; p__f; o__g; f__h;',
+            'k__a; p__f; o__g; f__h; g__',
         ]
+        self.maxDiff = None
         obs_names = []
         for i in range(len(bp_tree.B)):
             name = bp_tree.name(i)

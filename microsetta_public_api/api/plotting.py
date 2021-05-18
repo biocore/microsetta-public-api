@@ -1,5 +1,6 @@
 import pandas as pd
 import altair as alt
+from flask import send_file
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
 from microsetta_public_api.models._alpha import Alpha
@@ -9,6 +10,16 @@ from microsetta_public_api.api.diversity.alpha import _validate_dataset_alpha
 from microsetta_public_api.resources_alt import get_resources
 from microsetta_public_api.utils._utils import jsonify
 from microsetta_public_api.exceptions import UnknownID
+from microsetta_public_api.utils._utils import stepwise_resource_getter
+from microsetta_public_api.config import schema
+from microsetta_public_api.repo._pcoa_repo import PCoARepo
+from microsetta_public_api.exceptions import UnknownResource
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import matplotlib as mpl
+mpl.rcParams['agg.path.chunksize'] = 10000
 
 
 def _alpha_repo_getter():
@@ -155,3 +166,108 @@ def plot_beta_alt(beta_metric, named_sample_set, sample_id=None):
 
 def plot_beta(beta_metric, named_sample_set, sample_id=None):
     raise NotImplementedError()
+
+
+def _get_pcoa_repo(dataset):
+    pcoas = stepwise_resource_getter(
+        get_resources(),
+        dataset,
+        schema.pcoa_kw,
+        'pcoa',
+    )
+    pcoa_repo = PCoARepo(pcoas.data)
+    return pcoa_repo
+
+
+def _plot_ids(ax, x, y, size, marker='.', color=None, **kwargs):
+    """Plot points, return the used color"""
+    # plot is faster than scatter, go figure...
+    return ax.plot(x, y, color=color, markersize=size, marker=marker,
+                   linestyle='None', **kwargs)[0].get_color()
+
+
+def _make_mpl_fig(series, x, y, target):
+    """given metadata, coordinates and a target, make a figure"""
+    # get all the bits organized
+    df = pd.DataFrame([], index=series.index)
+    df['col'] = series
+    df['x'] = x
+    df['y'] = y
+
+    # ax1 -> plot
+    # ax2 -> legend
+    fig, (ax1, ax2) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]},
+                                   figsize=(5, 3))
+
+    # clean up the plots
+    ax1.set_xticks([])
+    ax1.set_yticks([])
+    ax2.axis('off')
+
+    # determine the point size based on the total number of samples to plot
+    n = len(series)
+    if n < 5000:
+        background_size = 5
+    elif n < 50000:
+        background_size = 1
+    else:
+        background_size = 0.5
+
+    # plot each group, keep the name and color for the legend
+    names = []
+    colors = []
+    for name, grp in df.groupby('col'):
+        colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
+        names.append(name)
+
+    # plot and emphasize our target
+    target = df.loc[target]
+    colors.append(_plot_ids(ax1, target['x'], target['y'], 30, marker='*',
+                            markeredgecolor='black', markeredgewidth=1.5))
+    names.append('You')
+
+    # construct a legend
+    patches = [mpatches.Patch(color=c, label=n) for c, n in zip(colors, names)]
+    ax2.legend(handles=patches, fontsize=10, loc='upper center')
+
+    # make it clean
+    fig.tight_layout()
+
+    # serialize the figure
+    output = io.BytesIO()
+    FigureCanvas(fig).print_png(output)
+    output.seek(0)
+
+    # clean up to make matplotlib happy
+    plt.close(fig)
+
+    return output
+
+
+def plot_beta_alt_mpl(dataset, beta_metric, named_sample_set, sample_id=None,
+                      category=None):
+    pcoa_repo = _get_pcoa_repo(dataset)
+    metadata_repo = _get_metadata_repo(dataset, get_resources)
+
+    if not pcoa_repo.has_pcoa(named_sample_set, beta_metric):
+        raise UnknownResource(f"No PCoA for named_sample_set="
+                              f"'{named_sample_set}',beta_metric="
+                              f"'{beta_metric}'"
+                              )
+    # check metadata repo for the requested categories
+    has_category = metadata_repo.has_category([category])
+    missing_categories = [cat for i, cat in enumerate([category, ])
+                          if not has_category[i]]
+    if len(missing_categories) > 0:
+        raise UnknownResource(f"Missing specified metadata categories: "
+                              f"{missing_categories}"
+                              )
+    pcoa = pcoa_repo.get_pcoa(named_sample_set, beta_metric)
+    metadata = metadata_repo.get_metadata(category)
+
+    x = pcoa.samples[0]
+    y = pcoa.samples[1]
+    response = _make_mpl_fig(metadata, x, y, sample_id)
+
+    return send_file(response, mimetype='image/png', as_attachment=True,
+                     attachment_filename='pcoa.png', conditional=True)

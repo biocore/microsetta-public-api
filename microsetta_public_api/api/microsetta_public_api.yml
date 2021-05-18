@@ -818,24 +818,38 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
-  # NOTE: this check needs to be performed against metadata, and is dependent
-  # on #66
-  #
-  #'/dataset/{dataset}/contains/{sample_id}':
-  #  parameters:
-  #    - $ref: '#/components/parameters/namedDataset'
-  #    - $ref: '#/components/parameters/sampleIdPath'
-  #  get:
-  #    operationId: microsetta_public_api.api.datasets.dataset_contains
-  #    summary: Check if a sample is present in a dataset
-  #    description: Check if a sample is present in a dataset
-  #    responses:
-  #      '200':
-  #        description: True if the sample exists, False otherwise
-  #        content:
-  #          application/json:
-  #            schema:
-  #              type: boolean
+  '/sample/dataset/{dataset}/contains/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/sampleIdPath'
+    get:
+      operationId: microsetta_public_api.api.datasets.dataset_sample_exists
+      summary: Check if a sample is present in a dataset
+      description: Check if a sample is present in a dataset
+      responses:
+        '200':
+          description: True if the sample exists, False otherwise
+          content:
+            application/json:
+              schema:
+                type: boolean
+
+  '/sample/list/dataset/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/sampleIdPath'
+    get:
+      operationId: microsetta_public_api.api.datasets.datasets_for_sample
+      summary: Find all datasets that contain a given sample ID.
+      description: Find all datasets that contain a given sample ID.
+      responses:
+        '200':
+          description: Datasets that contain the sample ID.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/namedDataset'
 
   '/dataset/{dataset}/plotting/diversity/alpha/{alpha_metric}/percentiles-plot':
     parameters:
@@ -1178,6 +1192,27 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200VegaSchema'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/png':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta_alt_mpl
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a rasterized PNG
+      description: Get a rasterized PNG
+      parameters:
+        - $ref: '#/components/parameters/betaMetric'
+        - $ref: '#/components/parameters/namedSampleSet'
+        - $ref: '#/components/parameters/sampleIdQuery'
+        - $ref: '#/components/parameters/categoryQuery'
+      responses:
+        '200':
+          $ref: '#/components/responses/200PNGSchema'
         '404':
           $ref: '#/components/responses/404NotFound'
 
@@ -1585,6 +1620,12 @@ components:
       schema:
         $ref: '#/components/schemas/sampleId'
       required: true
+    categoryQuery:
+      name: category
+      in: query
+      schema:
+        type: string
+        example: 'age_cat'
     sampleIdQuery:
       name: sample_id
       in: query
@@ -1967,6 +2008,14 @@ components:
             - "Ruminococcus"
 
   responses:
+    200PNGSchema:
+      description: Successfully returned PNG
+      content:
+        image/png:
+          schema:
+            type: string
+            format: binary
+
     200VegaSchema:
       description: Successfully returned Vega JSON
       content:

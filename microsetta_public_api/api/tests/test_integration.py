@@ -6,7 +6,6 @@ from biom.util import biom_open
 from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 from skbio.stats.ordination import OrdinationResults
-from skbio import DistanceMatrix
 from copy import deepcopy
 
 from microsetta_public_api import config
@@ -79,6 +78,38 @@ class MetadataIntegrationTests(IntegrationTests):
             }
         }
         _update_resources_from_config(config_alt)
+
+    def test_dataset_available(self):
+        exp = ['16SAmplicon']
+        response = self.client.get(
+            '/results-api/sample/list/dataset/sample-3'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+        exp = []
+        response = self.client.get(
+            '/results-api/sample/list/dataset/sample-dne'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertListEqual(exp, obs)
+
+    def test_dataset_contains(self):
+        response = self.client.get(
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-3'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertTrue(obs)
+
+        response = self.client.get(
+            '/results-api/sample/dataset/16SAmplicon/contains/sample-dne'
+        )
+        self.assertStatusCode(200, response)
+        obs = json.loads(response.data)
+        self.assertFalse(obs)
 
     def test_metadata_available_categories_with_dataset(self):
         exp = ['age_cat', 'bmi_cat', 'num_cat']
@@ -1404,28 +1435,24 @@ class BetaIntegrationTests(IntegrationTests):
 
     def setUp(self):
         super().setUp()
-        dm_data = [
-            [0, 1, 2, 3, ],
-            [1, 0, 3, 4, ],
-            [2, 3, 0, 1, ],
-            [3, 4, 1, 0, ],
-        ]
+        self.neighbors = pd.DataFrame([['s2', 's3', 's4'],
+                                       ['s1', 's3', 's4'],
+                                       ['s4', 's1', 's2'],
+                                       ['s3', 's1', 's2']],
+                                      columns=['k0', 'k1', 'k2'],
+                                      index=['s1', 's2', 's3', 's4'])
+        self.neighbors.index.name = 'sample_id'
 
-        ids = [f's{i}' for i in range(4)]
-
-        self.dm = DistanceMatrix(dm_data, ids=ids)
-
-        imported_artifact = Artifact.import_data(
-            "DistanceMatrix", self.dm
-        )
-        self.beta_dm_path = self.create_tempfile(suffix='.qza').name
-        imported_artifact.save(self.beta_dm_path)
-
+        self.neighbors_path = self.create_tempfile(suffix='.tsv').name
+        self.neighbors.to_csv(self.neighbors_path, sep='\t', index=True,
+                              header=True)
+        import os
+        print(os.stat(self.neighbors_path))
         config_alt = {
             'datasets': {
                 '16SAmplicon': {
-                    '__beta__': {
-                        'awesome-metric': self.beta_dm_path,
+                    '__neighbors__': {
+                        'awesome-metric': self.neighbors_path,
                     },
                 },
             }
@@ -1438,7 +1465,7 @@ class BetaIntegrationTests(IntegrationTests):
             '/nearest?sample_id=s1'
         )
         self.assertStatusCode(200, response)
-        exp = ['s0']
+        exp = ['s2']
         obs = json.loads(response.data)
         self.assertCountEqual(exp, obs)
 
@@ -1448,7 +1475,7 @@ class BetaIntegrationTests(IntegrationTests):
             '/nearest?sample_id=s1&k=2'
         )
         self.assertStatusCode(200, response)
-        exp = ['s0', 's2']
+        exp = ['s2', 's3']
         obs = json.loads(response.data)
         self.assertCountEqual(exp, obs)
 

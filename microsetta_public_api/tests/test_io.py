@@ -31,5 +31,4 @@ class TestResourceIO(TempfileTestCase):
 
         self.assertDictEqual(
             {'beta1': self.dm},
-            obs_dm,
-        )
+            obs_dm)
