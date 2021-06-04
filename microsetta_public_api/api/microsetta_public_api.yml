@@ -1292,6 +1292,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/namedDataset'
       - $ref: '#/components/parameters/taxonomyResource'
+      - $ref: '#/components/parameters/sampleIdQueryOpt'
     get:
       operationId: microsetta_public_api.api.taxonomy.get_empress
       tags:

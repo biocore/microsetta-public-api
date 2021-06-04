@@ -238,6 +238,17 @@ class Taxonomy(ModelBase):
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
 
+    def get_collapsed_table_data(self, sample_id=None):
+        if not sample_id:
+            return None
+
+        features = (self._collapsed_table.data(sample_id) > 0)
+        ids = self._collapsed_table.ids(axis='observation')
+        feature_metadata = pd.DataFrame(features.reshape(-1, 1),
+                                        index=ids,
+                                        columns=['in_sample'])
+        return feature_metadata
+
     def _construct_bp_tree(self, feature_metadata, collapse_level):
         self._table.add_metadata(feature_metadata,
                                  axis='observation')

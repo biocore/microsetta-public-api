@@ -83,10 +83,12 @@ def single_counts(dataset, resource, sample_id, level):
     return response, 200
 
 
-def get_empress(dataset, resource):
+def get_empress(dataset, resource, sample_id=None):
     taxonomy_repo = _get_taxonomy_repo(dataset)
     taxonomy_model = taxonomy_repo.model(resource)
-    empress_model = Empress(taxonomy_model.bp_tree)
+    bp_tree = taxonomy_model.bp_tree
+    feature_metadata = taxonomy_model.get_collapsed_table_data(sample_id)
+    empress_model = Empress(bp_tree, feature_metadata=feature_metadata)
     return empress_model.to_dict()
 
 

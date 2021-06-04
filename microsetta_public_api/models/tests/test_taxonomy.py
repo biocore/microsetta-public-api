@@ -229,6 +229,15 @@ class TaxonomyTests(unittest.TestCase):
         exp_ids = ['a; b; c', 'a; f; g', 'a']
         self.assertCountEqual(obs_ids, exp_ids)
 
+        expected_feature_metadata = pd.DataFrame(
+            [[True], [False], [False]],
+            index=['a; b; c', 'a; f; g', 'a'],
+            columns=['in_sample']
+        )
+
+        feature_metadata = taxonomy.get_collapsed_table_data('sample-2')
+        pdt.assert_frame_equal(expected_feature_metadata, feature_metadata)
+
     def test_ranks_sample(self):
         exp = pd.DataFrame([['c', 'sample-1', 1.],
                             ['c', 'sample-2', 1],
