@@ -1463,7 +1463,33 @@ paths:
                 $ref: '#/components/schemas/taxonomyRanks'
         '404':
           $ref: '#/components/responses/404NotFound'
-  
+ 
+  '/dataset/{dataset}/taxonomy/rare-unique/{resource}/sample/{sample_id}':
+    parameters:
+      - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/taxonomyResource'
+      - $ref: '#/components/parameters/sampleIdPath'
+      - $ref: '#/components/parameters/rareThresholdQuery'
+    get:
+      operationId: microsetta_public_api.api.taxonomy.rare_unique
+      tags:
+        - Taxonomy
+      summary: Obtain rare/unique features and their lineages
+      description: |
+        Obtain features and their lineages that appear to be rare or unique
+        to the sample within the dataset. A unique feature is one that was observed
+        only within the queried sample. A rare feature is one that was observed in
+        fewer samples than the specified rare threshold (defaults to 10%).
+      responses:
+        '200':
+          description: Successfully obtained rare and unique data for a specific sample
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taxonomyRareUnique'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/dataset/{dataset}/taxonomy/present/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
@@ -1647,6 +1673,13 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/taxonomyLevel'
+    rareThresholdQuery:
+      name: rare_threshold
+      in: query
+      description: The maximum fraction of samples to consider a feature rare
+      required: false
+      schema:
+        $ref: '#/components/schemas/rareThreshold'
     taxonomyResource:
       name: resource
       in: path
@@ -1835,6 +1868,7 @@ components:
         - 3.14
     relativeAbundance:
       type: number
+      description: The relative abundance of a feature
       minimum: 0
       maximum: 1
     taxonomyLevel:
@@ -1847,6 +1881,46 @@ components:
         - Family
         - Genus
         - Species
+    rareThreshold:
+      type: number
+      description: The maximum fraction of samples to consider a feature rare
+      minimum: 0
+      maximum: 1
+    taxonomyRareUnique:
+      type: object
+      required:
+        - rare
+        - unique
+      additionalProperties: false
+      properties:
+        rare:
+          type: array
+          items:
+            $ref: '#/components/schemas/rareFeature'
+          nullable: true
+        unique:
+          type: array
+          items:
+            type: string
+            description: A feature identifier
+          nullable: true
+    rareFeature:
+      type: object
+      required:
+        - feature_id
+        - prevalence
+        - lineage
+      additionalProperties: false
+      properties:
+        feature_id:
+          type: string
+          description: A feature identifier
+        prevalence:
+          type: number
+          description: The fraction of samples the feature was observed in
+        lineage:
+          $ref: '#/components/schemas/lineage'
+
     sampleId:
       type: string
       example: "sample_15"
@@ -1973,6 +2047,16 @@ components:
             - 0.05
             - 0.11
 
+    lineage:
+      type: array
+      items:
+        type: string
+      example:
+        - "Bacteroides"
+        - "Prevotella"
+        - "Prevotella"
+        - "Ruminococcus"
+
     taxonomyRanks:
       type: object
       required:
@@ -1981,14 +2065,7 @@ components:
         - Taxa-order
       properties:
         Taxon:
-          type: array
-          items:
-            type: string
-          example:
-            - "Bacteroides"
-            - "Prevotella"
-            - "Prevotella"
-            - "Ruminococcus"
+          $ref: '#/components/schemas/lineage'
         Rank:
           type: array
           items:

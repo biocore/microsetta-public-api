@@ -249,21 +249,39 @@ class TaxonomyTests(unittest.TestCase):
                                      [3, 0, 0, 0]]),
                            ['feature-1', 'feature-2', 'feature-3'],
                            ['sample-1', 'sample-2', 'sample-3', 'sample-4'])
-        taxonomy_df = pd.DataFrame([['feature-1', 'a; b; c', 0.123],
-                                    ['feature-2', 'a; b; c; d; e', 0.345],
-                                    ['feature-3', 'a; f; g; h', 0.678]],
+        f1_lineage = 'k__a; p__b; c__c'
+        f2_lineage = 'k__a; p__b; c__c; o__d; f__e'
+        f3_lineage = 'k__a; p__f; c__g; o__h'
+        taxonomy_df = pd.DataFrame([['feature-1', f1_lineage, 0.123],
+                                    ['feature-2', f2_lineage, 0.345],
+                                    ['feature-3', f3_lineage, 0.678]],
                                    columns=['Feature ID', 'Taxon',
                                             'Confidence'])
         taxonomy_df.set_index('Feature ID', inplace=True)
         tax = Taxonomy(table, taxonomy_df)
 
-        exp = {'sample-1': {'rare': {'feature-3': 0.25},
-                            'unique': ['feature-3', ]},
-               'sample-2': {'rare': {'feature-1': 0.5},
-                            'unique': None},
-               'sample-3': {'rare': {'feature-1': 0.5},
-                            'unique': None},
-               'sample-4': {'rare': None, 'unique': None}}
+        exp = {'sample-1': {
+                 'rare': [{
+                   'feature_id': 'feature-3',
+                   'prevalence': 0.25,
+                   'lineage': ['a', 'f', 'g', 'h']}],
+                 'unique': ['feature-3', ]
+                },
+               'sample-2': {
+                 'rare': [{
+                   'feature_id': 'feature-1',
+                   'prevalence': 0.5,
+                   'lineage': ['a', 'b', 'c']}],
+                 'unique': [],
+                },
+               'sample-3': {
+                 'rare': [{
+                   'feature_id': 'feature-1',
+                   'prevalence': 0.5,
+                   'lineage': ['a', 'b', 'c']}],
+                 'unique': [],
+                },
+               'sample-4': {'rare': [], 'unique': []}}
 
         for k, e in exp.items():
             obs = tax.rare_unique(k, rare_threshold=0.51)

@@ -139,9 +139,8 @@ class Taxonomy(ModelBase):
         self._formatter = formatter
 
         # initialize taxonomy tree
-        tree_data = ((i, lineage.split('; '))
-                     for i, lineage in self._features['Taxon'].items())
-        self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
+        self.taxonomy_tree = self._taxonomy_tree_from_features(
+            self._features.index)
         self._index_taxa_prevalence()
         for node in self.taxonomy_tree.traverse():
             node.length = 1
@@ -243,15 +242,22 @@ class Taxonomy(ModelBase):
         sample_prevalences = self.feature_prevalence.iloc[sample_data.indices]
         sample_uniques = self.feature_uniques.iloc[sample_data.indices]
 
+        rares = []
         rare_at_threshold = sample_prevalences < rare_threshold
-        if rare_at_threshold.sum() == 0:
-            rares = None
-        else:
-            rares = sample_prevalences[rare_at_threshold].to_dict()
+        if rare_at_threshold.sum() > 0:
+            # obtain prevalence information
+            prevalence = sample_prevalences[rare_at_threshold]
 
-        if sample_uniques.sum() == 0:
-            uniques = None
-        else:
+            # integrate prevalence with lineage information
+            for id_, prev in prevalence.items():
+                lineage = list(self._formatted_taxa_names[id_].values())
+                detail = {'feature_id': id_,
+                          'lineage': lineage,
+                          'prevalence': prev}
+                rares.append(detail)
+
+        uniques = []
+        if sample_uniques.sum() > 0:
             uniques = list(sample_uniques[sample_uniques].index)
 
         return {'rare': rares, 'unique': uniques}

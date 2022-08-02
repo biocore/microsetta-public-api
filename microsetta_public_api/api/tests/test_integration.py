@@ -7,6 +7,7 @@ from qiime2 import Artifact, Metadata
 from numpy.testing import assert_allclose
 from skbio.stats.ordination import OrdinationResults
 from copy import deepcopy
+import logging
 
 from microsetta_public_api import config
 from microsetta_public_api.config import schema
@@ -15,6 +16,10 @@ from microsetta_public_api.utils.testing import FlaskTests, \
     TempfileTestCase, ConfigTestCase
 from microsetta_public_api.utils import create_data_entry, DataTable
 from microsetta_public_api.resources_alt import resources_alt, Q2Visitor
+from microsetta_public_api._logging import logger
+
+
+logger.setLevel(logging.WARNING)
 
 
 def _update_resources_from_config(config):
@@ -310,7 +315,6 @@ class MetadataIntegrationTests(IntegrationTests):
 
 
 class TaxonomyIntegrationTests(IntegrationTests):
-
     def setUp(self):
         super().setUp()
         self.table1_filename = self.create_tempfile(suffix='.qza').name
@@ -970,6 +974,17 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
             },
         }
         _update_resources_from_config(config_alt)
+
+    def test_rare_unique(self):
+        response = self.client.get(
+            '/results-api/dataset/ShotgunMetagenomics/taxonomy/rare-unique/'
+            'table2-greengenes/sample/sample-1?rare_threshold=0.75')
+        self.assertEqual(response.status_code, 200)
+        obs = json.loads(response.data)
+        self.assertIn('rare', obs)
+        self.assertIn('unique', obs)
+        self.assertEqual(obs['unique'], [])
+        self.assertEqual(len(obs['rare']), 1)
 
     def test_resources(self):
         response = self.client.get(
