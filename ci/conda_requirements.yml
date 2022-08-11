@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - python
+  - scipy<=1.8.1
   - flask
   - flask-cors
   - scikit-bio

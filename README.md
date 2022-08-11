@@ -2,25 +2,29 @@
 A public microservice to support The Microsetta Initiative
 
 ## Installation
-Create a new `conda` environment:
 
-`conda create -n microsetta-public-api python=3.7 flask`
+Create a new `conda` environment using the continuous integration (CI) scripts.
+By default, the name of the created environment will be `test-microsetta-public`.
+You may edit ci/conda_requirements.yml to change the name as you see fit.
+
+ `conda env create -f ci/conda_requirements.yml`
+
+This will ensure that an environment can be created that satisifies all dependencies.
 
 Once the conda environment is created, activate it:
 
-`conda activate microsetta-public-api`
+ `conda activate test-microsetta-public`
 
-Install QIIME 2 dependencies:
+Install additional requirements from pip:
 
-`conda install -c qiime2 qiime2 q2-types`
-
-Install connexion version 2.0 (which supports the OpenAPI Specification 3.0) as well as the Swagger UI:
-
-`pip install "connexion[swagger-ui]" pyyaml`
+ `pip install -r ci/pip_requirements.txt`
 
 Then install the microsetta-public-api in editable mode:
+`make dev`
 
-`pip install -e .`
+Test installation by running unittests:
+
+ `make test`
 
 ## Test Usage
 
