@@ -16,13 +16,15 @@ from microsetta_public_api.exceptions import (UnknownMetric,
                                               UnknownCategory,
                                               IncompatibleOptions,
                                               )
-from flask import jsonify
+from flask import jsonify, request, has_request_context
 from flask.json import JSONEncoder
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
 import connexion
 from flask_cors import CORS
+from flask_babel import Babel
+from microsetta_public_api.localization import EN_US, ES_MX
 
 
 class NumPySafeJSONEncoder(JSONEncoder):
@@ -64,6 +66,8 @@ def atomic_update_resources(resource):
 
 def build_app():
     app = connexion.FlaskApp(__name__)
+    app.app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
+    app.app.config['BABEL_TRANSLATION_DIRECTORIES'] = './translations'
     app.app.json_encoder = NumPySafeJSONEncoder
 
     resource_config = SERVER_CONFIG.get('resources', {})
@@ -96,6 +100,19 @@ def build_app():
 
     CORS(app.app)
 
+    global babel
+    babel = Babel(app.app)
+
+    @babel.localeselector
+    def get_locale():
+        # locales can be forced here if needed.
+        # return ES_MX
+
+        # for unit test support
+        if not has_request_context():
+            return EN_US
+
+        return request.accept_languages.best_match([EN_US, ES_MX], default=EN_US)
     return app
 
 
@@ -104,6 +121,9 @@ def run(app):
         port=SERVER_CONFIG['port'],
         debug=SERVER_CONFIG['debug'],
     )
+
+
+babel = None
 
 
 if __name__ == "__main__":

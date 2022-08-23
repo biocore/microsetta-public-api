@@ -1,4 +1,4 @@
-name: test-microsetta-public
+name: test-me
 channels:
   - conda-forge
   - qiime2

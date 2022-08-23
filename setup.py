@@ -7,8 +7,14 @@
 # ----------------------------------------------------------------------------
 
 from setuptools import setup, find_packages
+from babel.messages import frontend as babel
 
 import versioneer
+
+
+command_classes = versioneer.get_cmdclass()
+command_classes['compile_catalog'] = babel.compile_catalog
+
 
 setup(
     name="microsetta-public-api",
@@ -33,6 +39,7 @@ setup(
     ],
     package_data={'microsetta_public_api':
                   [
+                     'babel.cfg',
                      'api/microsetta_public_api.yml',
                      'server_config.json'
                   ]},

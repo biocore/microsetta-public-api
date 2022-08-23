@@ -41,6 +41,20 @@ The Swagger UI should now be available at http://localhost:8084/api/ui .
 
 You can use a JSON file to configure data resources for the server.
 
+## Modifying Babel dictionaries
+
+A fresh template can be created using the pybabel command below:
+`pybabel extract -F babel.cfg -o messages.pot .`
+
+Fresh translation files can be created for each language required, using the syntax below:
+`pybabel init -i messages.pot -d microsetta_public_api/translations -l es_MX`
+`pybabel init -i messages.pot -d microsetta_public_api/translations -l en_US`
+
+The above translation files should be modified manually with the proper translations as needed.
+
+Lastly, to compile the results into a form that python and flask can use, use the command below:
+`pybabel compile -d microsetta_public_api/translations`
+
 ### Datasets
 The Microsetta Public Results API has the notion of a _dataset_. A dataset is a collection of artifacts 
 (such as metadata, alpha diversity, ordinations, etc.). In terms of the configuration file, a dataset is

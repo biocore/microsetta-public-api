@@ -155,7 +155,6 @@ class MockedJsonifyTestCase(TestCase):
 
 
 class ConfigTestCase(TestCase):
-
     def setUp(self):
         self._config_copy = config.resources.copy()
         self._resources_copy = resources.copy()

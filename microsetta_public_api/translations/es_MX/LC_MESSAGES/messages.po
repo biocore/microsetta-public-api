@@ -1,0 +1,101 @@
+# Spanish (Mexico) translations for PROJECT.
+# Copyright (C) 2022 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-08-22 19:37-0700\n"
+"PO-Revision-Date: 2022-08-22 20:19-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: es_MX\n"
+"Language-Team: es_MX <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+
+#: microsetta_public_api/api/i18n.py:50
+msgid "en_us"
+msgstr "es_mx"
+
+#: microsetta_public_api/api/i18n.py:52
+msgid "adult"
+msgstr "adulto"
+
+#: microsetta_public_api/api/i18n.py:53
+msgid "asia"
+msgstr "asia"
+
+#: microsetta_public_api/api/i18n.py:54
+msgid "child"
+msgstr ""el niño"
+
+#: microsetta_public_api/api/i18n.py:55
+#: microsetta_public_api/api/metadata.py:114
+#: microsetta_public_api/api/plotting.py:207
+msgid "elderly"
+msgstr "el mayor"
+
+#: microsetta_public_api/api/i18n.py:56
+msgid "europe"
+msgstr "europa"
+
+#: microsetta_public_api/api/i18n.py:57
+msgid "india-bangladesh"
+msgstr "india-bangladesh"
+
+#: microsetta_public_api/api/i18n.py:58
+msgid "infant"
+msgstr "el infante"
+
+#: microsetta_public_api/api/i18n.py:59
+msgid "mouth"
+msgstr "boca"
+
+#: microsetta_public_api/api/i18n.py:60
+msgid "north america"
+msgstr "américa del norte"
+
+#: microsetta_public_api/api/i18n.py:61
+msgid "oceania"
+msgstr "oceanía"
+
+#: microsetta_public_api/api/i18n.py:62
+msgid "office surface"
+msgstr "superficie de la oficina"
+
+#: microsetta_public_api/api/i18n.py:63
+msgid "oral"
+msgstr "oral"
+
+#: microsetta_public_api/api/i18n.py:64
+msgid "other"
+msgstr "otro"
+
+#: microsetta_public_api/api/i18n.py:65
+msgid "skin"
+msgstr "la piel"
+
+#: microsetta_public_api/api/i18n.py:66
+msgid "south america"
+msgstr "sudamerica"
+
+#: microsetta_public_api/api/i18n.py:67
+msgid "southeast africa"
+msgstr "sureste de áfrica"
+
+#: microsetta_public_api/api/i18n.py:68
+msgid "stool"
+msgstr "heces"
+
+#: microsetta_public_api/api/i18n.py:69
+msgid "teen"
+msgstr "adolescent"
+
+#: microsetta_public_api/api/i18n.py:70
+msgid "you"
+msgstr "tú"

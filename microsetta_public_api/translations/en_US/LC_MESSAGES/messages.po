@@ -1,0 +1,102 @@
+# English (United States) translations for PROJECT.
+# Copyright (C) 2022 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-08-22 19:37-0700\n"
+"PO-Revision-Date: 2022-08-22 20:19-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+
+#: microsetta_public_api/api/i18n.py:50
+msgid "en_us"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:52
+msgid "adult"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:53
+msgid "asia"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:54
+msgid "child"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:55
+#: microsetta_public_api/api/metadata.py:114
+#: microsetta_public_api/api/plotting.py:207
+msgid "elderly"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:56
+msgid "europe"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:57
+msgid "india-bangladesh"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:58
+msgid "infant"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:59
+msgid "mouth"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:60
+msgid "north america"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:61
+msgid "oceania"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:62
+msgid "office surface"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:63
+msgid "oral"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:64
+msgid "other"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:65
+msgid "skin"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:66
+msgid "south america"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:67
+msgid "southeast africa"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:68
+msgid "stool"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:69
+msgid "teen"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:70
+msgid "you"
+msgstr ""
+

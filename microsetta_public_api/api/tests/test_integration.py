@@ -1212,7 +1212,6 @@ class TaxonomyAltIntegrationTests(IntegrationTests):
 
 
 class PlottingIntegrationTests(IntegrationTests):
-
     def setUp(self):
         super().setUp()
         self.plotting_metadata_path = self.create_tempfile(suffix='.txt').name
