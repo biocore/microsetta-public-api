@@ -112,7 +112,9 @@ def build_app():
         if not has_request_context():
             return EN_US
 
-        return request.accept_languages.best_match([EN_US, ES_MX], default=EN_US)
+        return request.accept_languages.best_match([EN_US,
+                                                    ES_MX],
+                                                   default=EN_US)
     return app
 
 

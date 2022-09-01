@@ -36,29 +36,6 @@ class DatasetsAvailableTests(FlaskTests):
         self.assertListEqual(exp, sorted(obs.keys()))
         self.mock_method.assert_called_with()
 
-    def test_foo(self):
-        with self.app_context():
-            self.mock_method.return_value = jsonify([
-                '20s',
-                '30s',
-                '40s',
-                '50',
-            ])
-        _, self.client = self.build_app_test_client()
-        exp = ['20s', '30s', '40s', '50']
-        response = self.client.get(
-            "/results-api/dataset/16S/plotting/diversity/beta/mybeta_metric/pcoa/mynamed_sample_set/png?sample_id=foo&language_tag=en_US")
-
-        f = open('foo.txt', 'a')
-        f.write(str(response.status_code))
-        f.write('\n')
-        f.write(str(response.data))
-        f.close()
-        #self.assertStatusCode(200, response)
-        #obs = json.loads(response.data)
-        #self.assertListEqual(exp, obs)
-        #self.mock_method.assert_called_with(dataset='dataset_name')
-
 
 class DatasetsSpecificTests(FlaskTests):
     def setUp(self):

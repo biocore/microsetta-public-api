@@ -19,7 +19,7 @@ import matplotlib.patches as mpatches
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib as mpl
-from flask_babel import _, gettext, get_locale, force_locale
+from flask_babel import _, force_locale
 
 
 mpl.rcParams['agg.path.chunksize'] = 10000
@@ -256,7 +256,9 @@ def _make_mpl_fig(series, x, y, target, language_tag):
 
 def plot_beta_alt_mpl(dataset, beta_metric, named_sample_set, sample_id=None,
                       category=None, language_tag=None):
+
     pcoa_repo = _get_pcoa_repo(dataset)
+
     metadata_repo = _get_metadata_repo(dataset, get_resources)
 
     if not pcoa_repo.has_pcoa(named_sample_set, beta_metric):

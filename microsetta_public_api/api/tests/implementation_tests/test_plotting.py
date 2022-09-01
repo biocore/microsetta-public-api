@@ -103,3 +103,26 @@ class AlphaPlottingAltTestCase(MockedJsonifyTestCase):
             sample_id='s01')
 
         self.assertEqual(200, code)
+
+
+class BetaPlottingAltMPLTestCase(MockedJsonifyTestCase):
+    # skeleton for testing BetaPlotting
+    # add plot_beta_alt_mpl to from microsetta_public_api.api.plotting import
+    jsonify_to_patch = [
+        'microsetta_public_api.api.plotting.jsonify',
+        'microsetta_public_api.utils._utils.jsonify',
+    ]
+
+    def setUp(self):
+        super().setUp()
+
+    def test_simple_plot(self):
+        # response, code = plot_beta_alt_mpl(dataset='',
+        #                                    beta_metric='',
+        #                                    named_sample_set='',
+        #                                    sample_id=None,
+        #                                    category=None,
+        #                                    language_tag='es_MX')
+
+        # self.assertEqual(200, code)
+        pass
