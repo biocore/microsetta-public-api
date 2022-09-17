@@ -19,7 +19,7 @@ import matplotlib.patches as mpatches
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib as mpl
-from flask_babel import _, force_locale
+from flask_babel import _, gettext, get_locale, force_locale
 
 
 mpl.rcParams['agg.path.chunksize'] = 10000
@@ -222,19 +222,24 @@ def _make_mpl_fig(series, x, y, target, language_tag):
 
     # temporarily override the global locale with the locale supplied by the
     # user.
-    with force_locale(language_tag):
-        for name, grp in df.groupby('col'):
-            colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
-            # translate name into the right localization on the fly using
-            # pybabel and _() function.
-            names.append(_(name))
+    #with force_locale(language_tag):
+    for name, grp in df.groupby('col'):
+        if name == target:
+            continue
+        colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
+        # translate name into the right localization on the fly using
+        # pybabel and _() function.
+        #names.append(_(name))
+        names.append(name)
 
-            # plot and emphasize our target
-            target = df.loc[target]
-            colors.append(_plot_ids(ax1, target['x'], target['y'], 30,
-                                    marker='*', markeredgecolor='black',
-                                    markeredgewidth=1.5))
-            names.append(_('You'))
+    # plot and emphasize our target
+    target = df.loc[target]
+    colors.append(_plot_ids(ax1, target['x'], target['y'], 30,
+                            marker='*', markeredgecolor='black',
+                            markeredgewidth=1.5))
+
+    #names.append(_('You'))
+    names.append('You')
 
     # construct a legend
     patches = [mpatches.Patch(color=c, label=n) for c, n in zip(colors, names)]

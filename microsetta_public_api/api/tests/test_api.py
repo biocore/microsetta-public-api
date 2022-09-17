@@ -3,6 +3,13 @@ from flask import jsonify
 import json
 from microsetta_public_api.utils.testing import FlaskTests
 from microsetta_public_api.exceptions import UnknownID
+from microsetta_public_api.api.plotting import _make_mpl_fig
+from pandas import Series
+from numpy import array, histogram
+import skimage.color
+from skimage.io import imread
+import matplotlib.pyplot as plt
+from scipy.stats import ks_2samp
 
 
 class DatasetsAvailableTests(FlaskTests):
@@ -35,6 +42,26 @@ class DatasetsAvailableTests(FlaskTests):
         obs = json.loads(response.data)
         self.assertListEqual(exp, sorted(obs.keys()))
         self.mock_method.assert_called_with()
+
+    def test_foo(self):
+        with open('saved_sample_data.json', 'r') as f:
+            d = json.load(f)
+            membership = Series(d['membership'])
+            membership.index = d['membership']
+
+            output = _make_mpl_fig(membership,
+                                   d['x'],
+                                   d['y'],
+                                   'You',
+                                   'blah')
+            with open('test_output.png', 'wb') as f:
+                f.write(output.getvalue())
+
+            image = imread(fname='test_output.png', as_gray=True)
+            histogram1, _ = histogram(image, bins=256, range=(0, 1))
+            histogram2 = array(d['image_histogram'])
+            _, p_value = ks_2samp(histogram1, histogram2)
+            self.assertTrue(p_value >= 0.95)
 
 
 class DatasetsSpecificTests(FlaskTests):
