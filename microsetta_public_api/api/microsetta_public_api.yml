@@ -284,6 +284,7 @@ paths:
       - $ref: '#/components/parameters/alphaMetric'
       - $ref: '#/components/parameters/percentiles'
       - $ref: '#/components/parameters/sampleIdQueryOpt'
+      - $ref: '#/components/parameters/language_tag'
     get:
       operationId: microsetta_public_api.api.plotting.plot_alpha_filtered
       tags:
@@ -603,6 +604,7 @@ paths:
         - $ref: '#/components/parameters/betaMetric'
         - $ref: '#/components/parameters/namedSampleSet'
         - $ref: '#/components/parameters/sampleIdQuery'
+        - $ref: '#/components/parameters/language_tag'
       responses:
         '200':
           $ref: '#/components/responses/200VegaSchema'
@@ -778,6 +780,7 @@ paths:
         - $ref: '#/components/parameters/namedSampleSet'
         - $ref: '#/components/parameters/metadataCategories'
         - $ref: '#/components/parameters/fillna'
+        - $ref: '#/components/parameters/language_tag'
       responses:
         '200':
           description: Successfully return Emperor Schema
@@ -857,6 +860,7 @@ paths:
       - $ref: '#/components/parameters/alphaMetric'
       - $ref: '#/components/parameters/percentiles'
       - $ref: '#/components/parameters/sampleIdQueryOpt'
+      - $ref: '#/components/parameters/language_tag'
     get:
       operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_alt
       tags:
@@ -1178,6 +1182,7 @@ paths:
   '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/vega':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/language_tag'
     get:
       operationId: microsetta_public_api.api.plotting.plot_beta_alt
       tags:
@@ -1198,6 +1203,7 @@ paths:
   '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/png':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/language_tag'
     get:
       operationId: microsetta_public_api.api.plotting.plot_beta_alt_mpl
       tags:
@@ -1422,9 +1428,9 @@ paths:
         Obtain a random sample of the rank order of observed taxa in the dataset.
         A high value for a rank means that taxon was observed to have a high relative
         abundance in a particular sample. A low value means that taxon was observed
-        to have a low relative abundance. The data being sampled are a reduced set 
-        of the overall taxa in the dataset, such that low prevalence taxa are 
-        removed prior to ranking. In addition, ranks are only computed over the 
+        to have a low relative abundance. The data being sampled are a reduced set
+        of the overall taxa in the dataset, such that low prevalence taxa are
+        removed prior to ranking. In addition, ranks are only computed over the
         genus level.
       responses:
         '200':
@@ -1463,7 +1469,7 @@ paths:
                 $ref: '#/components/schemas/taxonomyRanks'
         '404':
           $ref: '#/components/responses/404NotFound'
-  
+
   '/dataset/{dataset}/taxonomy/present/group/{resource}':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
@@ -1515,6 +1521,7 @@ paths:
   '/dataset/{dataset}/plotting/diversity/beta/{beta_metric}/pcoa/{named_sample_set}/emperor':
     parameters:
       - $ref: '#/components/parameters/namedDataset'
+      - $ref: '#/components/parameters/language_tag'
     get:
       operationId: microsetta_public_api.api.emperor.plot_pcoa_alt
       tags:
@@ -1578,6 +1585,14 @@ components:
       schema:
         $ref: '#/components/schemas/betaMetric'
       required: true
+    language_tag:
+      name: language_tag
+      in: query
+      description: 5-character code made up of ISO 639-1 two-character lower-ase language code (e.g., "es") separated
+        by a hyphen from a two-character upper-case country code (e.g., "MX") for a complete code like "es-MX"
+      schema:
+        $ref: '#/components/schemas/language_tag'
+      required: false
     fillna:
       name: fillna
       in: query
@@ -1685,6 +1700,8 @@ components:
     betaMetric:
       type: string
       example: "unifrac"
+    language_tag:
+      type: string
     coordinates:
       description: >
         2D array of coordinates

@@ -29,7 +29,6 @@ def _is_rule(node):
 
 
 class MetadataRepo:
-
     def __init__(self, metadata=None):
         if metadata is not None:
             self._metadata = metadata

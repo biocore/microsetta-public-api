@@ -4,3 +4,5 @@ pytest-cov
 flake8
 empress>=1.1.0
 iow
+flask-babel
+scikit-image

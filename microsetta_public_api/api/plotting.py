@@ -19,6 +19,9 @@ import matplotlib.patches as mpatches
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib as mpl
+import flask_babel
+
+
 mpl.rcParams['agg.path.chunksize'] = 10000
 
 
@@ -186,8 +189,8 @@ def _plot_ids(ax, x, y, size, marker='.', color=None, **kwargs):
                    linestyle='None', **kwargs)[0].get_color()
 
 
-def _make_mpl_fig(series, x, y, target):
-    """given metadata, coordinates and a target, make a figure"""
+def _make_mpl_fig(series, x, y, target, language_tag):
+    """Given metadata, coordinates, a language, and a target, make a figure"""
     # get all the bits organized
     df = pd.DataFrame([], index=series.index)
     df['col'] = series
@@ -216,15 +219,26 @@ def _make_mpl_fig(series, x, y, target):
     # plot each group, keep the name and color for the legend
     names = []
     colors = []
-    for name, grp in df.groupby('col'):
-        colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
-        names.append(name)
+
+    # temporarily override the global locale with the locale supplied by the
+    # user.
+    with flask_babel.force_locale(language_tag):
+        for name, grp in df.groupby('col'):
+            # don't plot the same group of points twice.
+            if name == target:
+                continue
+            colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
+            # translate name into the right localization on the fly using
+            # pybabel and _() function.
+            names.append(flask_babel._(name))
 
     # plot and emphasize our target
     target = df.loc[target]
-    colors.append(_plot_ids(ax1, target['x'], target['y'], 30, marker='*',
-                            markeredgecolor='black', markeredgewidth=1.5))
-    names.append('You')
+    colors.append(_plot_ids(ax1, target['x'], target['y'], 30,
+                            marker='*', markeredgecolor='black',
+                            markeredgewidth=1.5))
+
+    names.append(flask_babel._('You'))
 
     # construct a legend
     patches = [mpatches.Patch(color=c, label=n) for c, n in zip(colors, names)]
@@ -245,8 +259,10 @@ def _make_mpl_fig(series, x, y, target):
 
 
 def plot_beta_alt_mpl(dataset, beta_metric, named_sample_set, sample_id=None,
-                      category=None):
+                      category=None, language_tag=None):
+
     pcoa_repo = _get_pcoa_repo(dataset)
+
     metadata_repo = _get_metadata_repo(dataset, get_resources)
 
     if not pcoa_repo.has_pcoa(named_sample_set, beta_metric):
@@ -267,7 +283,7 @@ def plot_beta_alt_mpl(dataset, beta_metric, named_sample_set, sample_id=None,
 
     x = pcoa.samples[0]
     y = pcoa.samples[1]
-    response = _make_mpl_fig(metadata, x, y, sample_id)
+    response = _make_mpl_fig(metadata, x, y, sample_id, language_tag)
 
     return send_file(response, mimetype='image/png', as_attachment=True,
                      attachment_filename='pcoa.png', conditional=True)

@@ -1,0 +1,101 @@
+# English (United States) translations for PROJECT.
+# Copyright (C) 2022 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2022-09-16 21:22-0700\n"
+"PO-Revision-Date: 2022-09-16 21:22-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+
+#: microsetta_public_api/api/i18n.py:11
+msgid "en_US"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:13
+msgid "Adult"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:14
+msgid "Asia"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:15
+msgid "Child"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:16
+msgid "Elderly"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:17
+msgid "Europe"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:18
+msgid "India-Bangladesh"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:19
+msgid "Infant"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:20
+msgid "Mouth"
+msgstr "HARHAR"
+
+#: microsetta_public_api/api/i18n.py:21
+msgid "North America"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:22
+msgid "Oceania"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:23
+msgid "Office Surface"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:24
+msgid "Oral"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:25
+msgid "Other"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:26
+msgid "Skin"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:27
+msgid "South America"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:28
+msgid "Southeast Africa"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:29
+msgid "Stool"
+msgstr "Mott"
+
+#: microsetta_public_api/api/i18n.py:30
+msgid "Teen"
+msgstr ""
+
+#: microsetta_public_api/api/i18n.py:31
+#: microsetta_public_api/api/plotting.py:240
+msgid "You"
+msgstr "Goodie"
+
