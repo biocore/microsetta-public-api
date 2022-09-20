@@ -223,7 +223,6 @@ def _make_mpl_fig(series, x, y, target, language_tag):
     # temporarily override the global locale with the locale supplied by the
     # user.
     with flask_babel.force_locale(language_tag):
-        print("locale: %s" % flask_babel.get_locale())
         for name, grp in df.groupby('col'):
             # don't plot the same group of points twice.
             if name == target:
@@ -231,9 +230,7 @@ def _make_mpl_fig(series, x, y, target, language_tag):
             colors.append(_plot_ids(ax1, grp['x'], grp['y'], background_size))
             # translate name into the right localization on the fly using
             # pybabel and _() function.
-            foo = flask_babel._(name)
-            print("Original: %s\tTranslation: %s" % (name, foo))
-            names.append(foo)
+            names.append(flask_babel._(name))
 
     # plot and emphasize our target
     target = df.loc[target]

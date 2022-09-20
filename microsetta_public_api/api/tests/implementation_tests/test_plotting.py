@@ -128,7 +128,9 @@ class BetaPlottingAltMPLTestCase(FlaskTests):
 
         return 'UNKNOWN'
 
-    @patch('flask_babel.get_locale', return_value='es_MX')
+    # get_locale() is not currently called by _make_mpl_fig(). Annotation is
+    # useful for testing purposes, however.
+    # @patch('flask_babel.get_locale', return_value='es_MX')
     @patch('flask_babel._', side_effect=mock_translate)
     def test_make_mpl_fig(self, MockGetLocale, MockUnderline):
         # As PyBabel works only when the server is running, we must Mock() the
@@ -137,12 +139,6 @@ class BetaPlottingAltMPLTestCase(FlaskTests):
         # MockGetLocale object does not need to be used as the stock
         # return value is all that's needed.
         # side_effect() is used to simulate _() calls.
-        '''
-        As it turns out, the problem with test_foo is that babel apprently
-        only works when the server is running. So _() and force_locale() are
-        completely useless in the unittest. Hence, we're actually going to
-        have to mock the _() and force_locale() functions. :)
-        '''
 
         with open('saved_sample_data.json', 'r') as f:
             # d['x'] and d['y'] contain the positional metadata for all points
