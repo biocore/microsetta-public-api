@@ -7,6 +7,13 @@ from microsetta_public_api.api.plotting import plot_alpha_filtered,\
 from microsetta_public_api.config import DictElement, AlphaElement
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase,\
     MockMetadataElement, TrivialVisitor
+from microsetta_public_api.api.plotting import _make_mpl_fig
+from pandas import Series
+from numpy import array, histogram
+from skimage.io import imread
+from scipy.stats import ks_2samp
+import json
+from microsetta_public_api.utils.testing import FlaskTests
 
 
 class AlphaPlottingTestCase(MockedJsonifyTestCase):
@@ -105,24 +112,63 @@ class AlphaPlottingAltTestCase(MockedJsonifyTestCase):
         self.assertEqual(200, code)
 
 
-class BetaPlottingAltMPLTestCase(MockedJsonifyTestCase):
-    # skeleton for testing BetaPlotting
-    # add plot_beta_alt_mpl to from microsetta_public_api.api.plotting import
-    jsonify_to_patch = [
-        'microsetta_public_api.api.plotting.jsonify',
-        'microsetta_public_api.utils._utils.jsonify',
-    ]
+class BetaPlottingAltMPLTestCase(FlaskTests):
+    def mock_translate(*args, **kwargs):
+        map_en_us_to_es_mx = {
+            # TODO: Not proficient in Spanish. These translations need to be
+            #  reviewed. Translations provided by Google Translate.
+            "Mouth": "Boca",
+            "Skin": "La Piel",
+            "Stool": "Heces",
+            "You": "Tú"
+        }
 
-    def setUp(self):
-        super().setUp()
+        if args[0] in map_en_us_to_es_mx:
+            return map_en_us_to_es_mx[args[0]]
 
-    def test_simple_plot(self):
-        # response, code = plot_beta_alt_mpl(dataset='',
-        #                                    beta_metric='',
-        #                                    named_sample_set='',
-        #                                    sample_id=None,
-        #                                    category=None,
-        #                                    language_tag='es_MX')
+        return 'UNKNOWN'
 
-        # self.assertEqual(200, code)
-        pass
+    @patch('flask_babel.get_locale', return_value='es_MX')
+    @patch('flask_babel._', side_effect=mock_translate)
+    def test_make_mpl_fig(self, MockGetLocale, MockUnderline):
+        # As PyBabel works only when the server is running, we must Mock() the
+        # PyBabel calls used by _make_mpl_fig() if we wish to generate a plot
+        # with the legend translated from English to Spanish.
+        # MockGetLocale object does not need to be used as the stock
+        # return value is all that's needed.
+        # side_effect() is used to simulate _() calls.
+        '''
+        As it turns out, the problem with test_foo is that babel apprently
+        only works when the server is running. So _() and force_locale() are
+        completely useless in the unittest. Hence, we're actually going to
+        have to mock the _() and force_locale() functions. :)
+        '''
+
+        with open('saved_sample_data.json', 'r') as f:
+            # d['x'] and d['y'] contain the positional metadata for all points
+            # in the test graph. d['membership'] contains a list of strings
+            # denoting which cluster each point belongs to. _make_mpl_fig()
+            # will use this info to generate a plot with multiple colors and
+            # a map legend containing the enumerated values found in
+            # d['membership'].
+            d = json.load(f)
+            membership = Series(d['membership'])
+            membership.index = d['membership']
+
+            # call _make_mpl_fig to generate the plot, translating the default
+            # en_US values to es_MX.
+            output = _make_mpl_fig(membership, d['x'], d['y'], 'You', 'es_MX')
+
+            # write the test output out to file for manual review.
+            with open('test_output.png', 'wb') as f:
+                f.write(output.getvalue())
+
+            # read the test output back in from file and generate a histogram
+            # of the image. Compare the histogram with the known histogram on
+            # file using the Kolmogorov–Smirnov test. Consider the test
+            # output good if the p_value is greater than or equal to 95%.
+            image = imread(fname='test_output.png', as_gray=True)
+            histogram1, _ = histogram(image, bins=256, range=(0, 1))
+            histogram2 = array(d['image_histogram_mx'])
+            _, p_value = ks_2samp(histogram1, histogram2)
+            self.assertTrue(p_value >= 0.95)
